@@ -1,0 +1,1 @@
+git+git://github.com/Antonbury/habitica-helper.git#egg=habitica-helper
