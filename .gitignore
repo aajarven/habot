@@ -1,0 +1,6 @@
+.coverage
+.venv
+*.swp
+*.pyc
+conf/secrets/*
+!conf/secrets/__init__.py
