@@ -2,20 +2,26 @@
 Shared test stuff
 """
 
+import re
+
 import pytest
 
+from tests.data.test_tasks import TEST_TASKS
 
-@pytest.fixture(autouse=True)
-def prevent_external_requests(monkeypatch):
+
+@pytest.fixture()
+def mock_task_ticking(mock_task_finding, requests_mock):
     """
-    Make test crash if it tries to make a real request.
+    Fake a successful response for ticking any task
     """
-    def forbidden_request(self, method, url, *args, **kwargs):
-        raise RuntimeError(
-            "A test attempted {} call to {}".format(method, url)
-        )
+    tick_matcher = re.compile("https://habitica.com/api/v3/tasks/.*/score/")
+    requests_mock.post(tick_matcher)
 
-    monkeypatch.setattr(
-        "urllib3.connectionpool.HTTPConnectionPool.urlopen", forbidden_request
-    )
 
+@pytest.fixture()
+def mock_task_finding(requests_mock):
+    """
+    Return the standard test data tasks for task finding
+    """
+    requests_mock.get("https://habitica.com/api/v3/tasks/user",
+                      json={"success": True, "data": TEST_TASKS})

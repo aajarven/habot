@@ -19,6 +19,7 @@ def test_messager():
 # pylint: disable=redefined-outer-name
 
 
+@pytest.mark.usefixtures("mock_task_ticking")
 def test_send_pm(requests_mock, test_messager):
     """
     Test that a request corresponding to the given UID and message is made.
@@ -28,12 +29,15 @@ def test_send_pm(requests_mock, test_messager):
 
     test_messager.send_private_message("test_uid", "test_message")
 
-    assert len(requests_mock.request_history) == 1
+    # one request for sending the message, two for ticking the habit
+    assert len(requests_mock.request_history) == 3
+
     response_data = requests_mock.request_history[0].text
     assert "message=test_message" in response_data
     assert "toUserId=test_uid" in response_data
 
 
+@pytest.mark.usefixtures("mock_task_ticking")
 def test_pm_failure_exception(requests_mock, test_messager):
     """
     Test that a CommunicationFailedException is raised when sending fails
