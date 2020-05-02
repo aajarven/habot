@@ -4,3 +4,4 @@
 *.pyc
 conf/secrets/*
 !conf/secrets/__init__.py
+!conf/secrets/*_template.py
