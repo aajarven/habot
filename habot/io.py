@@ -6,6 +6,8 @@ Currently this means interacting via private messages in Habitica.
 
 import requests
 
+from habot.exceptions import CommunicationFailedException
+
 
 class HabiticaMessager(object):
     """
@@ -35,7 +37,3 @@ class HabiticaMessager(object):
             raise CommunicationFailedException(response)
 
 
-class CommunicationFailedException(Exception):
-    """
-    An exception to be raised when communication attempt doesn't succeed.
-    """

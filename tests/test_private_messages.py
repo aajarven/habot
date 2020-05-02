@@ -17,6 +17,8 @@ def test_messager():
 
 
 # pylint: disable=redefined-outer-name
+
+
 def test_send_pm(requests_mock, test_messager):
     """
     Test that a request corresponding to the given UID and message is made.
@@ -41,4 +43,3 @@ def test_pm_failure_exception(requests_mock, test_messager):
         status_code=500)
     with pytest.raises(CommunicationFailedException):
         test_messager.send_private_message("test_uid", "test_message")
-    
