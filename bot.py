@@ -4,7 +4,8 @@ CLI for performing bot actions
 
 import datetime
 import click
-from habitica_helper import habiticatool, stockrandomizer
+from habitica_helper import habiticatool
+from habitica_helper.challenge import Challenge
 
 from conf.header import HEADER, PARTYMEMBER_HEADER
 from habot.io import HabiticaMessager
@@ -28,24 +29,16 @@ def send_winner_message(dry_run):
     winner) are performed: just picking the name of the winner.
     """
     partytool = habiticatool.PartyTool(PARTYMEMBER_HEADER)
-    challenge = partytool.current_sharing_weekend()
-    participants = partytool.challenge_participants(challenge["id"])
-    completers = sorted(partytool.eligible_winners(challenge["id"],
-                                                   participants))
+    challenge_id = partytool.current_sharing_weekend()["id"]
+    challenge = Challenge(PARTYMEMBER_HEADER, challenge_id)
+
+    completer_str = challenge.completer_str()
 
     today = datetime.date.today()
     last_tuesday = today - datetime.timedelta(today.weekday() - 1)
+    winner_str = challenge.winner_str(last_tuesday, "^AEX")
 
-    rand = stockrandomizer.StockRandomizer("^AEX", last_tuesday)
-    winner_index = rand.pick_integer(0, len(completers))
-
-    message_start = ("Eligible winners for challenge \"{}\" are:\n"
-                     "".format(challenge["name"]))
-    names = "".join(["- {}\n".format(member) for member in completers])
-    rand_info = "Using stock data from {}\n\n".format(last_tuesday)
-    winner = "{} wins the challenge!".format(completers[winner_index])
-
-    message = message_start + names + "\n" + rand_info + winner
+    message = completer_str + "\n\n" + winner_str
 
     if dry_run:
         print(message)
