@@ -34,11 +34,15 @@ def send_winner_message(dry_run):
 
     completer_str = challenge.completer_str()
 
-    today = datetime.date.today()
-    last_tuesday = today - datetime.timedelta(today.weekday() - 1)
-    winner_str = challenge.winner_str(last_tuesday, "^AEX")
+    try:
+        today = datetime.date.today()
+        last_tuesday = today - datetime.timedelta(today.weekday() - 1)
+        winner_str = challenge.winner_str(last_tuesday, "^AEX")
 
-    message = completer_str + "\n\n" + winner_str
+        message = completer_str + "\n\n" + winner_str
+    except IndexError:
+        message = (completer_str + "\n\nNobody completed the challenge, so "
+                   "winner cannot be chosen.")
 
     if dry_run:
         print(message)
