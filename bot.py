@@ -8,7 +8,9 @@ from habitica_helper import habiticatool
 from habitica_helper.challenge import Challenge
 
 from conf.header import HEADER, PARTYMEMBER_HEADER
+from conf.tasks import WINNER_PICKED
 from habot.io import HabiticaMessager
+from habot.habitica_operations import HabiticaOperator
 
 
 @click.group()
@@ -50,6 +52,23 @@ def send_winner_message(dry_run):
         message_sender = HabiticaMessager(HEADER)
         message_sender.send_private_message(
             "f687a6c7-860a-4c7c-8a07-9d0dcbb7c831", message)
+
+    habitica_operator = HabiticaOperator(HEADER)
+    habitica_operator.tick_task(WINNER_PICKED, task_type="habit")
+
+
+@cli.command()
+@click.argument("message", type=str)
+@click.option("--recipient_uid", type=str,
+              default="f687a6c7-860a-4c7c-8a07-9d0dcbb7c831",
+              help=("Habitica user ID of the recipient. Default "
+                    "is Antonbury's"))
+def send_pm(message, recipient_uid):
+    """
+    Send a private message.
+    """
+    message_sender = HabiticaMessager(HEADER)
+    message_sender.send_private_message(recipient_uid, message)
 
 
 if __name__ == "__main__":
