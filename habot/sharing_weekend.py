@@ -36,7 +36,7 @@ class SharingChallengeOperator():
         challenge = challenge_tool.create_challenge({
             "group": self._party_id(),
             "name": self._next_weekend_name(),
-            "shortName": "testName",  # TODO
+            "shortName": self._next_weekend_shortname(),
             "summary": SUMMARY,
             "description": DESCRIPTION,
             "prize": 0,  # TODO
@@ -64,6 +64,18 @@ class SharingChallengeOperator():
                 mon.strftime("%b")[:3],
                 mon.strftime("%-d"))
         return name
+
+    def _next_weekend_shortname(self):
+        """
+        Return a short name for the next challenge.
+
+        The name is always "sharing weekend [year]-[weeknumber]".
+        """
+        # pylint: disable=no-self-use
+        next_saturday = get_next_weekday("saturday")
+        return "sharing weekend {}-{:02d}".format(
+            next_saturday.strftime("%Y"),
+            next_saturday.isocalendar()[1])
 
     def _party_id(self):
         """

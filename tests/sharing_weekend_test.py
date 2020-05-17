@@ -48,3 +48,21 @@ def test_challenge_name_on_weekend(noconnect_operator):
     """
     assert (noconnect_operator._next_weekend_name() ==
             "Sharing Weekend May 23−25")
+
+
+@freeze_time("2020-05-12")
+def test_shortname(noconnect_operator):
+    """
+    Test challenge short name creation in a normal situation
+    """
+    assert (noconnect_operator._next_weekend_shortname() ==
+            "sharing weekend 2020-20")
+
+
+@freeze_time("2019-12-30")
+def test_shortname_newyear(noconnect_operator):
+    """
+    Test challenge short name creation over the new year
+    """
+    assert (noconnect_operator._next_weekend_shortname() ==
+            "sharing weekend 2020-01")
