@@ -3,6 +3,7 @@ Bot functionality for running sharing weekend challenge
 """
 
 from habitica_helper.challenge import ChallengeTool
+from habitica_helper.utils import get_dict_from_api
 
 from conf.sharing_weekend import SUMMARY, DESCRIPTION
 
@@ -30,10 +31,18 @@ class SharingChallengeOperator():
         """
         ct = ChallengeTool(self._header)
         return ct.create_challenge({
-            "group": "2ff2c55f-b894-46c4-a8bd-d86e47b872ff",  # TODO
+            "group": self._party_id(),
             "name": "test name",  # TODO
             "shortName": "testName",  # TODO
             "summary": SUMMARY,
             "description": DESCRIPTION,
             "prize": 0,  # TODO
             })
+
+    def _party_id(self):
+        """
+        Return the ID of the party user is currently in.
+        """
+        user_data = get_dict_from_api(self._header,
+                                      "https://habitica.com/api/v3/user")
+        return user_data["party"]["_id"]
