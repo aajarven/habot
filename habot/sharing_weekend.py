@@ -3,7 +3,7 @@ Bot functionality for running sharing weekend challenge
 """
 
 from habitica_helper.challenge import ChallengeTool
-from habitica_helper.utils import get_dict_from_api
+from habitica_helper.utils import get_dict_from_api, get_next_weekday
 
 from conf.sharing_weekend import SUMMARY, DESCRIPTION
 from conf.tasks import CHALLENGE_CREATED
@@ -35,7 +35,7 @@ class SharingChallengeOperator():
         challenge_tool = ChallengeTool(self._header)
         challenge = challenge_tool.create_challenge({
             "group": self._party_id(),
-            "name": "test name",  # TODO
+            "name": self._next_weekend_name(),  # TODO
             "shortName": "testName",  # TODO
             "summary": SUMMARY,
             "description": DESCRIPTION,
@@ -43,6 +43,27 @@ class SharingChallengeOperator():
             })
         self._operator.tick_task(CHALLENGE_CREATED)
         return challenge
+
+    def _next_weekend_name(self):
+        """
+        Return the name of the challenge for the next weekend.
+        """
+        # pylint: disable=no-self-use
+        sat = get_next_weekday("saturday")
+        mon = get_next_weekday("monday")
+
+        if sat.month == mon.month:
+            name = "Sharing Weekend {} {}−{}".format(
+                sat.strftime("%b"),
+                sat.strftime("%-d"),
+                mon.strftime("%-d"))
+        else:
+            name = "Sharing Weekend {} {} − {} {}".format(
+                sat.strftime("%b"),
+                sat.strftime("%-d"),
+                mon.strftime("%b"),
+                mon.strftime("%-d"))
+        return name
 
     def _party_id(self):
         """
