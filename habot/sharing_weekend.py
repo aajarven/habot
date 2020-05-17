@@ -35,7 +35,7 @@ class SharingChallengeOperator():
         challenge_tool = ChallengeTool(self._header)
         challenge = challenge_tool.create_challenge({
             "group": self._party_id(),
-            "name": self._next_weekend_name(),  # TODO
+            "name": self._next_weekend_name(),
             "shortName": "testName",  # TODO
             "summary": SUMMARY,
             "description": DESCRIPTION,
@@ -50,18 +50,18 @@ class SharingChallengeOperator():
         """
         # pylint: disable=no-self-use
         sat = get_next_weekday("saturday")
-        mon = get_next_weekday("monday")
+        mon = get_next_weekday("monday", from_date=sat)
 
         if sat.month == mon.month:
             name = "Sharing Weekend {} {}−{}".format(
-                sat.strftime("%b"),
+                sat.strftime("%b")[:3],
                 sat.strftime("%-d"),
                 mon.strftime("%-d"))
         else:
             name = "Sharing Weekend {} {} − {} {}".format(
-                sat.strftime("%b"),
+                sat.strftime("%b")[:3],
                 sat.strftime("%-d"),
-                mon.strftime("%b"),
+                mon.strftime("%b")[:3],
                 mon.strftime("%-d"))
         return name
 
