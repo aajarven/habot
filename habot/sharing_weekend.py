@@ -6,6 +6,8 @@ from habitica_helper.challenge import ChallengeTool
 from habitica_helper.utils import get_dict_from_api
 
 from conf.sharing_weekend import SUMMARY, DESCRIPTION
+from conf.tasks import CHALLENGE_CREATED
+from habot.habitica_operations import HabiticaOperator
 
 
 class SharingChallengeOperator():
@@ -20,6 +22,7 @@ class SharingChallengeOperator():
         :header: Header required by Habitica API
         """
         self._header = header
+        self._operator = HabiticaOperator(header)
 
     def create_new(self):
         """
@@ -29,8 +32,8 @@ class SharingChallengeOperator():
 
         :returns: Challenge object representing the challenge
         """
-        ct = ChallengeTool(self._header)
-        return ct.create_challenge({
+        challenge_tool = ChallengeTool(self._header)
+        challenge = challenge_tool.create_challenge({
             "group": self._party_id(),
             "name": "test name",  # TODO
             "shortName": "testName",  # TODO
@@ -38,6 +41,8 @@ class SharingChallengeOperator():
             "description": DESCRIPTION,
             "prize": 0,  # TODO
             })
+        self._operator.tick_task(CHALLENGE_CREATED)
+        return challenge
 
     def _party_id(self):
         """
