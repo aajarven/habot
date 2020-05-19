@@ -1,0 +1,7 @@
+questions:
+  - question: Share in party chat what is the accomplishment you are most proud of? Why?
+    description: Have you been able to overcome some difficult challenge in your life? Have you created something you are proud of? Is there a moment when you have truly lived up to your values? Have you taught yourself a special skill? Does looking at your family, who you have supported through all the storms of life, fill you with joy?
+    used: True
+  - question: Another question
+    description: Another description
+    used: False
