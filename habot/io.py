@@ -7,6 +7,8 @@ Currently this means interacting via private messages in Habitica.
 import requests
 import yaml
 
+from habitica_helper.task import Task
+
 from conf.tasks import PM_SENT
 from habot.exceptions import CommunicationFailedException
 from habot.habitica_operations import HabiticaOperator
@@ -70,7 +72,8 @@ class YamlFileIO(object):
 
         is a valid question list file.
 
-        :returns: a list of Tasks
+        :returns: A list of Tasks. Only the text, tasktype and notes are set
+                  for the task, everything else has to be added later.
         """
         with open(filename) as questionfile:
             file_contents = yaml.load(questionfile, Loader=yaml.BaseLoader)
@@ -82,7 +85,27 @@ class YamlFileIO(object):
                         "The question file doesn't seem to contain a question "
                         "list", filename) \
                     from key_error
-            print(questions)
+            question_tasks = []
+            for question in questions:
+                try:
+                    if unused_only and question["used"] in ["True", "true"]:
+                        continue
+
+                    task_data = {
+                        "text": question["question"],
+                        "tasktype": "todo",
+                        "notes": question["description"],
+                        }
+                    question_tasks.append(Task(task_data))
+                except KeyError as key_error:
+                    raise \
+                        MalformedQuestionFileException(
+                            "The following question in the question list is "
+                            "malformed:\n{}".format(question),
+                            filename) \
+                        from key_error
+
+            return question_tasks
 
 
 class MalformedQuestionFileException(Exception):
