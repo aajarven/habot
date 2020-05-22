@@ -2,5 +2,6 @@ click
 freezegun
 git+git://github.com/Antonbury/habitica-helper.git#egg=habitica-helper
 pytest
+pyyaml
 requests
 requests_mock

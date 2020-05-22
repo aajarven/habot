@@ -5,6 +5,7 @@ Currently this means interacting via private messages in Habitica.
 """
 
 import requests
+import yaml
 
 from conf.tasks import PM_SENT
 from habot.exceptions import CommunicationFailedException
@@ -47,11 +48,11 @@ class HabiticaMessager(object):
 
 class YamlFileIO(object):
     """
-    Read and write YAML files.
+    Read and write YAML files in a way that benefits the bot.
     """
 
     @classmethod
-    def read_question_list(cls, filename, unused_only=True):
+    def read_question_list(cls, filename, unused_only=False):
         """
         Parse a YAML file containing weekly questions.
 
@@ -71,4 +72,43 @@ class YamlFileIO(object):
 
         :returns: a list of Tasks
         """
-        raise NotImplementedError("YAML file IO not implemented yet.")
+        with open(filename) as questionfile:
+            file_contents = yaml.load(questionfile, Loader=yaml.BaseLoader)
+            try:
+                questions = file_contents["questions"]
+            except KeyError as key_error:
+                raise \
+                    MalformedQuestionFileException(
+                        "The question file doesn't seem to contain a question "
+                        "list", filename) \
+                    from key_error
+            print(questions)
+
+
+class MalformedQuestionFileException(Exception):
+    """
+    Exception raised when the question list cannot be parsed.
+
+    Has the following attributes:
+    :problem: A short description of the problem
+    :filename: The problematic file
+    :message: A custom extra message
+    """
+
+    _INFO = ('The expected syntax for the file is that it contains a list '
+             '"questions", each item of which is a dict with keys "question", '
+             '"description" and "used". For example:\n\n'
+             'questions:\n'
+             '  - question: What is your favourite fruit?\n'
+             '    description: Do you like bananas or apples more? Or maybe '
+             'kiwis?\n'
+             '    used: True\n'
+             '  - question: What is your favourite animal?\n'
+             '    description: The only real answer here is labrador ofc =3\n'
+             '    used: False\n\n'
+             'is a valid question list file.')
+
+    def __init__(self, problem, filename):
+        message = ("Problem with question file \"{}\":\n\n{}\n\n{}"
+                   "".format(filename, problem, self._INFO))
+        super(MalformedQuestionFileException, self).__init__(message)
