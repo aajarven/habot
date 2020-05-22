@@ -8,6 +8,7 @@ from habitica_helper.utils import get_dict_from_api, get_next_weekday
 from conf.sharing_weekend import SUMMARY, DESCRIPTION
 from conf.tasks import CHALLENGE_CREATED
 from habot.habitica_operations import HabiticaOperator
+from habot.io import YAMLFileIO
 
 
 class SharingChallengeOperator():
@@ -43,6 +44,17 @@ class SharingChallengeOperator():
             })
         self._operator.tick_task(CHALLENGE_CREATED)
         return challenge
+
+    def add_tasks(self, challenge, questionfile):
+        """
+        Add sharing weekend tasks to the challenge.
+
+        :challenge: ID of the challenge
+        :questionfile: path to the file from which the weekly question is read
+        """
+        static_tasks = YAMLFileIO.read_tasks(questionfile)
+        for task in static_tasks:
+            task.create_to_challenge(challenge, self._header)
 
     def _next_weekend_name(self):
         """

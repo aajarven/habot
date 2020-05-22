@@ -48,10 +48,30 @@ class HabiticaMessager(object):
         self._habitica_operator.tick_task(PM_SENT, task_type="habit")
 
 
-class YamlFileIO(object):
+class YAMLFileIO(object):
     """
     Read and write YAML files in a way that benefits the bot.
     """
+
+    @classmethod
+    def read_tasks(cls, filename):
+        """
+        Create tasks representing the ones in the file.
+
+        The input file must be a YAML file, containing a list of dicts, each of
+        them representing one task. Each task must have keys "text" and
+        "tasktype", and may also contain any of the following: "notes", "date",
+        "difficulty", "uppable" and "downable".
+
+        :returns: A list of tasks
+        """
+        tasks = []
+        with open(filename) as taskfile:
+            file_contents = yaml.load(taskfile, Loader=yaml.BaseLoader)
+            for taskdict in file_contents:
+                # TODO error handling
+                tasks.append(Task(taskdict))
+        return tasks
 
     @classmethod
     def read_question_list(cls, filename, unused_only=False):
