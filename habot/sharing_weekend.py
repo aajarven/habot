@@ -53,7 +53,13 @@ class SharingChallengeOperator():
         :questionfile: path to the file from which the weekly question is read
         """
         static_tasks = YAMLFileIO.read_tasks(questionfile)
+
+        # The challenge starts on the next Saturday, so the due date will be
+        # the following Monday
+        deadline = get_next_weekday("mon", from_date=get_next_weekday("sat"))
+
         for task in static_tasks:
+            task.date = deadline
             task.create_to_challenge(challenge, self._header)
 
     def _next_weekend_name(self):
