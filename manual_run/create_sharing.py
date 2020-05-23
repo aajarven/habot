@@ -14,6 +14,7 @@ from conf.header import HEADER
 
 op = SharingChallengeOperator(HEADER)
 challenge = op.create_new()
-op.add_tasks(challenge.id, "data/sharing_weekend_static_tasks.yml")
+op.add_tasks(challenge.id, "data/sharing_weekend_static_tasks.yml",
+                           "data/weekly_questions.yml")
 #task = Task({"text": "test task", "tasktype": "todo"})
 #task.create_to_challenge(challenge.id, HEADER)

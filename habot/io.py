@@ -4,6 +4,7 @@ Communications with non-API external entities.
 Currently this means interacting via private messages in Habitica.
 """
 
+from collections import OrderedDict
 import requests
 import yaml
 
@@ -92,8 +93,10 @@ class YAMLFileIO(object):
 
         is a valid question list file.
 
-        :returns: A list of Tasks. Only the text, tasktype and notes are set
-                  for the task, everything else has to be added later.
+        :returns: An OrderedDict of Tasks. Only the text, tasktype and notes
+                  are set for the task, everything else has to be added later.
+                  The value for each task is a boolean that denotes if the task
+                  was marked as being used already.
         """
         with open(filename) as questionfile:
             file_contents = yaml.load(questionfile, Loader=yaml.BaseLoader)
@@ -105,10 +108,10 @@ class YAMLFileIO(object):
                         "The question file doesn't seem to contain a question "
                         "list", filename) \
                     from key_error
-            question_tasks = []
+            question_tasks = OrderedDict()
             for question in questions:
                 try:
-                    if unused_only and question["used"] in ["True", "true"]:
+                    if unused_only and question["used"].lower() == "true":
                         continue
 
                     task_data = {
@@ -116,7 +119,8 @@ class YAMLFileIO(object):
                         "tasktype": "todo",
                         "notes": question["description"],
                         }
-                    question_tasks.append(Task(task_data))
+                    question_tasks[Task(task_data)] = (
+                        question["used"].lower() == "true")
                 except KeyError as key_error:
                     raise \
                         MalformedQuestionFileException(
@@ -126,6 +130,37 @@ class YAMLFileIO(object):
                         from key_error
 
             return question_tasks
+
+    @classmethod
+    def write_question_list(cls, questions, filename):
+        """
+        Save all questions as YAML into the given file.
+
+        The given questions must be a dict, keys of which are Tasks and values
+        booleans determining whether that question has already been used.
+
+        questions:
+          - question: What is your favourite fruit?
+            description: Do you like bananas or apples more? Or maybe kiwis?
+            used: True
+          - question: What is your favourite animal?
+            description: The only real answer here is labrador though =3
+            used: False
+
+        :questions: A dict of Habitica tasks and booleans telling whether they
+                    have already been used in some previous challenge.
+        :filename: The output file.
+        """
+        question_data = []
+        for question in questions:
+            print("{}: {}".format(questions[question], question.text))
+            question_data.append({
+                "question": question.text,
+                "description": question.notes,
+                "used": questions[question]})
+        with open(filename, "w") as dest:
+            yaml.dump({"questions": question_data}, dest,
+                      default_flow_style=False)
 
 
 class MalformedQuestionFileException(Exception):
