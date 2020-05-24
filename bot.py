@@ -92,7 +92,10 @@ def create_next_sharing_weekend(tasks, questions, test):
     else:
         header = PARTYMEMBER_HEADER
         update_questions = True
+
     operator = SharingChallengeOperator(header)
+    message_sender = HabiticaMessager(HEADER)
+
     try:
         challenge = operator.create_new()
         operator.add_tasks(challenge.id, tasks, questions,
@@ -100,10 +103,14 @@ def create_next_sharing_weekend(tasks, questions, test):
     except:  # noqa: E722  pylint: disable=bare-except
         report = ("There was a problem during sharing weekend challenge "
                   "creation:\n\n```{}```".format(traceback.format_exc()))
-        message_sender = HabiticaMessager(HEADER)
         message_sender.send_private_message(PARTYMEMBER_HEADER["x-api-user"],
                                             report)
         raise
+
+    report = ("Created a new sharing weekend challenge: "
+              "https://habitica.com/challenges/{}".format(challenge.id))
+    message_sender.send_private_message(PARTYMEMBER_HEADER["x-api-user"],
+                                        report)
 
 
 @cli.command()
