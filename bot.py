@@ -4,6 +4,8 @@ CLI for performing bot actions
 
 import datetime
 import click
+import traceback
+
 from habitica_helper import habiticatool
 from habitica_helper.challenge import Challenge
 
@@ -77,6 +79,12 @@ def send_winner_message(dry_run):
 def create_next_sharing_weekend(tasks, questions, test):
     """
     Create a new sharing weekend challenge for the next weekend.
+
+    If the challenge creation fails, a PM is sent to the party member with a
+    traceback from the problematic function call
+
+    If the challenge creation fails, a PM is sent to the party member with a
+    traceback from the problematic function call.
     """
     if test:
         header = HEADER
@@ -85,9 +93,17 @@ def create_next_sharing_weekend(tasks, questions, test):
         header = PARTYMEMBER_HEADER
         update_questions = True
     operator = SharingChallengeOperator(header)
-    challenge = operator.create_new()
-    operator.add_tasks(challenge.id, tasks, questions,
-                       update_questions=update_questions)
+    try:
+        challenge = operator.create_new()
+        operator.add_tasks(challenge.id, tasks, questions,
+                           update_questions=update_questions)
+    except:  # noqa: E722  pylint: disable=bare-except
+        report = ("There was a problem during sharing weekend challenge "
+                  "creation:\n\n```{}```".format(traceback.format_exc()))
+        message_sender = HabiticaMessager(HEADER)
+        message_sender.send_private_message(PARTYMEMBER_HEADER["x-api-user"],
+                                            report)
+        raise
 
 
 @cli.command()
