@@ -11,6 +11,7 @@ from conf.header import HEADER, PARTYMEMBER_HEADER
 from conf.tasks import WINNER_PICKED
 from habot.io import HabiticaMessager
 from habot.habitica_operations import HabiticaOperator
+from habot.sharing_weekend import SharingChallengeOperator
 
 
 @click.group()
@@ -55,6 +56,38 @@ def send_winner_message(dry_run):
 
     habitica_operator = HabiticaOperator(HEADER)
     habitica_operator.tick_task(WINNER_PICKED, task_type="habit")
+
+
+@cli.command()
+@click.option("--tasks", "-t",
+              default="data/sharing_weekend_static_tasks.yml",
+              type=click.Path(exists=True),
+              help="Path to file that contains YAML description of the "
+                   "tasks that stay the same every week.")
+@click.option("--questions", "-q",
+              default="data/weekly_questions.yml",
+              type=click.Path(exists=True),
+              help="Path to file that contains YAML descriptions of the "
+                   "weekly questions. One of these is used.")
+@click.option("--test/--no-test",
+              is_flag=True, default=True,
+              help="If --test is set, the challenge is created for the bot, "
+                   "not for the actual party member account, and no new "
+                   "weekly questions are marked as used.")
+def create_next_sharing_weekend(tasks, questions, test):
+    """
+    Create a new sharing weekend challenge for the next weekend.
+    """
+    if test:
+        header = HEADER
+        update_questions = False
+    else:
+        header = PARTYMEMBER_HEADER
+        update_questions = True
+    operator = SharingChallengeOperator(header)
+    challenge = operator.create_new()
+    operator.add_tasks(challenge.id, tasks, questions,
+                       update_questions=update_questions)
 
 
 @cli.command()

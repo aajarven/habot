@@ -45,12 +45,15 @@ class SharingChallengeOperator():
         self._operator.tick_task(CHALLENGE_CREATED)
         return challenge
 
-    def add_tasks(self, challenge, static_task_file, question_file):
+    def add_tasks(self, challenge, static_task_file, question_file,
+                  update_questions=True):
         """
         Add sharing weekend tasks to the challenge.
 
         :challenge: ID of the challenge
         :questionfile: path to the file from which the weekly question is read
+        :update_questions: If set to False, the used weekly question isn't
+                           marked as used.
         """
         static_tasks = YAMLFileIO.read_tasks(static_task_file)
 
@@ -62,9 +65,11 @@ class SharingChallengeOperator():
             task.date = deadline
             task.create_to_challenge(challenge, self._header)
 
-        self._add_weekly_question(challenge, question_file, deadline)
+        self._add_weekly_question(challenge, question_file, deadline,
+                                  update_questions)
 
-    def _add_weekly_question(self, challenge, question_file, deadline):
+    def _add_weekly_question(self, challenge, question_file, deadline,
+                             update_questions):
         """
         Get a question, add task to the challenge, and update the question file
 
@@ -72,6 +77,8 @@ class SharingChallengeOperator():
         :question_file: A file containing question data in YAMLFileIO compliant
                         YAML format.
         :deadline: Date to be used as the due date for the task.
+        :update_questions: A boolean that determines if the question file is to
+                           be updated.
         """
         all_questions = YAMLFileIO.read_question_list(question_file,
                                                       unused_only=False)
@@ -91,9 +98,10 @@ class SharingChallengeOperator():
         selected_question.date = deadline
         selected_question.create_to_challenge(challenge, self._header)
 
-        del all_questions[selected_question]
-        all_questions[selected_question] = True
-        YAMLFileIO.write_question_list(all_questions, question_file)
+        if update_questions:
+            del all_questions[selected_question]
+            all_questions[selected_question] = True
+            YAMLFileIO.write_question_list(all_questions, question_file)
 
     def _next_weekend_name(self):
         """

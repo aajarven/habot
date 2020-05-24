@@ -153,7 +153,6 @@ class YAMLFileIO(object):
         """
         question_data = []
         for question in questions:
-            print("{}: {}".format(questions[question], question.text))
             question_data.append({
                 "question": question.text,
                 "description": question.notes,
