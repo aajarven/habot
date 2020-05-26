@@ -7,7 +7,7 @@ from habitica_helper.utils import get_dict_from_api, get_next_weekday
 
 from conf.sharing_weekend import SUMMARY, DESCRIPTION
 from conf.tasks import CHALLENGE_CREATED
-from habot.habitica_operations import HabiticaOperator
+from habot.habitica_operations import HabiticaOperator, NotFoundException
 from habot.io import YAMLFileIO
 
 
@@ -40,9 +40,13 @@ class SharingChallengeOperator():
             "shortName": self._next_weekend_shortname(),
             "summary": SUMMARY,
             "description": DESCRIPTION,
-            "prize": 0,  # TODO
+            "prize": 3,  # TODO
             })
-        self._operator.tick_task(CHALLENGE_CREATED)
+        try:
+            self._operator.tick_task(CHALLENGE_CREATED)
+        except NotFoundException:
+            # It's ok to run this task without having a habit to tick
+            pass
         return challenge
 
     def add_tasks(self, challenge, static_task_file, question_file,
