@@ -1,0 +1,15 @@
+- text: "Share something positive in party chat"
+  notes: "A success, a quote, a cute or funny picture or link, or anything else positive 🥰"
+  tasktype: "habit"
+  difficulty: "hard"
+  frequency: "weekly"
+  uppable: True
+  downable: False
+- text: "Share a success from the week in party chat"
+  notes: "Let's celebrate our wins together, small, large, or in-between" 
+  tasktype: "todo"
+  difficulty: "hard"
+- text: "Share a goal for the upcoming week in party chat"
+  notes: "What do you want/need to work on that can be accomplished in the short-term? Try to make your goals challenging but also attainable"
+  tasktype: "todo"
+  difficulty: "hard"
