@@ -137,14 +137,14 @@ class DBOperator():
 
         If tables or databases are missing, they are created.
         """
-        def create_table_cmd(table_name, table_columns):
+        def create_table_cmd(table_name, table_columns, primary_key):
             """
             Return a string that can be executed to create a table.
             """
             columns = ["{} {}".format(name, table_columns[name]) for name in
                        table_columns]
-            return "CREATE TABLE {} ({})".format(table_name,
-                                                 ", ".join(columns))
+            return "CREATE TABLE {} ({}, PRIMARY KEY (`{}`))".format(
+                table_name, ", ".join(columns), primary_key)
 
         cursor = self.conn.cursor()
 
@@ -155,11 +155,13 @@ class DBOperator():
         # ensure that all tables exist
         cursor.execute("USE {}".format(dbconf.DB_NAME))
         tables = self.tables()
-        for table_name, table_columns in dbconf.TABLES.items():
+        for table_name, (table_columns, primary_key) in dbconf.TABLES.items():
             if table_name not in tables:
-                cursor.execute(create_table_cmd(table_name, table_columns))
+                cursor.execute(create_table_cmd(table_name, table_columns,
+                                                primary_key))
 
         cursor.close()
+
 
 class DatabaseCommunicationException(Exception):
     """
