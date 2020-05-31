@@ -4,6 +4,8 @@ CLI for performing bot actions
 
 import datetime
 import click
+import traceback
+
 from habitica_helper import habiticatool
 from habitica_helper.challenge import Challenge
 
@@ -11,6 +13,7 @@ from conf.header import HEADER, PARTYMEMBER_HEADER
 from conf.tasks import WINNER_PICKED
 from habot.io import HabiticaMessager
 from habot.habitica_operations import HabiticaOperator
+from habot.sharing_weekend import SharingChallengeOperator
 
 
 @click.group()
@@ -55,6 +58,59 @@ def send_winner_message(dry_run):
 
     habitica_operator = HabiticaOperator(HEADER)
     habitica_operator.tick_task(WINNER_PICKED, task_type="habit")
+
+
+@cli.command()
+@click.option("--tasks", "-t",
+              default="data/sharing_weekend_static_tasks.yml",
+              type=click.Path(exists=True),
+              help="Path to file that contains YAML description of the "
+                   "tasks that stay the same every week.")
+@click.option("--questions", "-q",
+              default="data/weekly_questions.yml",
+              type=click.Path(exists=True),
+              help="Path to file that contains YAML descriptions of the "
+                   "weekly questions. One of these is used.")
+@click.option("--test/--no-test",
+              is_flag=True, default=True,
+              help="If --test is set, the challenge is created for the bot, "
+                   "not for the actual party member account, and no new "
+                   "weekly questions are marked as used.")
+def create_next_sharing_weekend(tasks, questions, test):
+    """
+    Create a new sharing weekend challenge for the next weekend.
+
+    If the challenge creation fails, a PM is sent to the party member with a
+    traceback from the problematic function call
+
+    If the challenge creation fails, a PM is sent to the party member with a
+    traceback from the problematic function call.
+    """
+    if test:
+        header = HEADER
+        update_questions = False
+    else:
+        header = PARTYMEMBER_HEADER
+        update_questions = True
+
+    operator = SharingChallengeOperator(header)
+    message_sender = HabiticaMessager(HEADER)
+
+    try:
+        challenge = operator.create_new()
+        operator.add_tasks(challenge.id, tasks, questions,
+                           update_questions=update_questions)
+    except:  # noqa: E722  pylint: disable=bare-except
+        report = ("There was a problem during sharing weekend challenge "
+                  "creation:\n\n```{}```".format(traceback.format_exc()))
+        message_sender.send_private_message(PARTYMEMBER_HEADER["x-api-user"],
+                                            report)
+        raise
+
+    report = ("Created a new sharing weekend challenge: "
+              "https://habitica.com/challenges/{}".format(challenge.id))
+    message_sender.send_private_message(PARTYMEMBER_HEADER["x-api-user"],
+                                        report)
 
 
 @cli.command()
