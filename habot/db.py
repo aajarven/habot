@@ -94,6 +94,45 @@ class DBOperator():
         cursor.close()
         self.conn.commit()
 
+    def delete_row(self, table, condition_column, condition_value,
+                   database=dbconf.DB_NAME):
+        """
+        Delete a single row from the table based on the primary key.
+
+        :table: Database table from which the values are to be deleted
+        :condition_column: Column of the table to be used when choosing the row
+                           for deletion. Must at the moment be the primary key
+                           of the table.
+        :condition_value: Value for the condition_column for the deleted row
+        :database: Database to be used. If not specified, the default database
+                   from configuration file is used.
+        """
+        if not self._is_primary_key(table, condition_column, database):
+            raise ValueError("Cannot delete a row based on {}: not a primary "
+                             "key.".format(condition_column))
+        cursor = self._cursor_for_db(database)
+        del_str = "DELETE FROM {} WHERE {} = '{}';".format(table,
+                                                           condition_column,
+                                                           condition_value)
+        cursor.execute(del_str)
+        affected_rows = cursor.rowcount
+        if affected_rows == 0:
+            raise DataNotFoundException("Condition {} = {} did not match "
+                                        "any rows on table {}: deletion "
+                                        "could not be performed.".format(
+                                            condition_column, condition_value,
+                                            table))
+        if affected_rows > 1:
+            statement = cursor.statement
+            cursor.close()
+            raise DatabaseCommunicationException(
+                "Deletion from table {} using statement '{}' would remove "
+                "more than one row. Nothing deleted.".format(table,
+                                                             statement))
+
+        cursor.close()
+        self.conn.commit()
+
     def databases(self):
         """
         Return a list of available databases.
@@ -118,8 +157,40 @@ class DBOperator():
 
     def columns(self, table, database=dbconf.DB_NAME):
         """
-        Return a list of columns in the table.
+        Return all columns in the table.
+
+        The columns are returned as a dict in which the column names are keys,
+        and their values are dicts describing the column data. The keys for
+        column description values are:
+            - 'Type' (data type)
+            -'Null' ('YES' or 'NO' depending on if the value can be NULL)
+            - 'Key' ('PRI' or empty, tells if this column is a primary key)
+            - 'Default' (Default value for this column)
+            - 'Extra' (possible extra information)
         """
+        cursor = self._cursor_for_db(database)
+        cursor.execute("DESCRIBE {}.{}".format(database, table))
+
+        columns = {}
+
+        descriptions = cursor.description
+        for data in cursor:
+            info = {}
+            for i in range(1, len(descriptions)):
+                info[descriptions[i][0]] = data[i]
+                columns[data[0]] = info
+        cursor.close()
+        return columns
+
+    def _is_primary_key(self, table, key, database=dbconf.DB_NAME):
+        """
+        Return True if the given key is primary key for the table.
+        """
+        try:
+            return self.columns(table, database)[key]["Key"] == "PRI"
+        except KeyError:
+            # if key is not present, it is not a primary key
+            return False
 
     def _cursor_for_db(self, db):
         """
@@ -165,5 +236,10 @@ class DBOperator():
 
 class DatabaseCommunicationException(Exception):
     """
-    En exception to be used when something unexpected happens with the db.
+    An exception to be used when something unexpected happens with the db.
+    """
+
+class DataNotFoundException(Exception):
+    """
+    An exception to be used when matching data is not found from the database.
     """
