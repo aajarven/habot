@@ -57,6 +57,47 @@ class DBOperator():
         cursor.close()
         return data
 
+    def update_row(self, table, primary_key_value, new_data,
+                   database=dbconf.DB_NAME):
+        """
+        Update a single row in the database based on the primary key value.
+
+        Only single-column primary keys are supported at the moment.
+
+        :table: Name of the table where data should be updated
+        :primary_key_value: Value of the primary key on the row that is to be
+                            updated
+        :new_data: A dict with column names as keys and new values as values
+        :database: Database to be used. If not specified, the default database
+                   from configuration file is used.
+        """
+        primary_key = self._primary_key(table, database)
+        if len(primary_key) > 1:
+            raise NotImplementedError("Multi-column primary keys not "
+                                      "supported yet")
+        primary_key = primary_key[0]
+
+        values_str = ", ".join(
+            ["{} = '{}'".format(key, new_data[key]) for key in new_data])
+        update_str = "UPDATE {} SET {} WHERE {}='{}'".format(
+            table, values_str, primary_key, primary_key_value)
+
+        cursor = self._cursor_for_db(database)
+        cursor.execute(update_str)
+
+        affected_rows = cursor.rowcount
+        if affected_rows != 1:
+            statement = cursor.statement
+            cursor.close()
+            raise DatabaseCommunicationException(
+                "Updating the following data:\n{}\ninto table {} should have "
+                "affected one row, but instead it affected {}. The used "
+                "command:\n{}".format(new_data, table, affected_rows,
+                                      statement))
+
+        cursor.close()
+        self.conn.commit()
+
     def insert_data(self, table, data, database=dbconf.DB_NAME):
         """
         Insert given data to the table.
@@ -185,12 +226,24 @@ class DBOperator():
     def _is_primary_key(self, table, key, database=dbconf.DB_NAME):
         """
         Return True if the given key is primary key for the table.
+
+        Currently only works for single-column keys.
         """
-        try:
-            return self.columns(table, database)[key]["Key"] == "PRI"
-        except KeyError:
-            # if key is not present, it is not a primary key
-            return False
+        primary_key = self._primary_key(table, database)
+        if len(primary_key) > 1:
+            raise NotImplementedError("Multi-column primary keys not "
+                                      "supported yet")
+        return primary_key[0] == key
+
+    def _primary_key(self, table, database=dbconf.DB_NAME):
+        """
+        Return the primary key as a list of column names.
+        """
+        primary_key = []
+        for column_name, column_info in self.columns(table, database).items():
+            if column_info["Key"] == "PRI":
+                primary_key.append(column_name)
+        return primary_key
 
     def _cursor_for_db(self, db):
         """
