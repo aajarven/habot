@@ -31,7 +31,8 @@ class DBOperator():
         Run a MySQL query on a single table and return the results.
 
         :table: The table to be queried.
-        :columns: A list of column names. If not provided, all columns used.
+        :columns: A list of names of columns from which to return data. If not
+                  provided, all columns are used.
         :condition: A string corresponding to 'WHERE' part of the query (not
                     including the 'WHERE' itself). If not provided, all rows
                     are returned.
@@ -54,8 +55,9 @@ class DBOperator():
         cursor = self._cursor_for_db(database)
         cursor.execute(query_str)
         data = cursor.fetchall()
+        columns = cursor.column_names
         cursor.close()
-        return data
+        return self._data_to_dicts(data, columns)
 
     def update_row(self, table, primary_key_value, new_data,
                    database=dbconf.DB_NAME):
@@ -86,7 +88,7 @@ class DBOperator():
         cursor.execute(update_str)
 
         affected_rows = cursor.rowcount
-        if affected_rows != 1:
+        if affected_rows != 1 and affected_rows != 0:
             statement = cursor.statement
             cursor.close()
             raise DatabaseCommunicationException(
@@ -223,6 +225,20 @@ class DBOperator():
         cursor.close()
         return columns
 
+    def _data_to_dicts(self, rows, column_names):
+        """
+        Represent the rows as dicts, column names as keys.
+
+        :rows: Data on the rows to be represented
+        :column_names: corresponding column names
+        """
+        data = []
+        for row in rows:
+            data.append({
+                column_names[i]: row[i] for i in range(len(column_names))
+                })
+        return data
+
     def _is_primary_key(self, table, key, database=dbconf.DB_NAME):
         """
         Return True if the given key is primary key for the table.
@@ -253,6 +269,8 @@ class DBOperator():
         """
         cursor = self.conn.cursor()
         cursor.execute("USE {}".format(db))
+        cursor.execute("SET NAMES 'utf8mb4';")
+        cursor.execute("SET CHARACTER SET utf8mb4;")
         return cursor
 
     def _ensure_tables(self):
@@ -291,6 +309,7 @@ class DatabaseCommunicationException(Exception):
     """
     An exception to be used when something unexpected happens with the db.
     """
+
 
 class DataNotFoundException(Exception):
     """
