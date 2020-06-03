@@ -2,6 +2,8 @@
 .venv
 *.swp
 *.pyc
+.mypy_cache/
 conf/secrets/*
 !conf/secrets/__init__.py
 !conf/secrets/*_template.py
+data/weekly_questions.yml
