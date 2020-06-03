@@ -88,7 +88,7 @@ class DBOperator():
         cursor.execute(update_str)
 
         affected_rows = cursor.rowcount
-        if affected_rows != 1 and affected_rows != 0:
+        if affected_rows not in [0, 1]:
             statement = cursor.statement
             cursor.close()
             raise DatabaseCommunicationException(
