@@ -1,7 +1,7 @@
 click
 freezegun
 git+git://github.com/Antonbury/habitica-helper.git#egg=habitica-helper
-mysql-connector
+mysql-connector-python
 pytest
 pyyaml
 requests
