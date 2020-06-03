@@ -4,13 +4,13 @@ CLI for performing bot actions
 
 import datetime
 import click
-import traceback
 
 from habitica_helper import habiticatool
 from habitica_helper.challenge import Challenge
 
 from conf.header import HEADER, PARTYMEMBER_HEADER
 from conf.tasks import WINNER_PICKED
+from habot.birthdays import BirthdayReminder
 from habot.io import HabiticaMessager
 from habot.habitica_operations import HabiticaOperator
 from habot.sharing_weekend import SharingChallengeOperator
@@ -125,6 +125,19 @@ def send_pm(message, recipient_uid):
     """
     message_sender = HabiticaMessager(HEADER)
     message_sender.send_private_message(recipient_uid, message)
+
+
+@cli.command()
+@click.option("--recipient_uid", type=str,
+              default="f687a6c7-860a-4c7c-8a07-9d0dcbb7c831",
+              help=("Habitica user ID of the recipient. Default "
+                    "is Antonbury's"))
+def send_birthday_reminder(recipient_uid):
+    """
+    Send a private message listing everyone who is having their birthday.
+    """
+    reminder = BirthdayReminder(HEADER)
+    reminder.send_birthday_reminder(recipient_uid)
 
 
 if __name__ == "__main__":
