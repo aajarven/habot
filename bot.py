@@ -2,16 +2,18 @@
 CLI for performing bot actions
 """
 
+import traceback
+
 import datetime
 import click
-import traceback
 
 from habitica_helper import habiticatool
 from habitica_helper.challenge import Challenge
 
 from conf.header import HEADER, PARTYMEMBER_HEADER
 from conf.tasks import WINNER_PICKED
-from habot.io import HabiticaMessager
+from habot.birthdays import BirthdayReminder
+from habot.io import HabiticaMessager, DBSyncer
 from habot.habitica_operations import HabiticaOperator
 from habot.sharing_weekend import SharingChallengeOperator
 
@@ -125,6 +127,27 @@ def send_pm(message, recipient_uid):
     """
     message_sender = HabiticaMessager(HEADER)
     message_sender.send_private_message(recipient_uid, message)
+
+
+@cli.command()
+@click.option("--recipient_uid", type=str,
+              default="f687a6c7-860a-4c7c-8a07-9d0dcbb7c831",
+              help=("Habitica user ID of the recipient. Default "
+                    "is Antonbury's"))
+@click.option("--no-sync", is_flag=True,
+              help=("Don't update the database using the fresh data from the "
+                    "API, but use old database data instead. This makes the "
+                    "command run somewhat faster but risks using outdated "
+                    "data."))
+def send_birthday_reminder(recipient_uid, no_sync):
+    """
+    Send a private message listing everyone who is having their birthday.
+    """
+    if not no_sync:
+        db_syncer = DBSyncer(PARTYMEMBER_HEADER)
+        db_syncer.update_partymember_data()
+    reminder = BirthdayReminder(HEADER)
+    reminder.send_birthday_reminder(recipient_uid)
 
 
 if __name__ == "__main__":

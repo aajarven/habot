@@ -8,9 +8,11 @@ from collections import OrderedDict
 import requests
 import yaml
 
+from habitica_helper.habiticatool import PartyTool
 from habitica_helper.task import Task
 
 from conf.tasks import PM_SENT
+from habot.db import DBOperator
 from habot.exceptions import CommunicationFailedException
 from habot.habitica_operations import HabiticaOperator
 
@@ -47,6 +49,61 @@ class HabiticaMessager(object):
             raise CommunicationFailedException(response)
 
         self._habitica_operator.tick_task(PM_SENT, task_type="habit")
+
+
+class DBSyncer(object):
+    """
+    Fetch data from Habitica API and write it to the database.
+    """
+
+    def __init__(self, header):
+        """
+        :header: Habitica API call header for a party member
+        """
+        self._header = header
+        self._db = DBOperator()
+
+    def update_partymember_data(self):
+        """
+        Fetch current party member data from Habitica and update the database.
+
+        If the database contains members that are not currently in the party,
+        they are removed from the database.
+        """
+        partytool = PartyTool(self._header)
+        partymembers = partytool.party_members()
+
+        self.add_new_members(partymembers)
+        self.remove_old_members(partymembers)
+
+    def remove_old_members(self, partymembers):
+        """
+        Remove everyone who is not a current party member from "members" table.
+
+        :partymembers: A complete list of current party members.
+        """
+        member_ids_in_party = [member.id for member in partymembers]
+        members_in_db = self._db.query_table("members", "id")
+        for member in members_in_db:
+            if member["id"] not in member_ids_in_party:
+                self._db.delete_row("members", "id", member["id"])
+
+    def add_new_members(self, partymembers):
+        """
+        """
+        for member in partymembers:
+            db_data = {
+                "id": member.id,
+                "displayname": member.displayname,
+                "loginname": member.login_name,
+                "birthday": member.habitica_birthday,
+                }
+            user_row = self._db.query_table(
+                "members", condition="id='{}'".format(member.id))
+            if len(user_row) == 0:
+                self._db.insert_data("members", db_data)
+            elif user_row != db_data:
+                self._db.update_row("members", member.id, db_data)
 
 
 class YAMLFileIO(object):
