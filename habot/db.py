@@ -25,7 +25,7 @@ class DBOperator():
                                             passwd=credentials.PASSWORD)
         self._ensure_tables()
 
-    def query_table(self, table, columns="*", condition=None,
+    def query_table(self, table, columns=None, condition=None,
                     database=dbconf.DB_NAME):
         """
         Run a MySQL query on a single table and return the results.
@@ -41,6 +41,8 @@ class DBOperator():
             column_str = ", ".join(columns)
         elif isinstance(columns, str):
             column_str = columns
+        elif columns is None:
+            column_str = "*"
         else:
             raise ValueError("Illegal column selector '{}' received. A string "
                              "or list expected.".format(columns))
