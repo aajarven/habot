@@ -148,6 +148,7 @@ def test_insert_data(testdata_db_operator):
                        "displayname": "newguy9004",
                        "birthday": datetime.date(2020, 5, 5)}
     testdata_db_operator.insert_data("members", new_member_data)
+
     cursor = testdata_db_operator.conn.cursor()
     cursor.execute("SELECT * FROM members where id='abc123'")
     result = cursor.fetchall()
@@ -155,6 +156,33 @@ def test_insert_data(testdata_db_operator):
     data = result[0]
     for value in new_member_data.values():
         assert value in data
+    cursor.close()
+
+
+@pytest.mark.parametrize("updated_id", [SIMPLE_USER["id"], "nonexistent_id"])
+def test_update_data(testdata_db_operator, updated_id):
+    """
+    Test that updating based on primary key is possible
+    """
+    testdata_db_operator.update_row("members", updated_id,
+                                    {"displayname": "cooler_name"})
+
+    updated_data = SIMPLE_USER.copy()
+    updated_data["displayname"] = "cooler_name"
+
+    cursor = testdata_db_operator.conn.cursor()
+    cursor.execute(
+        "SELECT * FROM members where id='{}'".format(updated_id))
+
+    result = cursor.fetchall()
+    if "nonexistent" in updated_id:
+        # a new row is not inserted using update
+        assert len(result) == 0
+    else:
+        # but existing values are updated
+        data = result[0]
+        for value in data:
+            assert value in updated_data.values()
     cursor.close()
 
 
