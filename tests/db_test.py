@@ -7,6 +7,8 @@ import mysql.connector
 import pytest
 import testing.mysqld
 
+from habot.db import DBOperator
+
 
 @pytest.fixture(scope="module")
 def connection_fx():
@@ -21,23 +23,25 @@ def connection_fx():
 
 
 @pytest.fixture()
-def testdata_db_fx(connection_fx):
+def testdata_db_operator(connection_fx, monkeypatch):
     """
-    Populate the test database with proper test data.
+    Yield monkeypatched DBOperator that uses test database.
+
+    The same database connection is used for all tests, but the databases and
+    tables in it are regenerated for each test.
     """
     cursor = connection_fx.cursor()
-    cursor.execute("DROP DATABASE IF EXISTS test_members")
+    cursor.execute("DROP DATABASE IF EXISTS habdb")
     cursor.execute("CREATE DATABASE habdb")
+
+    def _connection_factory(**kwargs):
+        # pylint: disable=unused-argument
+        return connection_fx
+    monkeypatch.setattr(mysql.connector, "connect", _connection_factory)
+
+    operator = DBOperator()
+
     cursor.execute("USE habdb")
-    cursor.execute("CREATE TABLE `members` ( "
-                   "`id` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL, "
-                   "`displayname` varchar(255) COLLATE utf8mb4_unicode_ci"
-                   " DEFAULT NULL, "
-                   "`loginname` varchar(255) COLLATE utf8mb4_unicode_ci"
-                   " DEFAULT NULL, "
-                   "`birthday` date DEFAULT NULL, "
-                   "PRIMARY KEY (`id`) "
-                   ") DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci")
     cursor.execute("INSERT INTO members "
                    "(id, displayname, loginname, birthday) "
                    "values "
@@ -50,14 +54,12 @@ def testdata_db_fx(connection_fx):
                    )
     connection_fx.commit()
     cursor.close()
-    yield connection_fx
+    yield operator
 
 
-def test_data_init(testdata_db_fx):
+def test_db_operator(testdata_db_operator):
     """
-    Test that the test data fixture works.
+    Test that the monkeypatched database operator has test data in its db
     """
-    cursor = testdata_db_fx.cursor()
-    cursor.execute("SELECT * FROM members")
-    result = cursor.fetchall()
+    result = testdata_db_operator.query_table("members")
     assert len(result) == 3
