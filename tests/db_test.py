@@ -140,6 +140,24 @@ def test_query_table_exceptions(testdata_db_operator, columns,
         testdata_db_operator.query_table("members", columns=columns)
 
 
+def test_insert_data(testdata_db_operator):
+    """
+    Test that a row can be inserted into the database using DBOperator
+    """
+    new_member_data = {"id": "abc123", "loginname": "newguy",
+                       "displayname": "newguy9004",
+                       "birthday": datetime.date(2020, 5, 5)}
+    testdata_db_operator.insert_data("members", new_member_data)
+    cursor = testdata_db_operator.conn.cursor()
+    cursor.execute("SELECT * FROM members where id='abc123'")
+    result = cursor.fetchall()
+    assert len(result) == 1
+    data = result[0]
+    for value in new_member_data.values():
+        assert value in data
+    cursor.close()
+
+
 def _dict_in_list(dict_to_find, dict_list):
     """
     Return True if dict_to_find is present in the dict_list.

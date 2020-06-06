@@ -104,7 +104,7 @@ class DBOperator():
 
     def insert_data(self, table, data, database=dbconf.DB_NAME):
         """
-        Insert given data to the table.
+        Insert a row representing the given data to the table.
 
         :table: Name of the table to which a new row is inserted
         :data: A dict representing the data to be inserted. The keys must
