@@ -93,6 +93,8 @@ def test_db_operator(testdata_db_operator):
         (None, "displayname like 'nobodyhere'", []),
         ("displayname, loginname", "displayname like 'habitician'",
          [{"displayname": "habitician", "loginname": "habiticianlogin"}]),
+        (["displayname", "loginname"], "displayname like 'habitician'",
+         [{"displayname": "habitician", "loginname": "habiticianlogin"}]),
     ]
 )
 def test_query_table(testdata_db_operator, columns, condition,
@@ -111,6 +113,25 @@ def test_query_table(testdata_db_operator, columns, condition,
     assert len(query_result) == len(expected_result)
     for row in expected_result:
         assert _dict_in_list(row, query_result)
+
+
+@pytest.mark.parametrize(
+    ["columns", "expected_exception"],
+    [
+        (1, ValueError),
+        ("nonexistent_column", mysql.connector.Error),
+    ]
+)
+def test_query_table_exceptions(testdata_db_operator, columns,
+                                expected_exception):
+    """
+    Test that an error is raised if there's a problem with the parameters.
+
+    This is tested with wrong type of column identifier and with a non-existing
+    column.
+    """
+    with pytest.raises(expected_exception):
+        testdata_db_operator.query_table("members", columns=columns)
 
 
 def _dict_in_list(dict_to_find, dict_list):
