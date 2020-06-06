@@ -6,3 +6,4 @@ pytest
 pyyaml
 requests
 requests_mock
+testing.mysqld

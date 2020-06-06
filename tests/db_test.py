@@ -65,16 +65,22 @@ def testdata_db_operator(connection_fx, monkeypatch):
     cursor.execute("INSERT INTO members "
                    "(id, displayname, loginname, birthday) "
                    "values "
-                   "('9cb40345-720f-4c9e-974d-18e016d9564d',"
-                   " 'testuser', 'testuser', '2016-12-04'), "
-                   "('a431b1a5-d287-4c34-93c4-7d607905a947',"
-                   " 'habitician', 'habiticianlogin', '2019-05-31'), "
-                   "('7319d61c-1940-460d-8dc8-007f7e9537f0',"
-                   " 'somedüde', 'somedude', '2019-05-31')"
-                   )
+                   "{}, {}, {}".format(_member_dict_to_values(SIMPLE_USER),
+                                       _member_dict_to_values(NAMEDIFF_USER),
+                                       _member_dict_to_values(CHARSET_USER)))
     connection_fx.commit()
     cursor.close()
     yield operator
+
+
+def _member_dict_to_values(member_dict):
+    """
+    Return a string that represents the given member dict for INSERT statement
+    """
+    return "('{}', '{}', '{}', '{}')".format(member_dict["id"],
+                                             member_dict["displayname"],
+                                             member_dict["loginname"],
+                                             member_dict["birthday"])
 
 
 def test_db_operator(testdata_db_operator):
