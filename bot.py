@@ -139,7 +139,9 @@ def send_pm(message, recipient_uid):
                     "API, but use old database data instead. This makes the "
                     "command run somewhat faster but risks using outdated "
                     "data."))
-def send_birthday_reminder(recipient_uid, no_sync):
+@click.option("--test", is_flag=True,
+              help="Don't send the message, just print it")
+def send_birthday_reminder(recipient_uid, no_sync, test):
     """
     Send a private message listing everyone who is having their birthday.
     """
@@ -147,7 +149,10 @@ def send_birthday_reminder(recipient_uid, no_sync):
         db_syncer = DBSyncer(PARTYMEMBER_HEADER)
         db_syncer.update_partymember_data()
     reminder = BirthdayReminder(HEADER)
-    reminder.send_birthday_reminder(recipient_uid)
+    if test:
+        click.echo(reminder.birthday_reminder_message())
+    else:
+        reminder.send_birthday_reminder(recipient_uid)
 
 
 if __name__ == "__main__":

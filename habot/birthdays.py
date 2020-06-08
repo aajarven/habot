@@ -42,6 +42,14 @@ class BirthdayReminder():
 
         :recipient_uid: The UID of the Habitician to whom the PM is sent
         """
+        message = self.birthday_reminder_message()
+        messager = HabiticaMessager(self._header)
+        messager.send_private_message(recipient_uid, message)
+
+    def birthday_reminder_message(self):
+        """
+        Return a string representing today's birthday reminder
+        """
         revellers = self.birthdays_today()
         if not revellers:
             message = ("Nobody from the party is celebrating their Habitica "
@@ -53,5 +61,4 @@ class BirthdayReminder():
             message = ("The following habiticians are celebrating their "
                        "Habitica birthdays today:\n"
                        "{}".format(reveller_str))
-        messager = HabiticaMessager(self._header)
-        messager.send_private_message(recipient_uid, message)
+        return message
