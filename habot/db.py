@@ -25,7 +25,7 @@ class DBOperator():
                                             passwd=credentials.PASSWORD)
         self._ensure_tables()
 
-    def query_table(self, table, columns="*", condition=None,
+    def query_table(self, table, columns=None, condition=None,
                     database=dbconf.DB_NAME):
         """
         Run a MySQL query on a single table and return the results.
@@ -41,6 +41,8 @@ class DBOperator():
             column_str = ", ".join(columns)
         elif isinstance(columns, str):
             column_str = columns
+        elif columns is None:
+            column_str = "*"
         else:
             raise ValueError("Illegal column selector '{}' received. A string "
                              "or list expected.".format(columns))
@@ -102,7 +104,7 @@ class DBOperator():
 
     def insert_data(self, table, data, database=dbconf.DB_NAME):
         """
-        Insert given data to the table.
+        Insert a row representing the given data to the table.
 
         :table: Name of the table to which a new row is inserted
         :data: A dict representing the data to be inserted. The keys must
@@ -150,6 +152,7 @@ class DBOperator():
         :database: Database to be used. If not specified, the default database
                    from configuration file is used.
         """
+        # TODO: allow removing based on other keys too
         if not self._is_primary_key(table, condition_column, database):
             raise ValueError("Cannot delete a row based on {}: not a primary "
                              "key.".format(condition_column))
@@ -206,7 +209,7 @@ class DBOperator():
         and their values are dicts describing the column data. The keys for
         column description values are:
             - 'Type' (data type)
-            -'Null' ('YES' or 'NO' depending on if the value can be NULL)
+            - 'Null' ('YES' or 'NO' depending on if the value can be NULL)
             - 'Key' ('PRI' or empty, tells if this column is a primary key)
             - 'Default' (Default value for this column)
             - 'Extra' (possible extra information)

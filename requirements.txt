@@ -1,5 +1,5 @@
 click
 git+git://github.com/Antonbury/habitica-helper.git#egg=habitica-helper
-mysql-connector
+mysql-connector-python
 pyyaml
 requests
