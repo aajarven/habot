@@ -10,6 +10,7 @@ import yaml
 
 from habitica_helper.habiticatool import PartyTool
 from habitica_helper.task import Task
+from habitica_helper.utils import get_dict_from_api
 
 from conf.tasks import PM_SENT
 from habot.db import DBOperator
@@ -49,6 +50,19 @@ class HabiticaMessager(object):
             raise CommunicationFailedException(response)
 
         self._habitica_operator.tick_task(PM_SENT, task_type="habit")
+
+    def get_private_messages(self):
+        """
+        Fetch private messages using Habitica API.
+
+        If there are new messages, they are written to the database and
+        returned.
+        """
+        messages = get_dict_from_api(
+            self._header, "https://habitica.com/api/v3/inbox/messages")
+        import json
+        print(json.dumps(messages, indent=4))
+        # TODO
 
 
 class DBSyncer(object):
