@@ -152,6 +152,7 @@ class DBOperator():
         :database: Database to be used. If not specified, the default database
                    from configuration file is used.
         """
+        # TODO: allow removing based on other keys too
         if not self._is_primary_key(table, condition_column, database):
             raise ValueError("Cannot delete a row based on {}: not a primary "
                              "key.".format(condition_column))
@@ -208,7 +209,7 @@ class DBOperator():
         and their values are dicts describing the column data. The keys for
         column description values are:
             - 'Type' (data type)
-            -'Null' ('YES' or 'NO' depending on if the value can be NULL)
+            - 'Null' ('YES' or 'NO' depending on if the value can be NULL)
             - 'Key' ('PRI' or empty, tells if this column is a primary key)
             - 'Default' (Default value for this column)
             - 'Extra' (possible extra information)

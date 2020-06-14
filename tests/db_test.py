@@ -29,6 +29,12 @@ CHARSET_USER = {"id": "7319d61c-1940-460d-8dc8-007f7e9537f0",
                 "loginname": "somedude",
                 "birthday": datetime.date(2019, 5, 31)}
 
+# User sharing a birthday with another user
+SHAREBDAY_USER = {"id": "b5845235-a344-4f52-a08b-02084cab00c4",
+                  "displayname": "showingYaMyBDAY",
+                  "loginname": "birthdayfella",
+                  "birthday": datetime.date(2019, 5, 31)}
+
 
 @pytest.fixture(scope="module")
 def connection_fx():
@@ -65,9 +71,12 @@ def testdata_db_operator(connection_fx, monkeypatch):
     cursor.execute("INSERT INTO members "
                    "(id, displayname, loginname, birthday) "
                    "values "
-                   "{}, {}, {}".format(_member_dict_to_values(SIMPLE_USER),
-                                       _member_dict_to_values(NAMEDIFF_USER),
-                                       _member_dict_to_values(CHARSET_USER)))
+                   "{}, {}, {}, {}".format(
+                       _member_dict_to_values(SIMPLE_USER),
+                       _member_dict_to_values(NAMEDIFF_USER),
+                       _member_dict_to_values(CHARSET_USER),
+                       _member_dict_to_values(SHAREBDAY_USER),
+                       ))
     connection_fx.commit()
     cursor.close()
     yield operator
@@ -88,13 +97,14 @@ def test_db_operator(testdata_db_operator):
     Test that the monkeypatched database operator has test data in its db
     """
     result = testdata_db_operator.query_table("members")
-    assert len(result) == 3
+    assert len(result) == 4
 
 
 @pytest.mark.parametrize(
     ["columns", "condition", "expected_result"],
     [
-        (None, None, [SIMPLE_USER, NAMEDIFF_USER, CHARSET_USER]),
+        (None, None,
+         [SIMPLE_USER, NAMEDIFF_USER, CHARSET_USER, SHAREBDAY_USER]),
         (None, "displayname like 'habitician'", [NAMEDIFF_USER]),
         (None, "displayname like 'nobodyhere'", []),
         ("displayname, loginname", "displayname like 'habitician'",
@@ -184,6 +194,30 @@ def test_update_data(testdata_db_operator, updated_id):
         for value in data:
             assert value in updated_data.values()
     cursor.close()
+
+
+def test_delete_row(testdata_db_operator):
+    """
+    Test that a row can be removed using the primary key
+    """
+    testdata_db_operator.delete_row("members", "id", SIMPLE_USER["id"])
+    query_result = testdata_db_operator.query_table(
+        "members", condition="id='{}'".format(SIMPLE_USER["id"]))
+    assert len(query_result) == 0
+
+
+def test_delete_illegal_row(testdata_db_operator):
+    """
+    Test that an exception is raised when not using primary key as condition.
+
+    The row must also not be removed from the database.
+    """
+    with pytest.raises(ValueError):
+        testdata_db_operator.delete_row("members", "loginname",
+                                        SIMPLE_USER["loginname"])
+    query_result = testdata_db_operator.query_table(
+        "members", condition="id='{}'".format(SIMPLE_USER["id"]))
+    assert len(query_result) == 1
 
 
 def _dict_in_list(dict_to_find, dict_list):
