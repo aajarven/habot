@@ -12,4 +12,12 @@ TABLES = {
         "loginname": "VARCHAR(255)",
         "birthday": "DATE",
         }, "id"),
+    "private_messages": ({
+        "id": "VARCHAR(50)",
+        "from_id": "VARCHAR(50)",
+        "to_id": "VARCHAR(50)",
+        "timestamp": "DATETIME",
+        "content": "VARCHAR(3000)",
+        "reaction_pending": "BOOLEAN",
+        }, "id"),
     }
