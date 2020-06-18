@@ -104,6 +104,11 @@ class DBSyncer(object):
 
     def add_new_members(self, partymembers):
         """
+        Update the database to contain data for all given party members.
+
+        If someone is missing entirely, they are added, or if someone's
+        information has changed (e.g. displayname), the corresponding row is
+        updated.
         """
         for member in partymembers:
             db_data = {
@@ -120,7 +125,7 @@ class DBSyncer(object):
                 self._db.update_row("members", member.id, db_data)
 
 
-class YAMLFileIO(object):
+class YAMLFileIO():
     """
     Read and write YAML files in a way that benefits the bot.
     """
