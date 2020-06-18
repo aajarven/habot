@@ -17,7 +17,7 @@ TABLES = {
         "from_id": "VARCHAR(50)",
         "to_id": "VARCHAR(50)",
         "timestamp": "DATETIME",
-        "content": "VARCHAR(3000)",
+        "content": "VARCHAR(6000)",
         "reaction_pending": "BOOLEAN",
         }, "id"),
     }
