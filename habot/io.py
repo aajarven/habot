@@ -10,15 +10,16 @@ import yaml
 
 from habitica_helper.habiticatool import PartyTool
 from habitica_helper.task import Task
-from habitica_helper.utils import get_dict_from_api
+from habitica_helper.utils import get_dict_from_api, timestamp_to_datetime
 
 from conf.tasks import PM_SENT
 from habot.db import DBOperator
 from habot.exceptions import CommunicationFailedException
 from habot.habitica_operations import HabiticaOperator
+from habot.message import PrivateMessage
 
 
-class HabiticaMessager(object):
+class HabiticaMessager():
     """
     A class for handling Habitica private messages.
     """
@@ -57,15 +58,54 @@ class HabiticaMessager(object):
 
         If there are new messages, they are written to the database and
         returned.
+
+        No paging is implemented: all new messages are assumed to fit into the
+        returned data from the API.
         """
         messages = get_dict_from_api(
             self._header, "https://habitica.com/api/v3/inbox/messages")
-        import json
-        print(json.dumps(messages, indent=4))
-        # TODO
+        messages = [PrivateMessage(
+                        message["ownerId"], message["uuid"],
+                        timestamp=timestamp_to_datetime(message["timestamp"]),
+                        content=message["text"], message_id=message["id"])
+                    for message in messages]
+        self.add_PMs_to_db(messages)
+
+    def add_PMs_to_db(self, messages):
+        """
+        Write all given private messages to the database.
+
+        New messages are marked as reaction_pending=True. If none of the given
+        messages are present in the database, returns True to signal that
+        fetching more messages might be necessary. Otherwise returns False.
+
+        :messages: `PrivateMessage`s to be added to the database
+        :returns: True if all of the messages were new (not already in the db),
+                  otherwise False
+        """
+        # pylint: disable=invalid-name
+        db = DBOperator()
+        all_new = True
+        for message in messages:
+            existing_message = db.query_table(
+                "private_messages",
+                condition="id='{}'".format(message.message_id))
+            if not existing_message:
+                db_data = {
+                    "id": message.message_id,
+                    "from_id": message.from_id,
+                    "to_id": message.to_id,
+                    "content": message.content,
+                    "timestamp": message.timestamp,
+                    "reaction_pending": 1,
+                    }
+                db.insert_data("private_messages", db_data)
+            else:
+                all_new = False
+        return all_new
 
 
-class DBSyncer(object):
+class DBSyncer():
     """
     Fetch data from Habitica API and write it to the database.
     """
