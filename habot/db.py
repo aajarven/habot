@@ -118,14 +118,14 @@ class DBOperator():
         values = []
         for key, value in data.items():
             columns.append(key)
-            values.append("'{}'".format(value))
+            values.append(str(value))
         column_str = ", ".join(columns)
-        value_str = ", ".join(values)
         cursor = self._cursor_for_db(database)
+        value_parameters = ", ".join(["%s"]*len(columns))
         insert_str = "INSERT INTO {} ({}) VALUES ({})".format(table,
                                                               column_str,
-                                                              value_str)
-        cursor.execute(insert_str)
+                                                              value_parameters)
+        cursor.execute(insert_str, tuple(values))
 
         affected_rows = cursor.rowcount
         if affected_rows != 1:
