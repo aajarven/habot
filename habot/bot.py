@@ -10,9 +10,18 @@ from habitica_helper import habiticatool
 from habitica_helper.challenge import Challenge
 from habot.habitica_operations import HabiticaOperator
 from habot.io import HabiticaMessager
+from habot.message import PrivateMessage
 
 from conf.header import HEADER, PARTYMEMBER_HEADER
 from conf.tasks import WINNER_PICKED
+
+
+def handle_PMs():
+    """
+    """
+    new_messages = PrivateMessage.messages_awaiting_reaction()
+    for message in new_messages:
+        react_to_message(message)
 
 
 def react_to_message(message):
@@ -37,6 +46,7 @@ def react_to_message(message):
         response = "Command `{}` not recognized"  # TODO add better help
 
     HabiticaMessager(HEADER).send_private_message(message.from_id, response)
+    HabiticaMessager.set_reaction_pending(message, False)
 
 
 class Functionality():

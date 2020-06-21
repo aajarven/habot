@@ -83,7 +83,7 @@ class HabiticaMessager():
         :returns: True if all of the messages were new (not already in the db),
                   otherwise False
         """
-        # pylint: disable=invalid-name
+        # pylint: disable=invalid-name, no-self-use
         db = DBOperator()
         all_new = True
         for message in messages:
@@ -103,6 +103,18 @@ class HabiticaMessager():
             else:
                 all_new = False
         return all_new
+
+    @classmethod
+    def set_reaction_pending(cls, message, reaction):
+        """
+        Set reaction_pending field in the DB for a given message.
+
+        :message: A Message for which database is altered
+        :reaction: True/False for reaction pending
+        """
+        db = DBOperator()
+        db.update_row("private_messages", message.message_id,
+                      {"reaction_pending": reaction})
 
 
 class DBSyncer():

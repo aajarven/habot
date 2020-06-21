@@ -2,6 +2,8 @@
 Representations for Habitica messages.
 """
 
+from habot.db import DBOperator
+
 class Message():
     """
     Base message: e.g. private messages and party chat messages are these.
@@ -47,3 +49,16 @@ class PrivateMessage(Message):
                 "{} ({})\n\n"
                 "{}".format(self.from_id, self.to_id, self.timestamp,
                             self.message_id, self.content))
+
+    @classmethod
+    def messages_awaiting_reaction(cls):
+        """
+        Return a list of Messages which are marked as reaction pending.
+        """
+        db = DBOperator()
+        message_data = db.query_table("private_messages",
+                                      condition="reaction_pending=True")
+        return [PrivateMessage(m["from_id"], m["to_id"],
+                               timestamp=m["timestamp"],
+                               content=m["content"], message_id=m["id"])
+                for m in message_data]
