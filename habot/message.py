@@ -23,6 +23,19 @@ class Message():
         self.content = content
         self.message_id = message_id
 
+    def excerpt(self, max_chars=80, continuation_signal="..."):
+        """
+        Return the content of the message, truncated to fit to max_chars.
+
+        If the message does not fit to max_chars, it is truncated so that the
+        truncated message and appended continuation_signal are exactly
+        max_chars long, and the resulting string is returned.
+        """
+        if len(self.content) <= 80:
+            return self.content
+        return (self.content[:max_chars-len(continuation_signal)] +
+                continuation_signal)
+
 
 class PrivateMessage(Message):
     """

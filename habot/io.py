@@ -16,6 +16,7 @@ from conf.tasks import PM_SENT
 from habot.db import DBOperator
 from habot.exceptions import CommunicationFailedException
 from habot.habitica_operations import HabiticaOperator
+import habot.logger
 from habot.message import PrivateMessage
 
 
@@ -33,6 +34,7 @@ class HabiticaMessager():
         """
         self._header = header
         self._habitica_operator = HabiticaOperator(header)
+        self._logger = habot.logger.get_logger()
 
     def send_private_message(self, to_uid, message):
         """
@@ -64,20 +66,24 @@ class HabiticaMessager():
         """
         messages = get_dict_from_api(
             self._header, "https://habitica.com/api/v3/inbox/messages")
-        messages = [PrivateMessage(
-                        message["ownerId"], message["uuid"],
+        messages = [PrivateMessage(  # TODO this is broken: we need to check
+                                     #                      "sent"
+                        message["uuid"], message["uuid"],
                         timestamp=timestamp_to_datetime(message["timestamp"]),
                         content=message["text"], message_id=message["id"])
                     for message in messages]
+        self._logger.debug("Fetched %d messages from Habitica API",
+                           len(messages))
         self.add_PMs_to_db(messages)
 
     def add_PMs_to_db(self, messages):
         """
         Write all given private messages to the database.
 
-        New messages are marked as reaction_pending=True. If none of the given
-        messages are present in the database, returns True to signal that
-        fetching more messages might be necessary. Otherwise returns False.
+        New messages not sent by this user are marked as
+        reaction_pending=True. If none of the given messages are present in
+        the database, returns True to signal that fetching more messages
+        might be necessary. Otherwise returns False.
 
         :messages: `PrivateMessage`s to be added to the database
         :returns: True if all of the messages were new (not already in the db),
@@ -91,13 +97,23 @@ class HabiticaMessager():
                 "private_messages",
                 condition="id='{}'".format(message.message_id))
             if not existing_message:
+                self._logger.debug("message.from_id = %s", message.from_id)
+                self._logger.debug("id of x-api-user: %s",
+                                   self._header["x-api-user"])
+                if message.from_id == self._header["x-api-user"]:
+                    reaction_pending = 0
+                else:
+                    reaction_pending = 1
+                self._logger.debug("Adding new message to the database: '%s', "
+                                   "reaction_pending=%d", message.excerpt(),
+                                   reaction_pending)
                 db_data = {
                     "id": message.message_id,
                     "from_id": message.from_id,
                     "to_id": message.to_id,
                     "content": message.content,
                     "timestamp": message.timestamp,
-                    "reaction_pending": 1,
+                    "reaction_pending": reaction_pending,
                     }
                 db.insert_data("private_messages", db_data)
             else:
