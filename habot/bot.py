@@ -18,6 +18,7 @@ from conf.tasks import WINNER_PICKED
 
 def handle_PMs():
     """
+    React to commands given via private messages.
     """
     new_messages = PrivateMessage.messages_awaiting_reaction()
     for message in new_messages:
@@ -43,8 +44,14 @@ def react_to_message(message):
                         "```\n{}\n```".format(first_word,
                                               traceback.format_exc()))
     else:
-        response = "Command `{}` not recognized".format(first_word)
-        # TODO add better help
+        command_list = ["`{}`: {}".format(command,
+                                          commands[command]().help())
+                        for command in commands]
+        response = ("Command `{}` not recognized.\n\n".format(first_word) +
+                    "I am a bot: not a real human user. If I am misbehaving " +
+                    "or you need assistance, please contact @Antonbury.\n\n" +
+                    "Available commands:\n\n" +
+                    "\n\n".join(command_list))
 
     HabiticaMessager(HEADER).send_private_message(message.from_id, response)
     HabiticaMessager.set_reaction_pending(message, False)
@@ -52,6 +59,7 @@ def react_to_message(message):
 
 class Functionality():
     """
+    Base class for implementing real functionality.
     """
 
     def act(self, message):
@@ -60,9 +68,17 @@ class Functionality():
         """
         raise NotImplementedError("This command does not work yet.")
 
+    def help(self):
+        """
+        Return a help string
+        """
+        # pylint: disable=no-self-use
+        return "No instructions available for this command"
+
 
 class SendWinnerMessage(Functionality):
     """
+    Functionality for announcing sharing weekend challenge winner.
     """
 
     def __init__(self):
@@ -93,6 +109,11 @@ class SendWinnerMessage(Functionality):
 
         self.habitica_operator.tick_task(WINNER_PICKED, task_type="habit")
         return response
+
+    def help(self):
+        return ("List participants for the current sharing weekend challenge "
+                "and declare a winner from amongst them. The winner is chosen "
+                "using stock data as a source of randomness.")
 
 
 class CreateNextSharingWeekend(Functionality):
