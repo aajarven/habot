@@ -64,14 +64,22 @@ class HabiticaMessager():
         No paging is implemented: all new messages are assumed to fit into the
         returned data from the API.
         """
-        messages = get_dict_from_api(
+        message_data = get_dict_from_api(
             self._header, "https://habitica.com/api/v3/inbox/messages")
-        messages = [PrivateMessage(  # TODO this is broken: we need to check
-                                     #                      "sent"
-                        message["uuid"], message["uuid"],
-                        timestamp=timestamp_to_datetime(message["timestamp"]),
-                        content=message["text"], message_id=message["id"])
-                    for message in messages]
+
+        messages = [None] * len(message_data)
+        for i, message_dict in zip(range(len(message_data)), message_data):
+            if message_dict["sent"]:
+                recipient = message_dict["uuid"]
+                sender = message_dict["ownerId"]
+            else:
+                recipient = message_dict["ownerId"]
+                sender = message_dict["uuid"]
+            messages[i] = PrivateMessage(
+                sender, recipient,
+                timestamp=timestamp_to_datetime(message_dict["timestamp"]),
+                content=message_dict["text"],
+                message_id=message_dict["id"])
         self._logger.debug("Fetched %d messages from Habitica API",
                            len(messages))
         self.add_PMs_to_db(messages)
