@@ -43,7 +43,8 @@ def react_to_message(message):
                         "```\n{}\n```".format(first_word,
                                               traceback.format_exc()))
     else:
-        response = "Command `{}` not recognized"  # TODO add better help
+        response = "Command `{}` not recognized".format(first_word)
+        # TODO add better help
 
     HabiticaMessager(HEADER).send_private_message(message.from_id, response)
     HabiticaMessager.set_reaction_pending(message, False)
