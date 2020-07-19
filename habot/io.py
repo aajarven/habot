@@ -89,9 +89,11 @@ class HabiticaMessager():
         Write all given private messages to the database.
 
         New messages not sent by this user are marked as
-        reaction_pending=True. If none of the given messages are present in
-        the database, returns True to signal that fetching more messages
-        might be necessary. Otherwise returns False.
+        reaction_pending=True if they have not already been responded to (i.e.
+        a newer message sent to the same user is present in the database).
+        If none of the given messages are present in the database, returns
+        True to signal that fetching more messages might be necessary.
+        Otherwise returns False.
 
         :messages: `PrivateMessage`s to be added to the database
         :returns: True if all of the messages were new (not already in the db),
@@ -108,7 +110,9 @@ class HabiticaMessager():
                 self._logger.debug("message.from_id = %s", message.from_id)
                 self._logger.debug("id of x-api-user: %s",
                                    self._header["x-api-user"])
-                if message.from_id == self._header["x-api-user"]:
+                if (message.from_id == self._header["x-api-user"] or
+                        self._has_newer_sent_message_in_db(message.from_id,
+                                                           message.timestamp)):
                     reaction_pending = 0
                 else:
                     reaction_pending = 1
@@ -139,6 +143,27 @@ class HabiticaMessager():
         db = DBOperator()
         db.update_row("private_messages", message.message_id,
                       {"reaction_pending": reaction})
+
+    def _has_newer_sent_message_in_db(self, to_id, timestamp):
+        """
+        Return True if `to_id` has been sent a message after `timestamp`.
+
+        This is checked from the database, so if a message has not yet been
+        processed into the DB, it won't affect the result. However, if the
+        messages are processed from newest to oldest, this function can be used
+        to determine if a "new" message has already been responded to.
+
+        :to_id: Habitica user UID
+        :timestamp: datetime after which to look for messages
+        """
+        # pylint: disable=no-self-use
+        db = DBOperator()
+        sent_messages = db.query_table(
+            "private_messages",
+            condition="timestamp>'{}' AND to_id='{}'".format(timestamp, to_id))
+        if sent_messages:
+            return True
+        return False
 
 
 class DBSyncer():
