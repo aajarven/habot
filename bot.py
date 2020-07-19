@@ -2,9 +2,9 @@
 CLI for performing bot actions
 """
 
-import traceback
-
 import datetime
+import sys
+
 import click
 
 from habitica_helper import habiticatool
@@ -15,26 +15,33 @@ from conf.tasks import WINNER_PICKED
 from habot.birthdays import BirthdayReminder
 from habot.io import HabiticaMessager, DBSyncer
 from habot.habitica_operations import HabiticaOperator
+import habot.logger
 from habot.sharing_weekend import SharingChallengeOperator
 
 
 @click.group()
-def cli():
+@click.pass_context
+def cli(ctx):
     """
     Command line interface for activating the bot.
     """
-    pass
+    ctx.ensure_object(dict)
+    if "logger" not in ctx.obj:
+        ctx.obj["logger"] = habot.logger.get_logger()
 
 
 @cli.command()
+@click.pass_context
 @click.option("--dry-run", default=False, is_flag=True)
-def send_winner_message(dry_run):
+def send_winner_message(ctx, dry_run):
     """
     Pick the challenge winner using habitica-helper and PM Antonbury.
 
     No actual actions related to the challenge (e.g. actually picking the
     winner) are performed: just picking the name of the winner.
     """
+    log = ctx.obj["logger"]
+    log.debug("send-winner-message (dry-run={})".format(dry_run))
     partytool = habiticatool.PartyTool(PARTYMEMBER_HEADER)
     challenge_id = partytool.current_sharing_weekend()["id"]
     challenge = Challenge(PARTYMEMBER_HEADER, challenge_id)
@@ -50,19 +57,21 @@ def send_winner_message(dry_run):
     except IndexError:
         message = (completer_str + "\n\nNobody completed the challenge, so "
                    "winner cannot be chosen.")
-
     if dry_run:
-        print(message)
+        logger.info("Message was not sent due to --dry-run. The message would "
+                    "have been:\n%s", message)
     else:
+        recipient = "f687a6c7-860a-4c7c-8a07-9d0dcbb7c831"
         message_sender = HabiticaMessager(HEADER)
-        message_sender.send_private_message(
-            "f687a6c7-860a-4c7c-8a07-9d0dcbb7c831", message)
+        message_sender.send_private_message(recipient, message)
+        logger.info("Following message sent to %s:\n%s", recipient, message)
 
     habitica_operator = HabiticaOperator(HEADER)
     habitica_operator.tick_task(WINNER_PICKED, task_type="habit")
 
 
 @cli.command()
+@click.pass_context
 @click.option("--tasks", "-t",
               default="data/sharing_weekend_static_tasks.yml",
               type=click.Path(exists=True),
@@ -78,7 +87,7 @@ def send_winner_message(dry_run):
               help="If --test is set, the challenge is created for the bot, "
                    "not for the actual party member account, and no new "
                    "weekly questions are marked as used.")
-def create_next_sharing_weekend(tasks, questions, test):
+def create_next_sharing_weekend(ctx, tasks, questions, test):
     """
     Create a new sharing weekend challenge for the next weekend.
 
@@ -88,6 +97,9 @@ def create_next_sharing_weekend(tasks, questions, test):
     If the challenge creation fails, a PM is sent to the party member with a
     traceback from the problematic function call.
     """
+    log = ctx.obj["logger"]
+    log.debug("create-next-sharing-weekend: tasks from %s, weekly question "
+              "from %s, --test=%s", tasks, questions, test)
     if test:
         header = HEADER
         update_questions = False
@@ -103,33 +115,40 @@ def create_next_sharing_weekend(tasks, questions, test):
         operator.add_tasks(challenge.id, tasks, questions,
                            update_questions=update_questions)
     except:  # noqa: E722  pylint: disable=bare-except
-        report = ("There was a problem during sharing weekend challenge "
-                  "creation:\n\n```{}```".format(traceback.format_exc()))
+        report = "New challenge creation failed. Contact @Antonbury for help."
         message_sender.send_private_message(PARTYMEMBER_HEADER["x-api-user"],
                                             report)
-        raise
+        log.error("A problem was encountered during sharing weekend challenge "
+                  "creation. See stack trace.", exc_info=True)
+        sys.exit(1)
 
     report = ("Created a new sharing weekend challenge: "
               "https://habitica.com/challenges/{}".format(challenge.id))
     message_sender.send_private_message(PARTYMEMBER_HEADER["x-api-user"],
                                         report)
+    log.info(report)
 
 
 @cli.command()
+@click.pass_context
 @click.argument("message", type=str)
 @click.option("--recipient_uid", type=str,
               default="f687a6c7-860a-4c7c-8a07-9d0dcbb7c831",
               help=("Habitica user ID of the recipient. Default "
                     "is Antonbury's"))
-def send_pm(message, recipient_uid):
+def send_pm(ctx, message, recipient_uid):
     """
     Send a private message.
     """
+    log = ctx.obj["logger"]
+    log.debug("Sending a PM to %s with the following content:\n%s",
+              recipient_uid, message)
     message_sender = HabiticaMessager(HEADER)
     message_sender.send_private_message(recipient_uid, message)
 
 
 @cli.command()
+@click.pass_context
 @click.option("--recipient_uid", type=str,
               default="f687a6c7-860a-4c7c-8a07-9d0dcbb7c831",
               help=("Habitica user ID of the recipient. Default "
@@ -141,19 +160,31 @@ def send_pm(message, recipient_uid):
                     "data."))
 @click.option("--test", is_flag=True,
               help="Don't send the message, just print it")
-def send_birthday_reminder(recipient_uid, no_sync, test):
+def send_birthday_reminder(ctx, recipient_uid, no_sync, test):
     """
     Send a private message listing everyone who is having their birthday.
     """
+    log = ctx.obj["logger"]
+    log.debug("Birthday reminder: recipient=%s, no_sync=%s, test=%s",
+              recipient_uid, no_sync, test)
     if not no_sync:
         db_syncer = DBSyncer(PARTYMEMBER_HEADER)
         db_syncer.update_partymember_data()
+        log.debug("Birthdays synced to database.")
     reminder = BirthdayReminder(HEADER)
     if test:
-        click.echo(reminder.birthday_reminder_message())
+        log.info("Message not sent. Content would have been:\n%s",
+                 reminder.birthday_reminder_message())
     else:
         reminder.send_birthday_reminder(recipient_uid)
+        log.info("Message sent to {}".format(recipient_uid))
 
 
 if __name__ == "__main__":
-    cli()
+    logger = habot.logger.get_logger()
+    try:
+        # pylint: disable=no-value-for-parameter, unexpected-keyword-arg
+        cli(obj={"logger": logger})
+    except Exception:  # pylint: disable=broad-except
+        logger.exception("A problem was encountered. See track trace for "
+                         "details.", exc_info=True)

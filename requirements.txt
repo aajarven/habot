@@ -3,3 +3,4 @@ git+git://github.com/Antonbury/habitica-helper.git#egg=habitica-helper
 mysql-connector-python
 pyyaml
 requests
+schedule

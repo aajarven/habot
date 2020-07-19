@@ -226,7 +226,7 @@ def test_delete_illegal_row(testdata_db_operator):
         ("databases", {},
          ["information_schema", "habdb", "mysql", "performance_schema",
           "sys", "test"]),
-        ("tables", {}, ["members"]),
+        ("tables", {}, ["members", "private_messages"]),
         ("columns", {"table": "members"},
          {"id": {"Type": "varchar(50)", "Null": "NO", "Key": "PRI",
                  "Default": None, "Extra": ""},
