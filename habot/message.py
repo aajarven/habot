@@ -107,9 +107,12 @@ class ChatMessage(Message):
 
     def __str__(self):
         return ("from: {}\n"
-                "{} ({})\n\n"
-                "{}".format(self.from_id, self.timestamp,
-                            self.message_id, self.content))
+                "{} ({})\n"
+                "likes: {}\n\n"
+                "{}".format(self.from_id,
+                            self.timestamp, self.message_id,
+                            len(self.likers),
+                            self.content))
 
 
 class SystemMessage(Message):

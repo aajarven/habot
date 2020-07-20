@@ -5,6 +5,7 @@ Currently this means interacting via private messages in Habitica.
 """
 
 from collections import OrderedDict
+from datetime import datetime
 import requests
 import yaml
 
@@ -17,7 +18,7 @@ from habot.db import DBOperator
 from habot.exceptions import CommunicationFailedException
 from habot.habitica_operations import HabiticaOperator
 import habot.logger
-from habot.message import PrivateMessage
+from habot.message import PrivateMessage, ChatMessage, SystemMessage
 
 
 class HabiticaMessager():
@@ -53,6 +54,46 @@ class HabiticaMessager():
             raise CommunicationFailedException(response)
 
         self._habitica_operator.tick_task(PM_SENT, task_type="habit")
+
+    def get_party_messages(self):
+        """
+        """
+        message_data = get_dict_from_api(
+            self._header, "https://habitica.com/api/v3/groups/party/chat")
+        #self._logger.debug(message_data)
+        messages = [None] * len(message_data)
+        for i, message_dict in zip(range(len(message_data)), message_data):
+            if "user" in message_dict:
+                messages[i] = ChatMessage(
+                    message_dict["uuid"], message_dict["groupId"],
+                    content=message_dict["text"],
+                    message_id=message_dict["id"],
+                    timestamp=datetime.utcfromtimestamp(
+                        # Habitica saves party chat message times as unix time
+                        # with three extra digits for milliseconds (no
+                        # decimal separator)
+                        message_dict["timestamp"]/1000),
+                    likers=self._marker_list(message_dict["likes"]),
+                    flags=self._marker_list(message_dict["flags"]))
+                self._logger.debug(str(messages[i]))
+            else:
+                # TODO
+                raise NotImplementedError("system messages are still missing")
+        self._logger.debug("Fetched %d messages from Habitica API",
+                           len(messages))
+        # TODO: add to DB
+
+    def _marker_list(self, user_dict):
+        """
+        Return a list of users who have liked/flagged a message.
+
+        This list is parsed from the given user_dict, which has UIDs as keys
+        and True/False as the value depending on whether the given user has
+        marked that message as liked/flagged. This is the format Habitica
+        reports likes for party messages.
+        """
+        # pylint: disable=no-self-use
+        return [uid for uid in user_dict if user_dict[uid]]
 
     def get_private_messages(self):
         """
