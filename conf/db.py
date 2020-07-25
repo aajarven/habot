@@ -40,6 +40,11 @@ TABLES = {
         "message": "VARCHAR(50)",
         "user": "VARCHAR(50)",
         }, "id"),
+    "flags": ({
+        "id": "INT AUTO_INCREMENT",
+        "message": "VARCHAR(50)",
+        "user": "VARCHAR(50)",
+        }, "id"),
     "system_message_info": ({
         "id": "INT AUTO_INCREMENT",
         "message_id": "VARCHAR(50)",

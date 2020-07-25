@@ -125,6 +125,9 @@ class HabiticaMessager():
         dict are also written into their own table. All values within this
         dict, including e.g. nested dicts and integers, are coerced to strings.
 
+        System messages can also be liked: these likes are written into `likes`
+        table.
+
         :system_message: SystemMessage to be written to the database
         :returns: True if a new message was added to the database
         """
@@ -143,6 +146,8 @@ class HabiticaMessager():
                     "system_message_info", info_data)
                 if not existing_info:
                     self._db.insert_data("system_message_info", info_data)
+            for liker in system_message.likers:
+                self._write_like(system_message.message_id, liker)
             message_data = {
                 "id": system_message.message_id,
                 "to_group": system_message.group_id,
@@ -168,8 +173,10 @@ class HabiticaMessager():
             "chat_messages",
             condition="id='{}'".format(chat_message.message_id))
         if not existing_message:
-            self._logger.debug("new chat message: message.from_id = %s",
-                               chat_message.from_id)
+            for liker in chat_message.likers:
+                self._write_like(chat_message.message_id, liker)
+            for flagger in chat_message.flags:
+                self._write_like(chat_message.message_id, flagger)
             db_data = {
                 "id": chat_message.message_id,
                 "from_id": chat_message.from_id,
@@ -193,6 +200,36 @@ class HabiticaMessager():
         """
         # pylint: disable=no-self-use
         return [uid for uid in user_dict if user_dict[uid]]
+
+    def _write_like(self, message_id, user_id):
+        """
+        Add information about a person liking a message into the db.
+
+        If the row already exists, it is not inserted again.
+
+        :message_id: The liked message
+        :user_id: The person who hit the like button
+        """
+        self._ensure_db()
+        like_dict = {"message": message_id, "user": user_id}
+        existing_like = self._db.query_table_based_on_dict("likes", like_dict)
+        if not existing_like:
+            self._db.insert_data("likes", like_dict)
+
+    def _write_flag(self, message_id, user_id):
+        """
+        Add information about a person reporting a message into the db.
+
+        If the row already exists, it is not inserted again.
+
+        :message_id: The reported message
+        :user_id: The person who reported the message
+        """
+        self._ensure_db()
+        flag_dict = {"message": message_id, "user": user_id}
+        existing_flag = self._db.query_table_based_on_dict("flags", flag_dict)
+        if not existing_flag:
+            self._db.insert_data("flags", flag_dict)
 
     def get_private_messages(self):
         """
