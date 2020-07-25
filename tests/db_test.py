@@ -133,6 +133,30 @@ def test_query_table(testdata_db_operator, columns, condition,
 
 
 @pytest.mark.parametrize(
+    ["condition_dict", "expected_result"],
+    [
+        ({"displayname": "habitician"}, [NAMEDIFF_USER]),
+        ({"displayname": "nobodyhere"}, []),
+    ]
+)
+def test_query_table_based_on_dict(testdata_db_operator, condition_dict,
+                                   expected_result):
+    """
+    Test that querying a table works.
+
+    The following cases are tested:
+     - all data is fetched
+     - single row is selected based on a condition
+     - condition with zero matching rows passed, so no rows are returned
+    """
+    query_result = testdata_db_operator.query_table_based_on_dict(
+        "members", condition_dict)
+    assert len(query_result) == len(expected_result)
+    for row in expected_result:
+        assert _dict_in_list(row, query_result)
+
+
+@pytest.mark.parametrize(
     ["columns", "expected_exception"],
     [
         (1, ValueError),
