@@ -122,7 +122,8 @@ class HabiticaMessager():
         Add a system message to the database if not already there.
 
         In addition to writing the core message data, contents of the `info`
-        dict are also written into their own table.
+        dict are also written into their own table. All values within this
+        dict, including e.g. nested dicts and integers, are coerced to strings.
 
         :system_message: SystemMessage to be written to the database
         :returns: True if a new message was added to the database
@@ -132,15 +133,16 @@ class HabiticaMessager():
             "system_messages",
             condition="id='{}'".format(system_message.message_id))
         if not existing_message:
-            self._logger.debug("new system message")
             for key, value in system_message.info.items():
-                # TODO: don't write duplicates
                 info_data = {
                     "message_id": system_message.message_id,
                     "info_key": key,
                     "info_value": value,
                     }
-                self._db.insert_data("system_message_info", info_data)
+                existing_info = self._db.query_table_based_on_dict(
+                    "system_message_info", info_data)
+                if not existing_info:
+                    self._db.insert_data("system_message_info", info_data)
             message_data = {
                 "id": system_message.message_id,
                 "to_group": system_message.group_id,

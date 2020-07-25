@@ -27,6 +27,29 @@ class DBOperator():
                                             passwd=credentials.PASSWORD)
         self._ensure_tables()
 
+    def query_table_based_on_dict(self, table, condition_dict,
+                                  database=dbconf.DB_NAME):
+        """
+        Run a MySQL query on a single table matching the condition dict.
+
+        :table: The table to be queried
+        :condition_dict: Values used for the WHERE part of the query. Dict keys
+                         are used as column names and values as their values,
+                         and all of the values must match.
+        :return: A list of dicts corresponding to matching rows.
+        """
+        keys = condition_dict.keys()
+        values = [str(value) for value in condition_dict.values()]
+        condition = " AND ".join(["{} = %s".format(key) for key in keys])
+        query_str = "SELECT * FROM {} WHERE {}".format(table,
+                                                       condition)
+        cursor = self._cursor_for_db(database)
+        cursor.execute(query_str, tuple(values))
+        data = cursor.fetchall()
+        columns = cursor.column_names
+        cursor.close()
+        return self._data_to_dicts(data, columns)
+
     def query_table(self, table, columns=None, condition=None,
                     database=dbconf.DB_NAME):
         """
