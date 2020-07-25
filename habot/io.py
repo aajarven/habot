@@ -317,9 +317,9 @@ class HabiticaMessager():
         :message: A Message for which database is altered
         :reaction: True/False for reaction pending
         """
-        self._ensure_db()
-        self._db.update_row("private_messages", message.message_id,
-                            {"reaction_pending": reaction})
+        db = DBOperator()
+        db.update_row("private_messages", message.message_id,
+                      {"reaction_pending": reaction})
 
     def _has_newer_sent_message_in_db(self, to_id, timestamp):
         """
