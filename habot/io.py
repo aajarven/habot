@@ -137,7 +137,7 @@ class HabiticaMessager():
                 info_data = {
                     "message_id": system_message.message_id,
                     "info_key": key,
-                    "info_value": value,
+                    "info_value": str(value),
                     }
                 existing_info = self._db.query_table_based_on_dict(
                     "system_message_info", info_data)

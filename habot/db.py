@@ -39,7 +39,7 @@ class DBOperator():
         :return: A list of dicts corresponding to matching rows.
         """
         keys = condition_dict.keys()
-        values = [str(value) for value in condition_dict.values()]
+        values = condition_dict.values()
         condition = " AND ".join(["{} = %s".format(key) for key in keys])
         query_str = "SELECT * FROM {} WHERE {}".format(table,
                                                        condition)
