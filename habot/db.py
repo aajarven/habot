@@ -6,6 +6,7 @@ import mysql.connector
 
 import conf.db as dbconf
 import conf.secrets.db_credentials as credentials
+import habot.logger
 
 
 class DBOperator():
@@ -20,6 +21,7 @@ class DBOperator():
         If the database doesn't have all the databases or tables it should,
         those are created.
         """
+        self._logger = habot.logger.get_logger()
         self.conn = mysql.connector.connect(host="localhost",
                                             user=credentials.USER,
                                             passwd=credentials.PASSWORD)
@@ -286,7 +288,7 @@ class DBOperator():
             """
             Return a string that can be executed to create a table.
             """
-            columns = ["{} {}".format(name, table_columns[name]) for name in
+            columns = ["`{}` {}".format(name, table_columns[name]) for name in
                        table_columns]
             return "CREATE TABLE {} ({}, PRIMARY KEY (`{}`))".format(
                 table_name, ", ".join(columns), primary_key)
@@ -302,8 +304,10 @@ class DBOperator():
         tables = self.tables()
         for table_name, (table_columns, primary_key) in dbconf.TABLES.items():
             if table_name not in tables:
-                cursor.execute(create_table_cmd(table_name, table_columns,
-                                                primary_key))
+                command = create_table_cmd(table_name, table_columns,
+                                           primary_key)
+                self._logger.debug("Creating a new table: %s", command)
+                cursor.execute(command)
 
         cursor.close()
 

@@ -30,12 +30,23 @@ class HabiticaMessager():
         """
         Initialize the class.
 
+        Database operator is not created at init, because all operations don't
+        need one.
+
         :header: Habitica requires specific fields to be present in all API
                  calls. This must be a dict containing them.
         """
         self._header = header
         self._habitica_operator = HabiticaOperator(header)
         self._logger = habot.logger.get_logger()
+        self._db = None
+
+    def _ensure_db(self):
+        """
+        Make sure that a database operator is available
+        """
+        if not self._db:
+            self._db = DBOperator()
 
     def send_private_message(self, to_uid, message):
         """
@@ -57,10 +68,13 @@ class HabiticaMessager():
 
     def get_party_messages(self):
         """
+        Fetches party messages and stores them into the database.
+
+        Both system messages (e.g. boss damage) and chat messages (sent by
+        habiticians) are stored.
         """
         message_data = get_dict_from_api(
             self._header, "https://habitica.com/api/v3/groups/party/chat")
-        #self._logger.debug(message_data)
         messages = [None] * len(message_data)
         for i, message_dict in zip(range(len(message_data)), message_data):
             if "user" in message_dict:
@@ -75,13 +89,96 @@ class HabiticaMessager():
                         message_dict["timestamp"]/1000),
                     likers=self._marker_list(message_dict["likes"]),
                     flags=self._marker_list(message_dict["flags"]))
-                self._logger.debug(str(messages[i]))
             else:
-                # TODO
-                raise NotImplementedError("system messages are still missing")
+                messages[i] = SystemMessage(
+                    message_dict["groupId"],
+                    datetime.utcfromtimestamp(
+                        # Habitica saves party chat message times as unix time
+                        # with three extra digits for milliseconds (no
+                        # decimal separator)
+                        message_dict["timestamp"]/1000),
+                    content=message_dict["text"],
+                    message_id=message_dict["id"],
+                    likers=self._marker_list(message_dict["likes"]),
+                    info=message_dict["info"]
+                    )
         self._logger.debug("Fetched %d messages from Habitica API",
                            len(messages))
-        # TODO: add to DB
+
+        new_messages = 0
+        for message in messages:
+            if isinstance(message, SystemMessage):
+                new = self._write_system_message_to_db(message)
+            elif isinstance(message, ChatMessage):
+                new = self._write_chat_message_to_db(message)
+            else:
+                raise ValueError("Unexpected message type received from API")
+            new_messages += 1 if new else 0
+        self._logger.debug("%d new chat/system messages written to the "
+                           "database", new_messages)
+
+    def _write_system_message_to_db(self, system_message):
+        """
+        Add a system message to the database if not already there.
+
+        In addition to writing the core message data, contents of the `info`
+        dict are also written into their own table.
+
+        :system_message: SystemMessage to be written to the database
+        :returns: True if a new message was added to the database
+        """
+        self._ensure_db()
+        existing_message = self._db.query_table(
+            "system_messages",
+            condition="id='{}'".format(system_message.message_id))
+        if not existing_message:
+            self._logger.debug("new system message")
+            for key, value in system_message.info.items():
+                # TODO: don't write duplicates
+                info_data = {
+                    "message_id": system_message.message_id,
+                    "info_key": key,
+                    "info_value": value,
+                    }
+                self._db.insert_data("system_message_info", info_data)
+            message_data = {
+                "id": system_message.message_id,
+                "to_group": system_message.group_id,
+                "timestamp": system_message.timestamp,
+                "content": system_message.content,
+                }
+            self._db.insert_data("system_messages", message_data)
+            return True
+        return False
+
+    def _write_chat_message_to_db(self, chat_message):
+        """
+        Add a chat message to the database if not already there.
+
+        At this point, all chat messages are marked as not requiring a
+        reaction.
+
+        :chat_message: ChatMessage to be written to the database
+        :returns: True if a new message was added to database, otherwise False
+        """
+        self._ensure_db()
+        existing_message = self._db.query_table(
+            "chat_messages",
+            condition="id='{}'".format(chat_message.message_id))
+        if not existing_message:
+            self._logger.debug("new chat message: message.from_id = %s",
+                               chat_message.from_id)
+            db_data = {
+                "id": chat_message.message_id,
+                "from_id": chat_message.from_id,
+                "to_group": chat_message.group_id,
+                "content": chat_message.content,
+                "timestamp": chat_message.timestamp,
+                "reaction_pending": 0,
+                }
+            self._db.insert_data("chat_messages", db_data)
+            return True
+        return False
 
     def _marker_list(self, user_dict):
         """
@@ -140,11 +237,11 @@ class HabiticaMessager():
         :returns: True if all of the messages were new (not already in the db),
                   otherwise False
         """
-        # pylint: disable=invalid-name, no-self-use
-        db = DBOperator()
+        # pylint: disable=invalid-name
+        self._ensure_db()
         all_new = True
         for message in messages:
-            existing_message = db.query_table(
+            existing_message = self._db.query_table(
                 "private_messages",
                 condition="id='{}'".format(message.message_id))
             if not existing_message:
@@ -168,7 +265,7 @@ class HabiticaMessager():
                     "timestamp": message.timestamp,
                     "reaction_pending": reaction_pending,
                     }
-                db.insert_data("private_messages", db_data)
+                self._db.insert_data("private_messages", db_data)
             else:
                 all_new = False
         return all_new
@@ -181,9 +278,9 @@ class HabiticaMessager():
         :message: A Message for which database is altered
         :reaction: True/False for reaction pending
         """
-        db = DBOperator()
-        db.update_row("private_messages", message.message_id,
-                      {"reaction_pending": reaction})
+        self._ensure_db()
+        self._db.update_row("private_messages", message.message_id,
+                            {"reaction_pending": reaction})
 
     def _has_newer_sent_message_in_db(self, to_id, timestamp):
         """
@@ -197,9 +294,8 @@ class HabiticaMessager():
         :to_id: Habitica user UID
         :timestamp: datetime after which to look for messages
         """
-        # pylint: disable=no-self-use
-        db = DBOperator()
-        sent_messages = db.query_table(
+        self._ensure_db()
+        sent_messages = self._db.query_table(
             "private_messages",
             condition="timestamp>'{}' AND to_id='{}'".format(timestamp, to_id))
         if sent_messages:
