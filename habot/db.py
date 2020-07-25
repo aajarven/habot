@@ -6,6 +6,7 @@ import mysql.connector
 
 import conf.db as dbconf
 import conf.secrets.db_credentials as credentials
+import habot.logger
 
 
 class DBOperator():
@@ -20,10 +21,34 @@ class DBOperator():
         If the database doesn't have all the databases or tables it should,
         those are created.
         """
+        self._logger = habot.logger.get_logger()
         self.conn = mysql.connector.connect(host="localhost",
                                             user=credentials.USER,
                                             passwd=credentials.PASSWORD)
         self._ensure_tables()
+
+    def query_table_based_on_dict(self, table, condition_dict,
+                                  database=dbconf.DB_NAME):
+        """
+        Run a MySQL query on a single table matching the condition dict.
+
+        :table: The table to be queried
+        :condition_dict: Values used for the WHERE part of the query. Dict keys
+                         are used as column names and values as their values,
+                         and all of the values must match.
+        :return: A list of dicts corresponding to matching rows.
+        """
+        keys = condition_dict.keys()
+        values = condition_dict.values()
+        condition = " AND ".join(["{} = %s".format(key) for key in keys])
+        query_str = "SELECT * FROM {} WHERE {}".format(table,
+                                                       condition)
+        cursor = self._cursor_for_db(database)
+        cursor.execute(query_str, tuple(values))
+        data = cursor.fetchall()
+        columns = cursor.column_names
+        cursor.close()
+        return self._data_to_dicts(data, columns)
 
     def query_table(self, table, columns=None, condition=None,
                     database=dbconf.DB_NAME):
@@ -286,7 +311,7 @@ class DBOperator():
             """
             Return a string that can be executed to create a table.
             """
-            columns = ["{} {}".format(name, table_columns[name]) for name in
+            columns = ["`{}` {}".format(name, table_columns[name]) for name in
                        table_columns]
             return "CREATE TABLE {} ({}, PRIMARY KEY (`{}`))".format(
                 table_name, ", ".join(columns), primary_key)
@@ -302,8 +327,10 @@ class DBOperator():
         tables = self.tables()
         for table_name, (table_columns, primary_key) in dbconf.TABLES.items():
             if table_name not in tables:
-                cursor.execute(create_table_cmd(table_name, table_columns,
-                                                primary_key))
+                command = create_table_cmd(table_name, table_columns,
+                                           primary_key)
+                self._logger.debug("Creating a new table: %s", command)
+                cursor.execute(command)
 
         cursor.close()
 

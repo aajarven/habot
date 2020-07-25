@@ -10,6 +10,7 @@ import pytest
 import testing.mysqld
 
 from habot.db import DBOperator
+from conf.db import TABLES
 
 # A simple user: one with identical diplay and loginnames
 SIMPLE_USER = {"id": "9cb40345-720f-4c9e-974d-18e016d9564d",
@@ -132,6 +133,30 @@ def test_query_table(testdata_db_operator, columns, condition,
 
 
 @pytest.mark.parametrize(
+    ["condition_dict", "expected_result"],
+    [
+        ({"displayname": "habitician"}, [NAMEDIFF_USER]),
+        ({"displayname": "nobodyhere"}, []),
+    ]
+)
+def test_query_table_based_on_dict(testdata_db_operator, condition_dict,
+                                   expected_result):
+    """
+    Test that querying a table works.
+
+    The following cases are tested:
+     - all data is fetched
+     - single row is selected based on a condition
+     - condition with zero matching rows passed, so no rows are returned
+    """
+    query_result = testdata_db_operator.query_table_based_on_dict(
+        "members", condition_dict)
+    assert len(query_result) == len(expected_result)
+    for row in expected_result:
+        assert _dict_in_list(row, query_result)
+
+
+@pytest.mark.parametrize(
     ["columns", "expected_exception"],
     [
         (1, ValueError),
@@ -226,7 +251,7 @@ def test_delete_illegal_row(testdata_db_operator):
         ("databases", {},
          ["information_schema", "habdb", "mysql", "performance_schema",
           "sys", "test"]),
-        ("tables", {}, ["members", "private_messages"]),
+        ("tables", {}, TABLES.keys()),
         ("columns", {"table": "members"},
          {"id": {"Type": "varchar(50)", "Null": "NO", "Key": "PRI",
                  "Default": None, "Extra": ""},
@@ -244,7 +269,10 @@ def test_utils(testdata_db_operator, method, kwargs, expected_value):
     Test that utility functions for the db work
     """
     result = getattr(testdata_db_operator, method)(**kwargs)
-    assert result == expected_value
+    if isinstance(result, list):
+        assert set(result) == set(expected_value)
+    else:
+        assert result == expected_value
 
 
 def _dict_in_list(dict_to_find, dict_list):
