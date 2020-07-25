@@ -38,6 +38,12 @@ TABLES = {
     "likes": ({
         "id": "INT AUTO_INCREMENT",
         "message": "VARCHAR(50)",
-        "user": "varchar(50)",
+        "user": "VARCHAR(50)",
+        }, "id"),
+    "system_message_info": ({
+        "id": "INT AUTO_INCREMENT",
+        "message_id": "VARCHAR(50)",
+        "info_key": "VARCHAR(50)",
+        "info_value": "VARCHAR(200)",
         }, "id"),
     }
