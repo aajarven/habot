@@ -11,6 +11,7 @@ from habot.habitica_operations import HabiticaOperator
 from habot.io import HabiticaMessager
 import habot.logger
 from habot.message import PrivateMessage
+from habot.sharing_weekend import SharingChallengeOperator
 
 from conf.header import HEADER, PARTYMEMBER_HEADER
 from conf.tasks import WINNER_PICKED
@@ -129,4 +130,32 @@ class CreateNextSharingWeekend(Functionality):
     """
     A class for creating the next sharing weekend challenge.
     """
-    # TODO implement me
+
+    def act(self, message):
+        """
+        Create a new sharing weekend challenge and return a report.
+        """
+        tasks_path = "data/sharing_weekend_static_tasks.yml"
+        questions_path = "data/weekly_questions.yml"
+        self._logger.debug("create-next-sharing-weekend: tasks from %s, "
+                           "weekly question from %s",
+                           tasks_path, questions_path)
+
+        operator = SharingChallengeOperator(HEADER)
+        update_questions = True
+
+        try:
+            challenge = operator.create_new()
+            operator.add_tasks(challenge.id, tasks_path, questions_path,
+                               update_questions=update_questions)
+        except:  # noqa: E722  pylint: disable=bare-except
+            return ("New challenge creation failed. Contact @Antonbury for "
+                    "help.")
+
+        return ("Created a new sharing weekend challenge: "
+                "https://habitica.com/challenges/{}".format(challenge.id))
+
+    def help(self):
+        return ("Create a new sharing weekend challenge. No customization is "
+                "currently available: the challenge is created with default "
+                "parameters to the party the bot is currently in.")
