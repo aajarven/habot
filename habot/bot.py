@@ -85,6 +85,15 @@ class Functionality():
         # pylint: disable=no-self-use
         return "No instructions available for this command"
 
+    def _sender_is_admin(self, message):
+        """
+        Return True if given message is sent by an admin user.
+
+        Currently only @Antonbury is an admin.
+        """
+        # pylint: disable=no-self-use
+        return message.from_id == "f687a6c7-860a-4c7c-8a07-9d0dcbb7c831"
+
 
 class SendWinnerMessage(Functionality):
     """
@@ -135,6 +144,9 @@ class CreateNextSharingWeekend(Functionality):
         """
         Create a new sharing weekend challenge and return a report.
         """
+        if not self._sender_is_admin(message):
+            return "Only administrators are allowed to create new challenges."
+
         tasks_path = "data/sharing_weekend_static_tasks.yml"
         questions_path = "data/weekly_questions.yml"
         self._logger.debug("create-next-sharing-weekend: tasks from %s, "
@@ -149,6 +161,7 @@ class CreateNextSharingWeekend(Functionality):
             operator.add_tasks(challenge.id, tasks_path, questions_path,
                                update_questions=update_questions)
         except:  # noqa: E722  pylint: disable=bare-except
+            self._logger.error("Challenge creation failed", exc_info=True)
             return ("New challenge creation failed. Contact @Antonbury for "
                     "help.")
 
