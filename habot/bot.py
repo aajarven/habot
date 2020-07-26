@@ -2,14 +2,14 @@
 Bot functionality
 """
 
-import traceback
-
 import datetime
 
 from habitica_helper import habiticatool
 from habitica_helper.challenge import Challenge
+
 from habot.habitica_operations import HabiticaOperator
 from habot.io import HabiticaMessager
+import habot.logger
 from habot.message import PrivateMessage
 
 from conf.header import HEADER, PARTYMEMBER_HEADER
@@ -20,6 +20,7 @@ def handle_PMs():
     """
     React to commands given via private messages.
     """
+    # pylint: disable=invalid-name
     new_messages = PrivateMessage.messages_awaiting_reaction()
     for message in new_messages:
         react_to_message(message)
@@ -29,20 +30,22 @@ def react_to_message(message):
     """
     Perform whatever actions the given Message requires and send a response
     """
+    logger = habot.logger.get_logger()
     commands = {
         "send-winner-message": SendWinnerMessage,
         "create-next-sharing-weekend": CreateNextSharingWeekend,
         }
     first_word = message.content.strip().split()[0]
+    logger.debug("Got message starting with %s", first_word)
     if first_word in commands:
         try:
             functionality = commands[first_word]()
             response = functionality.act(message)
         except:  # noqa: E722  pylint: disable=bare-except
-            response = ("Something unexpected happened while handling "
-                        "command `{}`:\n\n"
-                        "```\n{}\n```".format(first_word,
-                                              traceback.format_exc()))
+            logger.error("A problem was encountered during reacting to message"
+                         "See stack trace.", exc_info=True)
+            response = ("Something unexpected happened while handling command "
+                        "`{}`. Contact @Antonbury for help.")
     else:
         command_list = ["`{}`: {}".format(command,
                                           commands[command]().help())
@@ -61,6 +64,12 @@ class Functionality():
     """
     Base class for implementing real functionality.
     """
+
+    def __init__(self):
+        """
+        Initialize the functionality. Does nothing but add a logger.
+        """
+        self._logger = habot.logger.get_logger()
 
     def act(self, message):
         """
