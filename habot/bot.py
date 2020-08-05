@@ -46,7 +46,8 @@ def react_to_message(message):
             logger.error("A problem was encountered during reacting to message"
                          "See stack trace.", exc_info=True)
             response = ("Something unexpected happened while handling command "
-                        "`{}`. Contact @Antonbury for help.")
+                        "`{}`. Contact @Antonbury for "
+                        "help.".format(first_word))
     else:
         command_list = ["`{}`: {}".format(command,
                                           commands[command]().help())
