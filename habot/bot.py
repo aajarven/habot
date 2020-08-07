@@ -2,8 +2,6 @@
 Bot functionality
 """
 
-import datetime
-
 from habitica_helper import habiticatool
 from habitica_helper.challenge import Challenge
 
@@ -12,9 +10,11 @@ from habot.io import HabiticaMessager
 import habot.logger
 from habot.message import PrivateMessage
 from habot.sharing_weekend import SharingChallengeOperator
+from habot import utils
 
 from conf.header import HEADER, PARTYMEMBER_HEADER
 from conf.tasks import WINNER_PICKED
+from conf.sharing_weekend import STOCK_DAY_NUMBER, STOCK_NAME
 
 
 def handle_PMs():
@@ -118,9 +118,8 @@ class SendWinnerMessage(Functionality):
         challenge = Challenge(PARTYMEMBER_HEADER, challenge_id)
         completer_str = challenge.completer_str()
         try:
-            today = datetime.date.today()
-            last_tuesday = today - datetime.timedelta(today.weekday() - 1)
-            winner_str = challenge.winner_str(last_tuesday, "^AEX")
+            stock_day = utils.last_weekday_date(STOCK_DAY_NUMBER)
+            winner_str = challenge.winner_str(stock_day, STOCK_NAME)
 
             response = completer_str + "\n\n" + winner_str
         except IndexError:
@@ -173,3 +172,27 @@ class CreateNextSharingWeekend(Functionality):
         return ("Create a new sharing weekend challenge. No customization is "
                 "currently available: the challenge is created with default "
                 "parameters to the party the bot is currently in.")
+
+
+class AwardWinner(Functionality):
+    """
+    A class for awarding a winner for a sharing weekend challenge.
+    """
+
+    def __init__(self):
+        self.partytool = habiticatool.PartyTool(PARTYMEMBER_HEADER)
+        self.habitica_operator = HabiticaOperator(HEADER)
+        super(AwardWinner, self).__init__()
+
+    def act(self, message):
+        """
+        Award a winner for the newest sharing weekend challenge.
+        """
+        challenge_id = self.partytool.current_sharing_weekend()["id"]
+        challenge = Challenge(HEADER, challenge_id)
+        winner_id = challenge.random_winner(STOCK_NAME)  # TODO
+        challenge.award_winner(winner_id)
+
+    def help(self):
+        return ("Award a stock data determined winner for the newest sharing "
+                "weekend challenge.")
