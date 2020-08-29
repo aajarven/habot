@@ -43,8 +43,8 @@ def react_to_message(message):
             functionality = commands[first_word]()
             response = functionality.act(message)
         except:  # noqa: E722  pylint: disable=bare-except
-            logger.error("A problem was encountered during reacting to message"
-                         "See stack trace.", exc_info=True)
+            logger.error("A problem was encountered during reacting to "
+                         "message. See stack trace.", exc_info=True)
             response = ("Something unexpected happened while handling command "
                         "`{}`. Contact @Antonbury for "
                         "help.".format(first_word))
@@ -122,7 +122,7 @@ class SendWinnerMessage(Functionality):
             winner_str = challenge.winner_str(stock_day, STOCK_NAME)
 
             response = completer_str + "\n\n" + winner_str
-        except IndexError:
+        except ValueError:
             response = (completer_str + "\n\nNobody completed the challenge, "
                         "so winner cannot be chosen.")
 
