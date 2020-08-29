@@ -10,7 +10,8 @@ from habot.io import HabiticaMessager
 
 class BirthdayReminder():
     """
-    """  # TODO
+    A class for creating and sending Habitica Birthday reminders.
+    """
 
     def __init__(self, header):
         """
