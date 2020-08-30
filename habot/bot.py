@@ -2,6 +2,8 @@
 Bot functionality
 """
 
+import datetime
+
 from habitica_helper import habiticatool
 from habitica_helper.challenge import Challenge
 
@@ -35,6 +37,7 @@ def react_to_message(message):
     commands = {
         "send-winner-message": SendWinnerMessage,
         "create-next-sharing-weekend": CreateNextSharingWeekend,
+        "award-latest-winner": AwardWinner,
         }
     first_word = message.content.strip().split()[0]
     logger.debug("Got message starting with %s", first_word)
@@ -190,8 +193,12 @@ class AwardWinner(Functionality):
         """
         challenge_id = self.partytool.current_sharing_weekend()["id"]
         challenge = Challenge(HEADER, challenge_id)
-        winner_id = challenge.random_winner(STOCK_NAME)  # TODO
-        challenge.award_winner(winner_id)
+        today = datetime.date.today()
+        stock_date = (today
+                      - datetime.timedelta(today.weekday() - STOCK_DAY_NUMBER))
+        winner = challenge.random_winner(stock_date, STOCK_NAME)
+        challenge.award_winner(winner.id)
+        return "Awarded {} as the winner of {}".format(winner, challenge.name)
 
     def help(self):
         return ("Award a stock data determined winner for the newest sharing "
