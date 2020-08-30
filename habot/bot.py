@@ -191,6 +191,9 @@ class AwardWinner(Functionality):
         """
         Award a winner for the newest sharing weekend challenge.
         """
+        if not self._sender_is_admin(message):
+            return "Only administrators are allowed to end challenges."
+
         challenge_id = self.partytool.current_sharing_weekend()["id"]
         challenge = Challenge(HEADER, challenge_id)
         today = datetime.date.today()
