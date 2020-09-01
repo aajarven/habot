@@ -7,6 +7,7 @@ import requests
 from habitica_helper.utils import get_dict_from_api
 
 from habot.exceptions import CommunicationFailedException
+import habot.logger
 
 
 class HabiticaOperator(object):
@@ -17,6 +18,7 @@ class HabiticaOperator(object):
 
     def __init__(self, header):
         self._header = header
+        self._logger = habot.logger.get_logger()
 
     def _get_user_data(self):
         """
@@ -99,6 +101,29 @@ class HabiticaOperator(object):
         response = requests.post(tick_url, headers=self._header)
         if response.status_code != 200:
             raise CommunicationFailedException(response)
+
+    def join_quest(self):
+        """
+        If there's an unjoined quest, join it.
+
+        :return: True if a quest was joined.
+        """
+        self._logger.debug("Checking if a quest can be joined.")
+        partydata = get_dict_from_api(
+            self._header,
+            "https://habitica.com/api/v3/groups/party")
+        if (partydata["quest"]["key"] and not partydata["quest"]["active"] and
+                not partydata["quest"]["members"][self._header["x-api-user"]]):
+            self._logger.debug("New quest found")
+            response = requests.post(
+                "https://habitica.com/api/v3/groups/party/quests/accept",
+                headers=self._header)
+            if response.status_code != 200:
+                self._logger.error("Quest joining failed: %s", response.text)
+                raise CommunicationFailedException(response)
+            self._logger.info("Joined quest %s", partydata["quest"]["key"])
+            return True
+        return False
 
 
 class AmbiguousOperationException(Exception):

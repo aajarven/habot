@@ -10,6 +10,7 @@ from conf.header import HEADER
 from habot.birthdays import BirthdayReminder
 from habot.bot import handle_PMs, SendWinnerMessage
 from habot.io import HabiticaMessager
+from habot.habitica_operations import HabiticaOperator
 
 
 ANTONBURY_UID = "f687a6c7-860a-4c7c-8a07-9d0dcbb7c831"
@@ -34,10 +35,19 @@ def sharing_winner():
         )
 
 
+def join_quest():
+    """
+    Join challenge if there is one to be joined.
+    """
+    operator = HabiticaOperator(HEADER)
+    operator.join_quest()
+
+
 if __name__ == "__main__":
     messager = HabiticaMessager(HEADER)
     schedule.every(10).minutes.do(messager.get_private_messages)
     schedule.every(10).minutes.do(handle_PMs)
+    schedule.every(4).hours.do(join_quest)
 
     schedule.every().tuesday.at("18:00").do(sharing_winner)
     schedule.every().day.at("00:01").do(bday)
