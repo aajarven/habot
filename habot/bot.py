@@ -14,7 +14,7 @@ from habot.message import PrivateMessage
 from habot.sharing_weekend import SharingChallengeOperator
 from habot import utils
 
-from conf.header import HEADER, PARTYMEMBER_HEADER
+from conf.header import HEADER
 from conf.tasks import WINNER_PICKED
 from conf.sharing_weekend import STOCK_DAY_NUMBER, STOCK_NAME
 
@@ -105,7 +105,7 @@ class SendWinnerMessage(Functionality):
     """
 
     def __init__(self):
-        self.partytool = habiticatool.PartyTool(PARTYMEMBER_HEADER)
+        self.partytool = habiticatool.PartyTool(HEADER)
         self.habitica_operator = HabiticaOperator(HEADER)
         super(SendWinnerMessage, self).__init__()
 
@@ -118,7 +118,7 @@ class SendWinnerMessage(Functionality):
         participants, the message just states that.
         """
         challenge_id = self.partytool.current_sharing_weekend()["id"]
-        challenge = Challenge(PARTYMEMBER_HEADER, challenge_id)
+        challenge = Challenge(HEADER, challenge_id)
         completer_str = challenge.completer_str()
         try:
             stock_day = utils.last_weekday_date(STOCK_DAY_NUMBER)
@@ -183,7 +183,7 @@ class AwardWinner(Functionality):
     """
 
     def __init__(self):
-        self.partytool = habiticatool.PartyTool(PARTYMEMBER_HEADER)
+        self.partytool = habiticatool.PartyTool(HEADER)
         self.habitica_operator = HabiticaOperator(HEADER)
         super(AwardWinner, self).__init__()
 
