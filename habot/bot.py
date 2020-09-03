@@ -17,6 +17,7 @@ from habot import utils
 from conf.header import HEADER
 from conf.tasks import WINNER_PICKED
 from conf.sharing_weekend import STOCK_DAY_NUMBER, STOCK_NAME
+from conf import conf
 
 
 def handle_PMs():
@@ -96,7 +97,7 @@ class Functionality():
         Currently only @Antonbury is an admin.
         """
         # pylint: disable=no-self-use
-        return message.from_id == "f687a6c7-860a-4c7c-8a07-9d0dcbb7c831"
+        return message.from_id == conf.ADMIN_UID
 
 
 class SendWinnerMessage(Functionality):

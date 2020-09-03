@@ -16,15 +16,12 @@ from habot.habitica_operations import HabiticaOperator
 from habot.logger import get_logger
 
 
-ANTONBURY_UID = "f687a6c7-860a-4c7c-8a07-9d0dcbb7c831"
-
-
 def bday():
     """
     Send birthday reminder to Antonbury
     """
     bday_reminder = BirthdayReminder(HEADER)
-    bday_reminder.send_birthday_reminder(ANTONBURY_UID)
+    bday_reminder.send_birthday_reminder(conf.ADMIN_UID)
 
 
 def sharing_winner():
@@ -33,7 +30,7 @@ def sharing_winner():
     """
     winner_message_creator = SendWinnerMessage()
     HabiticaMessager(HEADER).send_private_message(
-        ANTONBURY_UID,
+        conf.ADMIN_UID,
         winner_message_creator.act("send scheduled sharing weekend winner msg")
         )
 
@@ -71,7 +68,7 @@ def main():
                       "".format(traceback.format_exc(), consecutive_errors))
             try:
                 HabiticaMessager(HEADER).send_private_message(
-                    ANTONBURY_UID,
+                    conf.ADMIN_UID,
                     report)
             except CommunicationFailedException:
                 get_logger().exception("Could not send the error report. ",
