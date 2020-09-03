@@ -125,6 +125,13 @@ class HabiticaOperator(object):
             return True
         return False
 
+    def cron(self):
+        """
+        Run cron.
+        """
+        requests.post("https://habitica.com/api/v3/cron", headers=self._header)
+        self._logger.debug("Cron run successful.")
+
 
 class AmbiguousOperationException(Exception):
     """

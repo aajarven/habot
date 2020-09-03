@@ -43,6 +43,14 @@ def join_quest():
     operator.join_quest()
 
 
+def cron():
+    """
+    Run cron
+    """
+    operator = HabiticaOperator(HEADER)
+    operator.cron()
+
+
 def main():
     """
     Run the scheduled operations repeatedly.
@@ -87,5 +95,6 @@ if __name__ == "__main__":
 
     schedule.every().tuesday.at("18:00").do(sharing_winner)
     schedule.every().day.at("00:01").do(bday)
+    schedule.every().day.at("01:00").do(cron)
 
     main()
