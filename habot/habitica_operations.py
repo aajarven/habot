@@ -112,8 +112,10 @@ class HabiticaOperator(object):
         partydata = get_dict_from_api(
             self._header,
             "https://habitica.com/api/v3/groups/party")
-        if (partydata["quest"]["key"] and not partydata["quest"]["active"] and
-                not partydata["quest"]["members"][self._header["x-api-user"]]):
+        self._logger.debug("Quest information: %s", partydata["quest"])
+        if ("key" in partydata["quest"] and
+                not partydata["quest"]["active"] and
+                self._header["x-api-user"] not in partydata["quest"]["members"]):
             self._logger.debug("New quest found")
             response = requests.post(
                 "https://habitica.com/api/v3/groups/party/quests/accept",
