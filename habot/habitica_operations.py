@@ -109,13 +109,14 @@ class HabiticaOperator(object):
         :return: True if a quest was joined.
         """
         self._logger.debug("Checking if a quest can be joined.")
-        partydata = get_dict_from_api(
+        questdata = get_dict_from_api(
             self._header,
-            "https://habitica.com/api/v3/groups/party")
-        self._logger.debug("Quest information: %s", partydata["quest"])
-        if ("key" in partydata["quest"] and
-                not partydata["quest"]["active"] and
-                self._header["x-api-user"] not in partydata["quest"]["members"]):
+            "https://habitica.com/api/v3/groups/party")["quest"]
+        self._logger.debug("Quest information: %s", questdata)
+        if ("key" in questdata and
+                not questdata["active"] and (
+                    self._header["x-api-user"] not in questdata["members"]
+                    or not questdata["members"][self._header["x-api-user"]])):
             self._logger.debug("New quest found")
             response = requests.post(
                 "https://habitica.com/api/v3/groups/party/quests/accept",
@@ -123,7 +124,7 @@ class HabiticaOperator(object):
             if response.status_code != 200:
                 self._logger.error("Quest joining failed: %s", response.text)
                 raise CommunicationFailedException(response)
-            self._logger.info("Joined quest %s", partydata["quest"]["key"])
+            self._logger.info("Joined quest %s", questdata["key"])
             return True
         return False
 
