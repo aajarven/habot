@@ -143,12 +143,12 @@ def main():
             if consecutive_errors > conf.MAX_CONSECUTIVE_FAILS:
                 get_logger().info("Shutting down due to too many failures.")
                 return
-        time.sleep(10)
+        time.sleep(2)
 
 
 if __name__ == "__main__":
-    schedule.every(10).minutes.do(fetch_messages)
-    schedule.every(10).minutes.do(handle_PMs)
+    schedule.every(1).minutes.do(fetch_messages)
+    schedule.every(1).minutes.do(handle_PMs)
     schedule.every(4).hours.do(join_quest)
 
     schedule.every().tuesday.at("18:00").do(sharing_winner)
