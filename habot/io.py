@@ -241,8 +241,11 @@ class HabiticaMessager():
         No paging is implemented: all new messages are assumed to fit into the
         returned data from the API.
         """
-        message_data = get_dict_from_api(
-            self._header, "https://habitica.com/api/v3/inbox/messages")
+        try:
+            message_data = get_dict_from_api(
+                self._header, "https://habitica.com/api/v3/inbox/messages")
+        except requests.exceptions.HTTPError as err:
+            raise CommunicationFailedException(err.response) from err
 
         messages = [None] * len(message_data)
         for i, message_dict in zip(range(len(message_data)), message_data):
