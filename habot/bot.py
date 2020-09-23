@@ -3,6 +3,7 @@ Bot functionality
 """
 
 import datetime
+import re
 
 from habitica_helper import habiticatool
 from habitica_helper.challenge import Challenge
@@ -30,11 +31,26 @@ def handle_PMs():
         react_to_message(message)
 
 
+def ignorable(message_content):
+    """
+    Return True if message should be ignored.
+
+    Currently only gem gifting messages are ignored.
+    """
+    return re.match(r"Hello \S*, \S* has sent you \d* gems!", message_content)
+
+
 def react_to_message(message):
     """
     Perform whatever actions the given Message requires and send a response
     """
     logger = habot.logger.get_logger()
+
+    if ignorable(message.content):
+        HabiticaMessager.set_reaction_pending(message, False)
+        logger.debug("Message %s doesn' need a reaction", message.content)
+        return
+
     commands = {
         "send-winner-message": SendWinnerMessage,
         "create-next-sharing-weekend": CreateNextSharingWeekend,
