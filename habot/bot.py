@@ -37,7 +37,7 @@ def ignorable(message_content):
 
     Currently only gem gifting messages are ignored.
     """
-    return re.match(r"Hello \S*, \S* has sent you \d* gems!", message_content)
+    return re.match(r"`Hello \S*, \S* has sent you \d* gems!`", message_content)
 
 
 def react_to_message(message):
