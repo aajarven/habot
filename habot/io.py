@@ -6,12 +6,13 @@ Currently this means interacting via private messages in Habitica.
 
 from collections import OrderedDict
 from datetime import datetime
-import requests
+import requests.exceptions
 import yaml
 
 from habitica_helper.habiticatool import PartyTool
 from habitica_helper.task import Task
 from habitica_helper.utils import get_dict_from_api, timestamp_to_datetime
+from habitica_helper import habrequest
 
 from conf.tasks import PM_SENT
 from habot.db import DBOperator
@@ -59,7 +60,7 @@ class HabiticaMessager():
         :message: The contents of the message
         """
         api_url = "https://habitica.com/api/v3/members/send-private-message"
-        response = requests.post(api_url, headers=self._header,
+        response = habrequest.post(api_url, headers=self._header,
                                  data={"message": message, "toUserId": to_uid})
         if response.status_code != 200:
             raise CommunicationFailedException(response)

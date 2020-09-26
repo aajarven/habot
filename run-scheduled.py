@@ -17,52 +17,6 @@ from habot.habitica_operations import HabiticaOperator
 from habot.logger import get_logger
 
 
-def ignore_429(func):
-    """
-    Do nothing if Habitica responds with status 429.
-
-    Habitica API limits the rate at which API calls can be made (30 calls / 60
-    seconds), and if the limit is exceeded, the server responds with 429 Too
-    Many Requests. This decorator simply logs the response but does not retry
-    or take any other measures.
-    """
-    def _wrapper(*args, **kwargs):
-        try:
-            func(*args, **kwargs)
-        except CommunicationFailedException as exc:
-            if exc.response.status_code != 429:
-                raise
-            text = ("Too many API calls were made. This call will not be "
-                    "retried. Stack trace:")
-            get_logger().exception(text, exc_info=True)
-    return _wrapper
-
-
-def retry_429(func):
-    """
-    Retry after "Retry-After" seconds if Habitica responds with status 429.
-
-    The request itself is not resent, but instead the whole function is run
-    again.
-    """
-    def _wrapper(*args, **kwargs):
-        try:
-            func(*args, **kwargs)
-        except CommunicationFailedException as exc:
-            if exc.response.status_code != 429:
-                raise
-            logger = get_logger()
-            logger.exception("Habitica request limit exceeded: %s",
-                             exc.response.headers, exc_info=False)
-            wait_time = float(exc.response.headers["Retry-After"])
-            logger.exception("Retrying %s after %.2f seconds...",
-                             func.__name__, wait_time, exc_info=False)
-            time.sleep(wait_time)
-            func(*args, **kwargs)
-    return _wrapper
-
-
-@retry_429
 def bday():
     """
     Send birthday reminder to Antonbury
@@ -71,7 +25,6 @@ def bday():
     bday_reminder.send_birthday_reminder(conf.ADMIN_UID)
 
 
-@retry_429
 def sharing_winner():
     """
     Send a message announcing the sharing weekend winner.
@@ -83,7 +36,6 @@ def sharing_winner():
         )
 
 
-@retry_429
 def join_quest():
     """
     Join challenge if there is one to be joined.
@@ -92,7 +44,6 @@ def join_quest():
     operator.join_quest()
 
 
-@retry_429
 def cron():
     """
     Run cron
@@ -101,7 +52,6 @@ def cron():
     operator.cron()
 
 
-@ignore_429
 def fetch_messages():
     """
     Fetch messages using Habitica API

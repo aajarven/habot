@@ -2,9 +2,8 @@
 Perform "normal" habitica operations, e.g. tick a habit.
 """
 
-import requests
-
 from habitica_helper.utils import get_dict_from_api
+from habitica_helper import habrequest
 
 from habot.exceptions import CommunicationFailedException
 import habot.logger
@@ -98,7 +97,7 @@ class HabiticaOperator(object):
 
         tick_url = ("https://habitica.com/api/v3/tasks/{}/score/{}"
                     "".format(task["_id"], direction))
-        response = requests.post(tick_url, headers=self._header)
+        response = habrequest.post(tick_url, headers=self._header)
         if response.status_code != 200:
             raise CommunicationFailedException(response)
 
@@ -118,7 +117,7 @@ class HabiticaOperator(object):
                     self._header["x-api-user"] not in questdata["members"]
                     or not questdata["members"][self._header["x-api-user"]])):
             self._logger.debug("New quest found")
-            response = requests.post(
+            response = habrequest.post(
                 "https://habitica.com/api/v3/groups/party/quests/accept",
                 headers=self._header)
             if response.status_code != 200:
@@ -132,7 +131,8 @@ class HabiticaOperator(object):
         """
         Run cron.
         """
-        requests.post("https://habitica.com/api/v3/cron", headers=self._header)
+        habrequest.post("https://habitica.com/api/v3/cron",
+                        headers=self._header)
         self._logger.debug("Cron run successful.")
 
 
