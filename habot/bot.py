@@ -8,6 +8,7 @@ import re
 from habitica_helper import habiticatool
 from habitica_helper.challenge import Challenge
 
+from habot.birthdays import BirthdayReminder
 from habot.habitica_operations import HabiticaOperator
 from habot.io import HabiticaMessager
 import habot.logger
@@ -53,6 +54,7 @@ def react_to_message(message):
         return
 
     commands = {
+        "list-birthdays": ListBirthdays,
         "send-winner-message": SendWinnerMessage,
         "create-next-sharing-weekend": CreateNextSharingWeekend,
         "award-latest-winner": AwardWinner,
@@ -115,6 +117,26 @@ class Functionality():
         """
         # pylint: disable=no-self-use
         return message.from_id == conf.ADMIN_UID
+
+
+class ListBirthdays(Functionality):
+    """
+    Respond with a list of Habitica birthdays.
+    """
+
+    def act(self, message):
+        """
+        Return a response with todays birthdays.
+        """
+        bday_reminder = BirthdayReminder(HEADER)
+        return bday_reminder.birthday_reminder_message()
+
+    def help(self):
+        """
+        Return a help message.
+        """
+        # pylint: disable=no-self-use
+        return "List party members who are celebrating their birthday today."
 
 
 class SendWinnerMessage(Functionality):
