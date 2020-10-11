@@ -357,6 +357,7 @@ class DBSyncer():
         """
         self._header = header
         self._db = DBOperator()
+        self._logger = habot.logger.get_logger()
 
     def update_partymember_data(self):
         """
@@ -365,11 +366,14 @@ class DBSyncer():
         If the database contains members that are not currently in the party,
         they are removed from the database.
         """
+        self._logger.debug("Going to update partymember data in the DB.")
         partytool = PartyTool(self._header)
         partymembers = partytool.party_members()
 
         self.add_new_members(partymembers)
+        self._logger.debug("Added new members")
         self.remove_old_members(partymembers)
+        self._logger.debug("Removed outdated members")
 
     def remove_old_members(self, partymembers):
         """

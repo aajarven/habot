@@ -22,7 +22,7 @@ def bday():
     Send birthday reminder to Antonbury
     """
     bday_reminder = BirthdayReminder(HEADER)
-    bday_reminder.send_birthday_reminder(conf.ADMIN_UID)
+    bday_reminder.send_birthday_reminder(conf.ADMIN_UID, sync=True)
 
 
 def sharing_winner():
