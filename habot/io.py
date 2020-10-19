@@ -1,7 +1,7 @@
 """
 Communications with non-API external entities.
 
-Currently this means interacting via private messages in Habitica.
+Currently this means interacting via private or party messages in Habitica.
 """
 
 from collections import OrderedDict
@@ -24,7 +24,7 @@ from habot.message import PrivateMessage, ChatMessage, SystemMessage
 
 class HabiticaMessager():
     """
-    A class for handling Habitica private messages.
+    A class for handling Habitica messages (private and party).
     """
 
     def __init__(self, header):
@@ -61,7 +61,8 @@ class HabiticaMessager():
         """
         api_url = "https://habitica.com/api/v3/members/send-private-message"
         response = habrequest.post(api_url, headers=self._header,
-                                 data={"message": message, "toUserId": to_uid})
+                                   data={"message": message,
+                                         "toUserId": to_uid})
         if response.status_code != 200:
             raise CommunicationFailedException(response)
 

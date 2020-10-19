@@ -58,6 +58,7 @@ def fetch_messages():
     """
     messager = HabiticaMessager(HEADER)
     messager.get_private_messages()
+    messager.get_party_messages()
 
 
 def main():
