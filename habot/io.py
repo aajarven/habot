@@ -14,7 +14,7 @@ from habitica_helper.task import Task
 from habitica_helper.utils import get_dict_from_api, timestamp_to_datetime
 from habitica_helper import habrequest
 
-from conf.tasks import PM_SENT
+from conf.tasks import PM_SENT, GROUP_MSG_SENT
 from habot.db import DBOperator
 from habot.exceptions import CommunicationFailedException
 from habot.habitica_operations import HabiticaOperator
@@ -67,6 +67,21 @@ class HabiticaMessager():
             raise CommunicationFailedException(response)
 
         self._habitica_operator.tick_task(PM_SENT, task_type="habit")
+
+    def send_group_message(self, group_id, message):
+        """
+        Send a private message with the given content to the given group.
+
+        :group_id: UUID of the recipient group, or 'party' for current party of
+                   the bot.
+        :message: Contents of the message to be sent
+        """
+        api_url = "https://habitica.com/api/v3/groups/{}/chat".format(group_id)
+        response = habrequest.post(api_url, headers=self._header,
+                                   data={"message": message})
+        if response.status_code != 200:
+            raise CommunicationFailedException(response)
+        self._habitica_operator.tick_task(GROUP_MSG_SENT, task_type="habit")
 
     def get_party_messages(self):
         """

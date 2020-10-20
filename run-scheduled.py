@@ -10,7 +10,8 @@ import schedule
 from conf.header import HEADER
 from conf import conf
 from habot.birthdays import BirthdayReminder
-from habot.bot import handle_PMs, SendWinnerMessage
+from habot.bot import (handle_PMs, SendWinnerMessage, AwardWinner,
+                       CreateNextSharingWeekend)
 from habot.exceptions import CommunicationFailedException
 from habot.io import HabiticaMessager
 from habot.habitica_operations import HabiticaOperator
@@ -25,7 +26,7 @@ def bday():
     bday_reminder.send_birthday_reminder(conf.ADMIN_UID, sync=True)
 
 
-def sharing_winner():
+def sharing_winner_message():
     """
     Send a message announcing the sharing weekend winner.
     """
@@ -33,6 +34,21 @@ def sharing_winner():
     HabiticaMessager(HEADER).send_private_message(
         conf.ADMIN_UID,
         winner_message_creator.act("send scheduled sharing weekend winner msg")
+        )
+
+
+def handle_sharing_weekend():
+    """
+    Does the work of the weekly routine of ending and creating a challenge.
+    """
+    challenge_ender = AwardWinner()
+    winner_message = challenge_ender.act("end challenge", scheduled_run=True)
+
+    challenge_creator = CreateNextSharingWeekend()
+    end_message = challenge_creator.act("create challenge", scheduled_run=True)
+
+    HabiticaMessager(HEADER).send_group_message(
+        "party", "\n\n".join([winner_message, end_message])
         )
 
 
@@ -102,7 +118,7 @@ if __name__ == "__main__":
     schedule.every(1).minutes.do(handle_PMs)
     schedule.every(4).hours.do(join_quest)
 
-    schedule.every().tuesday.at("18:00").do(sharing_winner)
+    schedule.every().tuesday.at("18:00").do(sharing_winner_message)
     schedule.every().day.at("00:01").do(bday)
     schedule.every().day.at("01:00").do(cron)
 

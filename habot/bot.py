@@ -183,11 +183,11 @@ class CreateNextSharingWeekend(Functionality):
     A class for creating the next sharing weekend challenge.
     """
 
-    def act(self, message):
+    def act(self, message, scheduled_run=False):
         """
         Create a new sharing weekend challenge and return a report.
         """
-        if not self._sender_is_admin(message):
+        if not scheduled_run and not self._sender_is_admin(message):
             return "Only administrators are allowed to create new challenges."
 
         tasks_path = "data/sharing_weekend_static_tasks.yml"
@@ -227,11 +227,15 @@ class AwardWinner(Functionality):
         self.habitica_operator = HabiticaOperator(HEADER)
         super(AwardWinner, self).__init__()
 
-    def act(self, message):
+    def act(self, message, scheduled_run=False):
         """
         Award a winner for the newest sharing weekend challenge.
+
+        This operation is allowed only for administrators.
+
+        :scheduled_run: Boolean: when True, message sender is not checked.
         """
-        if not self._sender_is_admin(message):
+        if not scheduled_run and not self._sender_is_admin(message):
             return "Only administrators are allowed to end challenges."
 
         challenge_id = self.partytool.current_sharing_weekend()["id"]
