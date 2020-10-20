@@ -119,6 +119,7 @@ if __name__ == "__main__":
     schedule.every(4).hours.do(join_quest)
 
     schedule.every().tuesday.at("18:00").do(sharing_winner_message)
+    schedule.every().tuesday.at("18:10").do(handle_sharing_weekend)
     schedule.every().day.at("00:01").do(bday)
     schedule.every().day.at("01:00").do(cron)
 
