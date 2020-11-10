@@ -40,7 +40,7 @@ class SharingChallengeOperator():
             "shortName": self._next_weekend_shortname(),
             "summary": SUMMARY,
             "description": DESCRIPTION,
-            "prize": 3,  # TODO
+            "prize": 3,
             })
         try:
             self._operator.tick_task(CHALLENGE_CREATED)

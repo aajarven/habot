@@ -208,8 +208,10 @@ class CreateNextSharingWeekend(Functionality):
             return ("New challenge creation failed. Contact @Antonbury for "
                     "help.")
 
-        return ("Created a new sharing weekend challenge: "
+        challenge_url = (
                 "https://habitica.com/challenges/{}".format(challenge.id))
+        return ("Created a new sharing weekend challenge: "
+                "[{url}]({url})".format(url=challenge_url))
 
     def help(self):
         return ("Create a new sharing weekend challenge. No customization is "
