@@ -58,6 +58,7 @@ def react_to_message(message):
         "send-winner-message": SendWinnerMessage,
         "create-next-sharing-weekend": CreateNextSharingWeekend,
         "award-latest-winner": AwardWinner,
+        "ping": Ping,
         }
     first_word = message.content.strip().split()[0]
     logger.debug("Got message starting with %s", first_word)
@@ -118,6 +119,20 @@ class Functionality():
         # pylint: disable=no-self-use
         return message.from_id == conf.ADMIN_UID
 
+
+class Ping(Functionality):
+    """
+    Respond with "pong".
+    """
+
+    def act(self, message):
+        """
+        Do nothing, respond with "pong".
+        """
+        return "Pong"
+
+    def help(self):
+        return "Does nothing but sends a response."
 
 class ListBirthdays(Functionality):
     """
