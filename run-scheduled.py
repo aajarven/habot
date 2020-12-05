@@ -20,10 +20,20 @@ from habot.logger import get_logger
 
 def bday():
     """
-    Send birthday reminder to Antonbury
+    Send birthday messages.
+
+    A message is sent to the admin regardless of whether anyone is celebrating
+    their birthday or not, but if someone is actually celebrating today, a
+    message is sent to the party also.
     """
     bday_reminder = BirthdayReminder(HEADER)
     bday_reminder.send_birthday_reminder(conf.ADMIN_UID, sync=True)
+
+    birthday_revellers = bday_reminder.birthdays_today()
+    if not birthday_revellers:
+        return
+    message = bday_reminder.birthday_reminder_message()
+    HabiticaMessager(HEADER).send_group_message("party", message)
 
 
 def sharing_winner_message():
