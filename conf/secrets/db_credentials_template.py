@@ -1,0 +1,2 @@
+USER = "mysqluser"
+PASSWORD = "mysqlpassword"
