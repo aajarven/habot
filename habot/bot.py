@@ -202,6 +202,8 @@ class CreateNextSharingWeekend(Functionality):
         """
         Create a new sharing weekend challenge and return a report.
         """
+        # pylint: disable=arguments-differ
+
         if not scheduled_run and not self._sender_is_admin(message):
             return "Only administrators are allowed to create new challenges."
 
@@ -225,7 +227,7 @@ class CreateNextSharingWeekend(Functionality):
 
         challenge_url = (
                 "https://habitica.com/challenges/{}".format(challenge.id))
-        return ("Created a new sharing weekend challenge: "
+        return ("A new sharing weekend challenge as available for joining: "
                 "[{url}]({url})".format(url=challenge_url))
 
     def help(self):
@@ -242,7 +244,7 @@ class AwardWinner(Functionality):
     def __init__(self):
         self.partytool = habiticatool.PartyTool(HEADER)
         self.habitica_operator = HabiticaOperator(HEADER)
-        super(AwardWinner, self).__init__()
+        super().__init__()
 
     def act(self, message, scheduled_run=False):
         """
@@ -252,6 +254,8 @@ class AwardWinner(Functionality):
 
         :scheduled_run: Boolean: when True, message sender is not checked.
         """
+        # pylint: disable=arguments-differ
+
         if not scheduled_run and not self._sender_is_admin(message):
             return "Only administrators are allowed to end challenges."
 
@@ -262,7 +266,8 @@ class AwardWinner(Functionality):
                       - datetime.timedelta(today.weekday() - STOCK_DAY_NUMBER))
         winner = challenge.random_winner(stock_date, STOCK_NAME)
         challenge.award_winner(winner.id)
-        return "Awarded {} as the winner of {}".format(winner, challenge.name)
+        return ("Congratulations are in order for {}, the lucky winner of {}!"
+                "".format(winner, challenge.name))
 
     def help(self):
         return ("Award a stock data determined winner for the newest sharing "
