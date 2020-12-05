@@ -5,12 +5,13 @@ Functionality for sending Habitica birthday reminders
 import datetime
 
 from habot.db import DBOperator
-from habot.io import HabiticaMessager
+from habot.io import HabiticaMessager, DBSyncer
 
 
 class BirthdayReminder():
     """
-    """  # TODO
+    A class for creating and sending Habitica Birthday reminders.
+    """
 
     def __init__(self, header):
         """
@@ -32,16 +33,22 @@ class BirthdayReminder():
         members = db.query_table("members")
 
         today = datetime.date.today()
+
         revellers = [member for member in members
-                     if member["birthday"] == today]
+                     if (member["birthday"].month == today.month and
+                         member["birthday"].day == today.day)]
         return revellers
 
-    def send_birthday_reminder(self, recipient_uid):
+    def send_birthday_reminder(self, recipient_uid, sync=True):
         """
         Send a message telling whether any party member is having a birthday.
 
         :recipient_uid: The UID of the Habitician to whom the PM is sent
+        :sync: True if database should be synced before sending message
         """
+        if sync:
+            db_syncer = DBSyncer(self._header)
+            db_syncer.update_partymember_data()
         message = self.birthday_reminder_message()
         messager = HabiticaMessager(self._header)
         messager.send_private_message(recipient_uid, message)
@@ -60,5 +67,5 @@ class BirthdayReminder():
             reveller_str = "- " + "\n- ".join(reveller_names)
             message = ("The following habiticians are celebrating their "
                        "Habitica birthdays today:\n"
-                       "{}".format(reveller_str))
+                       "{}\n\nHappy birthday!".format(reveller_str))
         return message

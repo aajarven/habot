@@ -1,19 +1,20 @@
 """
 Communications with non-API external entities.
 
-Currently this means interacting via private messages in Habitica.
+Currently this means interacting via private or party messages in Habitica.
 """
 
 from collections import OrderedDict
 from datetime import datetime
-import requests
+import requests.exceptions
 import yaml
 
 from habitica_helper.habiticatool import PartyTool
 from habitica_helper.task import Task
 from habitica_helper.utils import get_dict_from_api, timestamp_to_datetime
+from habitica_helper import habrequest
 
-from conf.tasks import PM_SENT
+from conf.tasks import PM_SENT, GROUP_MSG_SENT
 from habot.db import DBOperator
 from habot.exceptions import CommunicationFailedException
 from habot.habitica_operations import HabiticaOperator
@@ -23,7 +24,7 @@ from habot.message import PrivateMessage, ChatMessage, SystemMessage
 
 class HabiticaMessager():
     """
-    A class for handling Habitica private messages.
+    A class for handling Habitica messages (private and party).
     """
 
     def __init__(self, header):
@@ -59,12 +60,28 @@ class HabiticaMessager():
         :message: The contents of the message
         """
         api_url = "https://habitica.com/api/v3/members/send-private-message"
-        response = requests.post(api_url, headers=self._header,
-                                 data={"message": message, "toUserId": to_uid})
+        response = habrequest.post(api_url, headers=self._header,
+                                   data={"message": message,
+                                         "toUserId": to_uid})
         if response.status_code != 200:
             raise CommunicationFailedException(response)
 
         self._habitica_operator.tick_task(PM_SENT, task_type="habit")
+
+    def send_group_message(self, group_id, message):
+        """
+        Send a private message with the given content to the given group.
+
+        :group_id: UUID of the recipient group, or 'party' for current party of
+                   the bot.
+        :message: Contents of the message to be sent
+        """
+        api_url = "https://habitica.com/api/v3/groups/{}/chat".format(group_id)
+        response = habrequest.post(api_url, headers=self._header,
+                                   data={"message": message})
+        if response.status_code != 200:
+            raise CommunicationFailedException(response)
+        self._habitica_operator.tick_task(GROUP_MSG_SENT, task_type="habit")
 
     def get_party_messages(self):
         """
@@ -241,8 +258,11 @@ class HabiticaMessager():
         No paging is implemented: all new messages are assumed to fit into the
         returned data from the API.
         """
-        message_data = get_dict_from_api(
-            self._header, "https://habitica.com/api/v3/inbox/messages")
+        try:
+            message_data = get_dict_from_api(
+                self._header, "https://habitica.com/api/v3/inbox/messages")
+        except requests.exceptions.HTTPError as err:
+            raise CommunicationFailedException(err.response) from err
 
         messages = [None] * len(message_data)
         for i, message_dict in zip(range(len(message_data)), message_data):
@@ -353,6 +373,7 @@ class DBSyncer():
         """
         self._header = header
         self._db = DBOperator()
+        self._logger = habot.logger.get_logger()
 
     def update_partymember_data(self):
         """
@@ -361,11 +382,14 @@ class DBSyncer():
         If the database contains members that are not currently in the party,
         they are removed from the database.
         """
+        self._logger.debug("Going to update partymember data in the DB.")
         partytool = PartyTool(self._header)
         partymembers = partytool.party_members()
 
         self.add_new_members(partymembers)
+        self._logger.debug("Added new members")
         self.remove_old_members(partymembers)
+        self._logger.debug("Removed outdated members")
 
     def remove_old_members(self, partymembers):
         """

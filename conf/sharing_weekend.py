@@ -1,6 +1,9 @@
 """
-Constant data for creating Sharing Weekend challenges.
+Data for creating and operating Sharing Weekend challenges.
 """
+
+STOCK_DAY_NUMBER = 1  # Tuesday
+STOCK_NAME = "^AEX"
 
 SUMMARY = ("Each weekend (Sat/Sun/Mon) we look back and find positives "
            "from the past week to celebrate, look forward and set a goal for "

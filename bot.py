@@ -10,8 +10,9 @@ import click
 from habitica_helper import habiticatool
 from habitica_helper.challenge import Challenge
 
-from conf.header import HEADER, PARTYMEMBER_HEADER
+from conf.header import HEADER
 from conf.tasks import WINNER_PICKED
+from conf import conf
 from habot.birthdays import BirthdayReminder
 from habot.io import HabiticaMessager, DBSyncer
 from habot.habitica_operations import HabiticaOperator
@@ -42,9 +43,9 @@ def send_winner_message(ctx, dry_run):
     """
     log = ctx.obj["logger"]
     log.debug("send-winner-message (dry-run={})".format(dry_run))
-    partytool = habiticatool.PartyTool(PARTYMEMBER_HEADER)
+    partytool = habiticatool.PartyTool(HEADER)
     challenge_id = partytool.current_sharing_weekend()["id"]
-    challenge = Challenge(PARTYMEMBER_HEADER, challenge_id)
+    challenge = Challenge(HEADER, challenge_id)
 
     completer_str = challenge.completer_str()
 
@@ -61,7 +62,7 @@ def send_winner_message(ctx, dry_run):
         logger.info("Message was not sent due to --dry-run. The message would "
                     "have been:\n%s", message)
     else:
-        recipient = "f687a6c7-860a-4c7c-8a07-9d0dcbb7c831"
+        recipient = conf.ADMIN_UID
         message_sender = HabiticaMessager(HEADER)
         message_sender.send_private_message(recipient, message)
         logger.info("Following message sent to %s:\n%s", recipient, message)
@@ -82,11 +83,6 @@ def send_winner_message(ctx, dry_run):
               type=click.Path(exists=True),
               help="Path to file that contains YAML descriptions of the "
                    "weekly questions. One of these is used.")
-@click.option("--test/--no-test",
-              is_flag=True, default=True,
-              help="If --test is set, the challenge is created for the bot, "
-                   "not for the actual party member account, and no new "
-                   "weekly questions are marked as used.")
 def create_next_sharing_weekend(ctx, tasks, questions, test):
     """
     Create a new sharing weekend challenge for the next weekend.
@@ -100,14 +96,7 @@ def create_next_sharing_weekend(ctx, tasks, questions, test):
     log = ctx.obj["logger"]
     log.debug("create-next-sharing-weekend: tasks from %s, weekly question "
               "from %s, --test=%s", tasks, questions, test)
-    if test:
-        header = HEADER
-        update_questions = False
-    else:
-        header = PARTYMEMBER_HEADER
-        update_questions = True
-
-    operator = SharingChallengeOperator(header)
+    operator = SharingChallengeOperator(HEADER)
     message_sender = HabiticaMessager(HEADER)
 
     try:
@@ -116,24 +105,21 @@ def create_next_sharing_weekend(ctx, tasks, questions, test):
                            update_questions=update_questions)
     except:  # noqa: E722  pylint: disable=bare-except
         report = "New challenge creation failed. Contact @Antonbury for help."
-        message_sender.send_private_message(PARTYMEMBER_HEADER["x-api-user"],
-                                            report)
+        message_sender.send_private_message(conf.ADMIN_UID, report)
         log.error("A problem was encountered during sharing weekend challenge "
                   "creation. See stack trace.", exc_info=True)
         sys.exit(1)
 
     report = ("Created a new sharing weekend challenge: "
               "https://habitica.com/challenges/{}".format(challenge.id))
-    message_sender.send_private_message(PARTYMEMBER_HEADER["x-api-user"],
-                                        report)
+    message_sender.send_private_message(conf.ADMIN_UID, report)
     log.info(report)
 
 
 @cli.command()
 @click.pass_context
 @click.argument("message", type=str)
-@click.option("--recipient_uid", type=str,
-              default="f687a6c7-860a-4c7c-8a07-9d0dcbb7c831",
+@click.option("--recipient_uid", type=str, default=conf.ADMIN_UID,
               help=("Habitica user ID of the recipient. Default "
                     "is Antonbury's"))
 def send_pm(ctx, message, recipient_uid):
@@ -149,8 +135,7 @@ def send_pm(ctx, message, recipient_uid):
 
 @cli.command()
 @click.pass_context
-@click.option("--recipient_uid", type=str,
-              default="f687a6c7-860a-4c7c-8a07-9d0dcbb7c831",
+@click.option("--recipient_uid", type=str, default=conf.ADMIN_UID,
               help=("Habitica user ID of the recipient. Default "
                     "is Antonbury's"))
 @click.option("--no-sync", is_flag=True,
@@ -168,7 +153,7 @@ def send_birthday_reminder(ctx, recipient_uid, no_sync, test):
     log.debug("Birthday reminder: recipient=%s, no_sync=%s, test=%s",
               recipient_uid, no_sync, test)
     if not no_sync:
-        db_syncer = DBSyncer(PARTYMEMBER_HEADER)
+        db_syncer = DBSyncer(HEADER)
         db_syncer.update_partymember_data()
         log.debug("Birthdays synced to database.")
     reminder = BirthdayReminder(HEADER)
