@@ -221,7 +221,7 @@ class AddTask(Functionality):
                     "See help:\n\n" + self.help())
         return command_parts.split("\n")[0]
 
-    def _task_description(self, message):
+    def _task_notes(self, message):
         """
         Parse the task description from the command.
 
