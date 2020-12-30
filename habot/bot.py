@@ -178,10 +178,10 @@ class AddTask(Functionality):
         task_type = self._task_type(message)
 
         self.habitica_operator.add_task(
-                task_text=task_text,
-                task_notes=task_notes,
-                task_type=task_type,
-                )
+            task_text=task_text,
+            task_notes=task_notes,
+            task_type=task_type,
+            )
 
         return ("Added a new task with the following properties:\n\n"
                 "```type: {}\n"
