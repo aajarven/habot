@@ -201,23 +201,25 @@ class AddTask(Functionality):
         """
         Parse the task type from the command.
         """
-        parts = self._command_body(message).split(":", 1)
+        message_text = message.content
+        parameter_parts = self._command_body(message_text).split(":", 1)
 
-        if len(parts) == 1:
+        if len(parameter_parts) == 1:
             return ("Task type missing from the command, no new tasks added. "
                     "See help:\n\n" + self.help())
 
-        return parts[0]
+        return parameter_parts[0]
 
     def _task_text(self, message):
         """
         Parse the task name from the command.
         """
-        texts = self._command_body(message).split(":", 1)[1]
-        if len(texts) < 2 or not texts[1]:
+        message_text = message.content
+        command_parts = self._command_body(message_text).split(":", 1)[1]
+        if len(command_parts) < 2 or not command_parts[1]:
             return ("Task name missing from the command, no new tasks added. "
                     "See help:\n\n" + self.help())
-        return texts.split("\n")[0]
+        return command_parts.split("\n")[0]
 
     def _task_description(self, message):
         """
@@ -225,10 +227,11 @@ class AddTask(Functionality):
 
         :returns: Task description if present, otherwise None
         """
-        parts = self._command_body(message).split(":", 1)[1].split("\n", 1)
-        if len(parts) == 1:
+        task_text = self._command_body(message.content).split(":", 1)[1]
+        task_text_parts = task_text.split("\n", 1)
+        if len(task_text_parts) == 1:
             return None
-        return parts[1]
+        return task_text_parts[1]
 
 
 class ListBirthdays(Functionality):
