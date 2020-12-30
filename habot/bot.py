@@ -59,6 +59,7 @@ def react_to_message(message):
         "create-next-sharing-weekend": CreateNextSharingWeekend,
         "award-latest-winner": AwardWinner,
         "ping": Ping,
+        "add-task": AddTask,
         }
     first_word = message.content.strip().split()[0]
     logger.debug("Got message starting with %s", first_word)
@@ -119,6 +120,22 @@ class Functionality():
         # pylint: disable=no-self-use
         return message.from_id == conf.ADMIN_UID
 
+    def _command_body(self, message):
+        """
+        Return the body of the command.
+
+        This means the message without the first word, e.g. for command
+        "add-task todo: do something neat" this would be "todo: do something
+        neat".
+
+        If the message contains only the command, e.g. it is just "ping", an
+        empty string is returned.
+        """
+        parts = message.split(" ", 1)
+        if len(parts) > 1:
+            return parts[1]
+        return ""
+
 
 class Ping(Functionality):
     """
@@ -133,6 +150,83 @@ class Ping(Functionality):
 
     def help(self):
         return "Does nothing but sends a response."
+
+
+class AddTask(Functionality):
+    """
+    Add a new task for the bot.
+    """
+
+    def __init__(self):
+        """
+        Initialize a HabiticaOperator in addition to normal init.
+        """
+        self.habitica_operator = HabiticaOperator(HEADER)
+        super(AddTask, self).__init__()
+
+    def act(self, message):
+        """
+        Add task specified by the message.
+
+        See docstring of `help` for information about the command syntax.
+        """
+        if not self._sender_is_admin(message):
+            return "Only administrators are allowed to add new tasks."
+
+        task_text = self._task_text()
+        task_notes = self._task_notes()
+        task_type = self._task_type()
+
+        self.habitica_operator.add_task(
+                task_text=task_text,
+                task_notes=task_notes,
+                task_type=task_type,
+                )
+
+        return ("Added a new task with the following properties:\n\n"
+                "```type: {}\n"
+                "text: {}\n"
+                "notes: {}```"
+                "".format(task_type, task_text, task_notes)
+                )
+
+    def help(self):
+        return ("Add a new task for the bot. The following syntax is used for "
+                "new tasks: \n\n"
+                "```[task_type]: [task name]\n"
+                "[task description (optional)]```"
+                )
+
+    def _task_type(self, message):
+        """
+        Parse the task type from the command.
+        """
+        parts = self._command_body(message).split(":", 1)
+
+        if len(parts) == 1:
+            return ("Task type missing from the command, no new tasks added. "
+                    "See help:\n\n" + self.help())
+
+        return parts[0]
+
+    def _task_name(self, message):
+        """
+        Parse the task name from the command.
+        """
+        texts = self._command_body(message).split(":", 1)[1]
+        return texts.split("\n")[0]
+
+    def _task_description(self, message):
+        """
+        Parse the task description from the command.
+
+        :returns: Task description if present, otherwise None
+        """
+        parts = self._command_body(message).split(":", 1)[1].split("\n", 1)
+        if len(parts) == 1:
+            return None
+        return parts[1]
+
 
 class ListBirthdays(Functionality):
     """
