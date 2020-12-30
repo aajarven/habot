@@ -173,9 +173,12 @@ class AddTask(Functionality):
         if not self._sender_is_admin(message):
             return "Only administrators are allowed to add new tasks."
 
-        task_text = self._task_text(message)
-        task_notes = self._task_notes(message)
-        task_type = self._task_type(message)
+        try:
+            task_type = self._task_type(message)
+            task_text = self._task_text(message)
+            task_notes = self._task_notes(message)
+        except ValueError as err:
+            return str(err)
 
         self.habitica_operator.add_task(
             task_text=task_text,
@@ -207,11 +210,11 @@ class AddTask(Functionality):
         message_text = message.content
         parameter_parts = self._command_body(message_text).split(":", 1)
 
-        if len(parameter_parts) == 1:
-            return ("Task type missing from the command, no new tasks added. "
-                    "See help:\n\n" + self.help())
+        if len(parameter_parts) < 2:
+            raise ValueError("Task type missing from the command, no new "
+                             "tasks added. See help:\n\n" + self.help())
 
-        return parameter_parts[0]
+        return parameter_parts[0].strip()
 
     def _task_text(self, message):
         """
@@ -220,9 +223,9 @@ class AddTask(Functionality):
         message_text = message.content
         command_parts = self._command_body(message_text).split(":", 1)[1]
         if len(command_parts) < 2 or not command_parts[1]:
-            return ("Task name missing from the command, no new tasks added. "
-                    "See help:\n\n" + self.help())
-        return command_parts.split("\n")[0]
+            raise ValueError("Task name missing from the command, no new "
+                             "tasks added. See help:\n\n" + self.help())
+        return command_parts.split("\n")[0].strip()
 
     def _task_notes(self, message):
         """
@@ -234,7 +237,7 @@ class AddTask(Functionality):
         task_text_parts = task_text.split("\n", 1)
         if len(task_text_parts) == 1:
             return None
-        return task_text_parts[1]
+        return task_text_parts[1].strip()
 
 
 class ListBirthdays(Functionality):
