@@ -173,9 +173,9 @@ class AddTask(Functionality):
         if not self._sender_is_admin(message):
             return "Only administrators are allowed to add new tasks."
 
-        task_text = self._task_text()
-        task_notes = self._task_notes()
-        task_type = self._task_type()
+        task_text = self._task_text(message)
+        task_notes = self._task_notes(message)
+        task_type = self._task_type(message)
 
         self.habitica_operator.add_task(
                 task_text=task_text,
