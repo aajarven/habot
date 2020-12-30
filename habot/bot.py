@@ -184,17 +184,20 @@ class AddTask(Functionality):
             )
 
         return ("Added a new task with the following properties:\n\n"
-                "```type: {}\n"
+                "```\n"
+                "type: {}\n"
                 "text: {}\n"
-                "notes: {}```"
-                "".format(task_type, task_text, task_notes)
+                "notes: {}\n"
+                "```".format(task_type, task_text, task_notes)
                 )
 
     def help(self):
         return ("Add a new task for the bot. The following syntax is used for "
                 "new tasks: \n\n"
-                "```[task_type]: [task name]\n"
-                "[task description (optional)]```"
+                "```\n"
+                "    add-task [task_type]: [task name]\n\n"
+                "    [task description (optional)]\n"
+                "```"
                 )
 
     def _task_type(self, message):
