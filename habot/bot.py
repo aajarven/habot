@@ -214,6 +214,9 @@ class AddTask(Functionality):
         Parse the task name from the command.
         """
         texts = self._command_body(message).split(":", 1)[1]
+        if len(texts) < 2 or not texts[1]:
+            return ("Task name missing from the command, no new tasks added. "
+                    "See help:\n\n" + self.help())
         return texts.split("\n")[0]
 
     def _task_description(self, message):
