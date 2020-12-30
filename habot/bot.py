@@ -209,7 +209,7 @@ class AddTask(Functionality):
 
         return parts[0]
 
-    def _task_name(self, message):
+    def _task_text(self, message):
         """
         Parse the task name from the command.
         """
