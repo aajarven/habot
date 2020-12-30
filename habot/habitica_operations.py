@@ -85,8 +85,8 @@ class HabiticaOperator(object):
 
         :task_text: The name of the task
         :task_notes: Optional additional description for the task
-        :task_type: Type of the task. Allowed values are "habit", "daily",
-                    "todo" and "reward".
+        :task_type: Type of the task. Allowed values are "habit", "daily" and
+                    "todo".
         """
         task_data = {
             "text": task_text,
