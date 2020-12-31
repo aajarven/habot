@@ -60,11 +60,12 @@ class HabiticaMessager():
         :message: The contents of the message
         """
         api_url = "https://habitica.com/api/v3/members/send-private-message"
-        response = habrequest.post(api_url, headers=self._header,
-                                   data={"message": message,
-                                         "toUserId": to_uid})
-        if response.status_code != 200:
-            raise CommunicationFailedException(response)
+        try:
+            habrequest.post(api_url, headers=self._header,
+                            data={"message": message,
+                                  "toUserId": to_uid})
+        except requests.exceptions.HTTPError as e:
+            raise CommunicationFailedException(str(e))
 
         self._habitica_operator.tick_task(PM_SENT, task_type="habit")
 
