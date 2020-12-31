@@ -4,6 +4,7 @@ Perform "normal" habitica operations, e.g. tick a habit.
 
 from habitica_helper.utils import get_dict_from_api
 from habitica_helper import habrequest
+from habitica_helper.task import Task
 
 from habot.exceptions import CommunicationFailedException
 import habot.logger
@@ -77,6 +78,23 @@ class HabiticaOperator(object):
                                     "".format(task_text))
 
         return matching_task
+
+    def add_task(self, task_text, task_notes=None, task_type="todo"):
+        """
+        Add a new task for the bot.
+
+        :task_text: The name of the task
+        :task_notes: Optional additional description for the task
+        :task_type: Type of the task. Allowed values are "habit", "daily" and
+                    "todo".
+        """
+        task_data = {
+            "text": task_text,
+            "notes": task_notes,
+            "tasktype": task_type,
+            }
+        task = Task(task_data)
+        task.add_to_user(self._header)
 
     def tick_task(self, task_text, direction="up", task_type=None):
         """
