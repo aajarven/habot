@@ -3,6 +3,7 @@ Test HabiticaOperator class
 """
 
 import pytest
+from unittest import mock
 
 from conf.header import HEADER
 from habot.habitica_operations import (HabiticaOperator, NotFoundException,
@@ -65,3 +66,37 @@ def test_tick(requests_mock, test_operator):
     assert len(requests_mock.request_history) == 2
     tick_request = requests_mock.request_history[1]
     assert tick_url in tick_request.url
+
+
+@mock.patch("habitica_helper.task.Task.add_to_user")
+@pytest.mark.parametrize(
+    ("name", "note", "type_"),
+    [
+        ("test task", "test note", "todo"),
+        ("test task", None, "todo"),
+        ("test task", "", "todo"),
+        ("test habit", "do domething cool", "habit"),
+        ("test daily", "drink water", "daily"),
+    ]
+)
+def test_add_task_successfully(mock_add, name, note, type_, test_operator):
+    """
+    Ensure that `add_task` method call works in happy cases.
+
+    Tasks classes with and without notes must be created successfully with the
+    correct text, notes and type and `add_to_user` must be called.
+    """
+    task = test_operator.add_task(name, note, type_)
+    mock_add.assert_called_with(HEADER)
+
+    assert task.text == name
+
+    if note:
+        assert task.notes == note
+    else:
+        assert not task.notes
+
+    if type_:
+        assert task.tasktype == type_
+    else:
+        assert task.tasktype == "todo"
