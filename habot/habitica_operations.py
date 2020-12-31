@@ -87,6 +87,7 @@ class HabiticaOperator(object):
         :task_notes: Optional additional description for the task
         :task_type: Type of the task. Allowed values are "habit", "daily" and
                     "todo".
+        :returns: the added Task
         """
         task_data = {
             "text": task_text,
@@ -95,6 +96,7 @@ class HabiticaOperator(object):
             }
         task = Task(task_data)
         task.add_to_user(self._header)
+        return task
 
     def tick_task(self, task_text, direction="up", task_type=None):
         """
