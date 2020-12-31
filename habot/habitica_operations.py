@@ -2,6 +2,8 @@
 Perform "normal" habitica operations, e.g. tick a habit.
 """
 
+import requests.exceptions
+
 from habitica_helper.utils import get_dict_from_api
 from habitica_helper import habrequest
 from habitica_helper.task import Task
@@ -117,9 +119,10 @@ class HabiticaOperator(object):
 
         tick_url = ("https://habitica.com/api/v3/tasks/{}/score/{}"
                     "".format(task["_id"], direction))
-        response = habrequest.post(tick_url, headers=self._header)
-        if response.status_code != 200:
-            raise CommunicationFailedException(response)
+        try:
+            habrequest.post(tick_url, headers=self._header)
+        except requests.exceptions.HTTPError as e:
+            raise CommunicationFailedException(str(e))
 
     def join_quest(self):
         """
@@ -137,12 +140,13 @@ class HabiticaOperator(object):
                     self._header["x-api-user"] not in questdata["members"]
                     or not questdata["members"][self._header["x-api-user"]])):
             self._logger.debug("New quest found")
-            response = habrequest.post(
-                "https://habitica.com/api/v3/groups/party/quests/accept",
-                headers=self._header)
-            if response.status_code != 200:
-                self._logger.error("Quest joining failed: %s", response.text)
-                raise CommunicationFailedException(response)
+            try:
+                habrequest.post(
+                    "https://habitica.com/api/v3/groups/party/quests/accept",
+                    headers=self._header)
+            except requests.exceptions.HTTPError as e:
+                self._logger.error("Quest joining failed: %s", str(e))
+                raise CommunicationFailedException(str(e))
             self._logger.info("Joined quest %s", questdata["key"])
             return True
         return False
