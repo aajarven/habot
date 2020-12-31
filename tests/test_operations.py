@@ -100,3 +100,24 @@ def test_add_task_successfully(mock_add, name, note, type_, test_operator):
         assert task.tasktype == type_
     else:
         assert task.tasktype == "todo"
+
+
+@mock.patch("habitica_helper.task.Task.add_to_user")
+def test_add_task_default_type(mock_add, test_operator):
+    """
+    Make sure that if a task type is not provided, a todo is created.
+    """
+    task = test_operator.add_task("some task")
+    assert task.tasktype == "todo"
+    mock_add.assert_called_with(HEADER)
+
+
+@mock.patch("habitica_helper.task.Task.add_to_user")
+def test_add_task_illegal_type(mock_add, test_operator):
+    """
+    Ensure that an error is reported when illegal task type is given.
+    """
+    with pytest.raises(ValueError) as e:
+        test_operator.add_task("some task", task_type="illegal_type")
+    assert "Illegal task type 'illegal_type'" in str(e.value)
+    mock_add.assert_not_called()
