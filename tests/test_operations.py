@@ -12,7 +12,7 @@ from habot.habitica_operations import (HabiticaOperator, NotFoundException,
 @pytest.fixture()
 def test_operator(header_fx):
     """
-    Create a HabiticaOperator for tests and mock responses for it.
+    Create a HabiticaOperator for tests.
     """
     return HabiticaOperator(header_fx)
 
