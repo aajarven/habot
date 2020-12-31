@@ -1,6 +1,6 @@
 click
 freezegun
-git+git://github.com/Antonbury/habitica-helper.git#egg=habitica-helper
+git+git://github.com/aajarven/habitica-helper.git#egg=habitica-helper
 mysql-connector-python
 pytest
 pyyaml
