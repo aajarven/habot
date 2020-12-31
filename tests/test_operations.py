@@ -5,17 +5,16 @@ Test HabiticaOperator class
 import pytest
 from unittest import mock
 
-from conf.header import HEADER
 from habot.habitica_operations import (HabiticaOperator, NotFoundException,
                                        AmbiguousOperationException)
 
 
 @pytest.fixture()
-def test_operator():
+def test_operator(header_fx):
     """
     Create a HabiticaOperator for tests and mock responses for it.
     """
-    return HabiticaOperator(HEADER)
+    return HabiticaOperator(header_fx)
 
 # pylint: disable=redefined-outer-name
 
@@ -79,7 +78,8 @@ def test_tick(requests_mock, test_operator):
         ("test daily", "drink water", "daily"),
     ]
 )
-def test_add_task_successfully(mock_add, name, note, type_, test_operator):
+def test_add_task_successfully(mock_add, name, note, type_, test_operator,
+                               header_fx):
     """
     Ensure that `add_task` method call works in happy cases.
 
@@ -87,7 +87,7 @@ def test_add_task_successfully(mock_add, name, note, type_, test_operator):
     correct text, notes and type and `add_to_user` must be called.
     """
     task = test_operator.add_task(name, note, type_)
-    mock_add.assert_called_with(HEADER)
+    mock_add.assert_called_with(header_fx)
 
     assert task.text == name
 
@@ -103,13 +103,13 @@ def test_add_task_successfully(mock_add, name, note, type_, test_operator):
 
 
 @mock.patch("habitica_helper.task.Task.add_to_user")
-def test_add_task_default_type(mock_add, test_operator):
+def test_add_task_default_type(mock_add, test_operator, header_fx):
     """
     Make sure that if a task type is not provided, a todo is created.
     """
     task = test_operator.add_task("some task")
     assert task.tasktype == "todo"
-    mock_add.assert_called_with(HEADER)
+    mock_add.assert_called_with(header_fx)
 
 
 @mock.patch("habitica_helper.task.Task.add_to_user")

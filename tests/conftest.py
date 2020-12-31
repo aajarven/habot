@@ -25,3 +25,16 @@ def mock_task_finding(requests_mock):
     """
     requests_mock.get("https://habitica.com/api/v3/tasks/user",
                       json={"success": True, "data": TEST_TASKS})
+
+
+@pytest.fixture()
+def header_fx():
+    """
+    Return a header dict for testing.
+    """
+    return {
+        "x-client":
+            "f687a6c7-860a-4c7c-8a07-9d0dcbb7c831-habot_testing",
+        "x-api-user": "totally-not-a-real-userid",
+        "x-api-key":  "totally-not-a-real-apikey",
+    }
