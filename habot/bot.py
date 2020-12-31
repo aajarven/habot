@@ -122,16 +122,16 @@ class Functionality():
 
     def _command_body(self, message):
         """
-        Return the body of the command.
+        Return the body of the command sent as a message.
 
-        This means the message without the first word, e.g. for command
+        This means the message content without the first word, e.g. for command
         "add-task todo: do something neat" this would be "todo: do something
         neat".
 
         If the message contains only the command, e.g. it is just "ping", an
         empty string is returned.
         """
-        parts = message.split(" ", 1)
+        parts = message.content.split(" ", 1)
         if len(parts) > 1:
             return parts[1]
         return ""
@@ -205,10 +205,9 @@ class AddTask(Functionality):
 
     def _task_type(self, message):
         """
-        Parse the task type from the command.
+        Parse the task type from the command in the message.
         """
-        message_text = message.content
-        parameter_parts = self._command_body(message_text).split(":", 1)
+        parameter_parts = self._command_body(message).split(":", 1)
 
         if len(parameter_parts) < 2:
             raise ValueError("Task type missing from the command, no new "
@@ -218,10 +217,9 @@ class AddTask(Functionality):
 
     def _task_text(self, message):
         """
-        Parse the task name from the command.
+        Parse the task name from the command in the message.
         """
-        message_text = message.content
-        command_parts = self._command_body(message_text).split(":", 1)[1]
+        command_parts = self._command_body(message).split(":", 1)[1]
         if len(command_parts) < 2 or not command_parts[1]:
             raise ValueError("Task name missing from the command, no new "
                              "tasks added. See help:\n\n" + self.help())
@@ -229,11 +227,11 @@ class AddTask(Functionality):
 
     def _task_notes(self, message):
         """
-        Parse the task description from the command.
+        Parse the task description from the command in the message.
 
         :returns: Task description if present, otherwise None
         """
-        task_text = self._command_body(message.content).split(":", 1)[1]
+        task_text = self._command_body(message).split(":", 1)[1]
         task_text_parts = task_text.split("\n", 1)
         if len(task_text_parts) == 1:
             return None
