@@ -178,3 +178,13 @@ def test_do_not_rejoin_quest(mock_post, monkeypatch, test_operator, header_fx):
                         _quest_dict)
     test_operator.join_quest()
     mock_post.assert_not_called()
+
+
+@mock.patch("habitica_helper.habrequest.post")
+def test_cron(mock_post, test_operator, header_fx):
+    """
+    Test that `cron` method makes the right API call.
+    """
+    test_operator.cron()
+    mock_post.assert_called_with("https://habitica.com/api/v3/cron",
+                                 headers=header_fx)
