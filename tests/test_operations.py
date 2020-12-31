@@ -121,3 +121,60 @@ def test_add_task_illegal_type(mock_add, test_operator):
         test_operator.add_task("some task", task_type="illegal_type")
     assert "Illegal task type 'illegal_type'" in str(e.value)
     mock_add.assert_not_called()
+
+
+@mock.patch("habitica_helper.habrequest.post")
+def test_join_quest(mock_post, monkeypatch, test_operator, header_fx):
+    """
+    Test that a new quest will be joined.
+    """
+    def _quest_dict(*args, **kwargs):
+        return {"quest": {"key": "some-quest",
+                          "active": False,
+                          "members": ["some-other-member",
+                                      "more-members"],
+                          }
+                }
+
+    monkeypatch.setattr("habot.habitica_operations.get_dict_from_api",
+                        _quest_dict)
+    test_operator.join_quest()
+    mock_post.assert_called_with(
+            "https://habitica.com/api/v3/groups/party/quests/accept",
+            headers=header_fx)
+
+
+@mock.patch("habitica_helper.habrequest.post")
+def test_do_not_join_active_quest(mock_post, monkeypatch, test_operator):
+    """
+    Test that an joining an active quest will not be attempted.
+    """
+    def _quest_dict(*args, **kwargs):
+        return {"quest": {"key": "some-quest",
+                          "active": True,
+                          "members": [],
+                          }
+                }
+
+    monkeypatch.setattr("habot.habitica_operations.get_dict_from_api",
+                        _quest_dict)
+    test_operator.join_quest()
+    mock_post.assert_not_called()
+
+
+@mock.patch("habitica_helper.habrequest.post")
+def test_do_not_rejoin_quest(mock_post, monkeypatch, test_operator, header_fx):
+    """
+    Test that if the user has already joined a quest, it won't be rejoined.
+    """
+    def _quest_dict(*args, **kwargs):
+        return {"quest": {"key": "some-quest",
+                          "active": True,
+                          "members": [header_fx["x-api-user"]],
+                          }
+                }
+
+    monkeypatch.setattr("habot.habitica_operations.get_dict_from_api",
+                        _quest_dict)
+    test_operator.join_quest()
+    mock_post.assert_not_called()
