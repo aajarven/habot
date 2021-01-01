@@ -6,8 +6,11 @@ import datetime
 import pytest
 from unittest import mock
 
+from habitica_helper.habiticatool import PartyTool
+from habitica_helper.member import Member
+
 from habot.db import DBOperator
-from habot.io import HabiticaMessager
+from habot.io import HabiticaMessager, DBSyncer
 
 
 @pytest.fixture()
@@ -264,3 +267,90 @@ def test_get_multiple_pms(test_messager, db_operator_fx,
     test_messager.get_private_messages()
     private_messages = db_operator_fx.query_table("private_messages")
     assert len(private_messages) == 3
+
+
+@pytest.fixture
+def test_syncer(header_fx):
+    return DBSyncer(header_fx)
+
+
+@pytest.fixture
+def patch_partytool_members(monkeypatch):
+    """
+    Allow returning an arbitrary list of members "from the API".
+    """
+    def _patch(members):
+        def _static_members(*args, **kwargs):
+            return members
+        monkeypatch.setattr(PartyTool, "party_members", _static_members)
+    return _patch
+
+
+MEMBER_ALREADY_IN_DB_1 = Member(
+        "member-already-in-db-1-id",
+        profile_data={"id": "member-already-in-db-1-id",
+                      "displayname": "member 1",
+                      "loginname": "member1",
+                      "birthday": datetime.date(2020, 1, 15),
+                      })
+MEMBER_ALREADY_IN_DB_2 = Member(
+        "member-already-in-db-2-id",
+        profile_data={"id": "member-already-in-db-2-id",
+                      "displayname": "member 2",
+                      "loginname": "member2",
+                      "birthday": datetime.date(2019, 6, 30),
+                      })
+NEW_MEMBER = Member(
+        "new-member-id",
+        profile_data={"id": "new-member-id",
+                      "displayname": "New member =3",
+                      "loginname": "newmember",
+                      "birthday": datetime.date(2020, 12, 13),
+                      })
+
+
+@pytest.fixture
+def purge_and_set_memberdata_fx(db_connection_fx, db_operator_fx):
+    """
+    Remove all pre-existing member table rows and insert new test data.
+
+    This data contains two pretty ordinary partymembers.
+    """
+    cursor = db_connection_fx.cursor()
+    cursor.execute("DELETE FROM members")
+    db_connection_fx.commit()
+
+    for member in [MEMBER_ALREADY_IN_DB_1, MEMBER_ALREADY_IN_DB_2]:
+        data = {
+            "id": member.id,
+            "displayname": member.displayname,
+            "loginname": member.login_name,
+            "birthday": member.habitica_birthday,
+            }
+        db_operator_fx.insert_data("members", data)
+
+
+def test_update_new_partymembers(test_syncer, db_operator_fx,
+                                 purge_and_set_memberdata_fx,
+                                 patch_partytool_members):
+    """
+    Ensure that a new record is added to the member table when members join.
+    """
+    patch_partytool_members([MEMBER_ALREADY_IN_DB_1,
+                             MEMBER_ALREADY_IN_DB_2,
+                             NEW_MEMBER])
+    test_syncer.update_partymember_data()
+    members = db_operator_fx.query_table("members")
+    assert len(members) == 3
+
+
+def test_remove_old_partymembers(test_syncer, db_operator_fx,
+                                 purge_and_set_memberdata_fx,
+                                 patch_partytool_members):
+    """
+    Ensure that a row is removed from the member table when member leaves party
+    """
+    patch_partytool_members([MEMBER_ALREADY_IN_DB_1])
+    test_syncer.update_partymember_data()
+    members = db_operator_fx.query_table("members")
+    assert len(members) == 1
