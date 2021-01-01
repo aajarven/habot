@@ -151,7 +151,8 @@ def test_old_messages(test_messager, db_operator_fx, patch_chat_api_response):
     """
     Read the same messages twice and make sure db only has one copy of each.
     """
-    patch_chat_api_response([USER_MESSAGE_1, USER_MESSAGE_2])
+    patch_chat_api_response([USER_MESSAGE_1, USER_MESSAGE_2, SYSTEM_MESSAGE])
     test_messager.get_party_messages()
     test_messager.get_party_messages()
     assert len(db_operator_fx.query_table("chat_messages")) == 2
+    assert len(db_operator_fx.query_table("system_messages")) == 1
