@@ -211,7 +211,7 @@ def purge_message_data(db_connection_fx):
     yield
     cursor = db_connection_fx.cursor()
     cursor.execute("USE habdb")
-    cursor.execute("DROP TABLE private_messages")
+    cursor.execute("DELETE FROM private_messages")
     db_connection_fx.commit()
     cursor.close()
 
