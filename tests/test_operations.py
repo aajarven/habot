@@ -2,8 +2,9 @@
 Test HabiticaOperator class
 """
 
-import pytest
 from unittest import mock
+
+import pytest
 
 from habot.habitica_operations import (HabiticaOperator, NotFoundException,
                                        AmbiguousOperationException)
@@ -86,6 +87,7 @@ def test_add_task_successfully(mock_add, name, note, type_, test_operator,
     Tasks classes with and without notes must be created successfully with the
     correct text, notes and type and `add_to_user` must be called.
     """
+    # pylint: disable=too-many-arguments
     task = test_operator.add_task(name, note, type_)
     mock_add.assert_called_with(header_fx)
 
@@ -117,7 +119,7 @@ def test_add_task_illegal_type(mock_add, test_operator):
     """
     Ensure that an error is reported when illegal task type is given.
     """
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError) as e:  # pylint: disable=invalid-name
         test_operator.add_task("some task", task_type="illegal_type")
     assert "Illegal task type 'illegal_type'" in str(e.value)
     mock_add.assert_not_called()
@@ -129,6 +131,7 @@ def test_join_quest(mock_post, monkeypatch, test_operator, header_fx):
     Test that a new quest will be joined.
     """
     def _quest_dict(*args, **kwargs):
+        # pylint: disable=unused-argument
         return {"quest": {"key": "some-quest",
                           "active": False,
                           "members": ["some-other-member",
@@ -150,6 +153,7 @@ def test_do_not_join_active_quest(mock_post, monkeypatch, test_operator):
     Test that an joining an active quest will not be attempted.
     """
     def _quest_dict(*args, **kwargs):
+        # pylint: disable=unused-argument
         return {"quest": {"key": "some-quest",
                           "active": True,
                           "members": [],
@@ -168,6 +172,7 @@ def test_do_not_rejoin_quest(mock_post, monkeypatch, test_operator, header_fx):
     Test that if the user has already joined a quest, it won't be rejoined.
     """
     def _quest_dict(*args, **kwargs):
+        # pylint: disable=unused-argument
         return {"quest": {"key": "some-quest",
                           "active": True,
                           "members": [header_fx["x-api-user"]],

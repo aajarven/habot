@@ -9,12 +9,16 @@ import testing.mysqld
 
 from tests.data.test_tasks import TEST_TASKS
 
+# pylint doesn't handle fixtures well
+# pylint: disable=redefined-outer-name
+
 
 @pytest.fixture(scope="session")
-def sessionmonkey(request):
+def sessionmonkey():
     """
     Session-scoped monkeypatch class for slow database test setup.
     """
+    # pylint: disable=import-outside-toplevel
     from _pytest.monkeypatch import MonkeyPatch
     mpatch = MonkeyPatch()
     yield mpatch
@@ -44,6 +48,7 @@ def mock_task_ticking(mock_task_finding, requests_mock):
     """
     Fake a successful response for ticking any task
     """
+    # pylint: disable=unused-argument
     tick_matcher = re.compile("https://habitica.com/api/v3/tasks/.*/score/")
     requests_mock.post(tick_matcher)
 

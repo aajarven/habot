@@ -33,9 +33,12 @@ SHAREBDAY_USER = {"id": "b5845235-a344-4f52-a08b-02084cab00c4",
                   "loginname": "birthdayfella",
                   "birthday": datetime.date(2019, 5, 31)}
 
+# pylint doesn't understand fixtures
+# pylint: disable=redefined-outer-name
+
 
 @pytest.fixture(scope="module")
-def testdata_db_operator(db_connection_fx, purge_and_init_memberdata_fx):
+def testdata_db_operator(purge_and_init_memberdata_fx):
     """
     Yield monkeypatched DBOperator that uses test database.
 
@@ -49,6 +52,9 @@ def testdata_db_operator(db_connection_fx, purge_and_init_memberdata_fx):
 
 @pytest.fixture(scope="module")
 def purge_and_init_memberdata_fx(db_connection_fx):
+    """
+    Remove all data from the database and reinitialize with test member data.
+    """
     def _reset():
         cursor = db_connection_fx.cursor()
         cursor.execute("DROP DATABASE IF EXISTS habdb")
@@ -56,7 +62,7 @@ def purge_and_init_memberdata_fx(db_connection_fx):
         db_connection_fx.commit()
 
         operator = DBOperator()
-        operator._ensure_tables()
+        operator._ensure_tables()  # pylint: disable=protected-access
         cursor.execute("USE habdb")
         cursor.execute("INSERT INTO members "
                        "(id, displayname, loginname, birthday) "

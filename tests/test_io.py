@@ -3,8 +3,9 @@ Test `habot.io` module.
 """
 
 import datetime
-import pytest
 from unittest import mock
+
+import pytest
 
 from habitica_helper.habiticatool import PartyTool
 from habitica_helper.member import Member
@@ -20,6 +21,9 @@ def test_messager(header_fx):
     """
     return HabiticaMessager(header_fx)
 
+
+# pylint doesn't understand fixtures
+# pylint: disable=redefined-outer-name
 
 @mock.patch("habitica_helper.habrequest.post")
 @mock.patch("habot.habitica_operations.HabiticaOperator.tick_task")
@@ -39,7 +43,8 @@ def test_group_message(mock_tick, mock_post, test_messager, header_fx):
 
 
 @pytest.fixture
-def db_operator_fx(db_connection_fx):
+@pytest.mark.usefixtures("db_connection_fx")
+def db_operator_fx():
     """
     Yield an operator for a test database.
     """
@@ -99,6 +104,7 @@ def patch_get_dict_response(monkeypatch):
     Allow monkeypatching `get_dict_from_api` to return arbitrary data.
     """
     def _patch(messages):
+        # pylint: disable=unused-argument
         def _return_messages(*args, **kwargs):
             return messages
         monkeypatch.setattr("habot.io.get_dict_from_api",
@@ -216,8 +222,9 @@ def purge_message_data(db_connection_fx):
     cursor.close()
 
 
+@pytest.mark.usefixtures("purge_message_data")
 def test_get_single_sent_pm(test_messager, db_operator_fx,
-                            patch_get_dict_response, purge_message_data):
+                            patch_get_dict_response):
     """
     Ensure that data for a single sent PM is written correctly to the db.
     """
@@ -237,8 +244,9 @@ def test_get_single_sent_pm(test_messager, db_operator_fx,
         assert private_messages[0][key] == expected_pm[key]
 
 
+@pytest.mark.usefixtures("purge_message_data")
 def test_get_single_received_pm(test_messager, db_operator_fx,
-                                patch_get_dict_response, purge_message_data):
+                                patch_get_dict_response):
     """
     Ensure that data for a single sent PM is written correctly to the db.
     """
@@ -258,8 +266,9 @@ def test_get_single_received_pm(test_messager, db_operator_fx,
         assert private_messages[0][key] == expected_pm[key]
 
 
+@pytest.mark.usefixtures("purge_message_data")
 def test_get_multiple_pms(test_messager, db_operator_fx,
-                          patch_get_dict_response, purge_message_data):
+                          patch_get_dict_response):
     """
     Test that the correct number of PMs are found in the db after fetching.
     """
@@ -271,6 +280,9 @@ def test_get_multiple_pms(test_messager, db_operator_fx,
 
 @pytest.fixture
 def test_syncer(header_fx):
+    """
+    Return a DBSyncer using a test header.
+    """
     return DBSyncer(header_fx)
 
 
@@ -280,6 +292,7 @@ def patch_partytool_members(monkeypatch):
     Allow returning an arbitrary list of members "from the API".
     """
     def _patch(members):
+        # pylint: disable=unused-argument
         def _static_members(*args, **kwargs):
             return members
         monkeypatch.setattr(PartyTool, "party_members", _static_members)
@@ -330,8 +343,8 @@ def purge_and_set_memberdata_fx(db_connection_fx, db_operator_fx):
         db_operator_fx.insert_data("members", data)
 
 
+@pytest.mark.usefixtures("purge_and_set_memberdata_fx")
 def test_update_new_partymembers(test_syncer, db_operator_fx,
-                                 purge_and_set_memberdata_fx,
                                  patch_partytool_members):
     """
     Ensure that a new record is added to the member table when members join.
@@ -344,8 +357,8 @@ def test_update_new_partymembers(test_syncer, db_operator_fx,
     assert len(members) == 3
 
 
+@pytest.mark.usefixtures("purge_and_set_memberdata_fx")
 def test_remove_old_partymembers(test_syncer, db_operator_fx,
-                                 purge_and_set_memberdata_fx,
                                  patch_partytool_members):
     """
     Ensure that a row is removed from the member table when member leaves party
