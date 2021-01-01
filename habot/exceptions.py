@@ -13,5 +13,5 @@ class CommunicationFailedException(Exception):
 
         :response: requests Response object
         """
-        super(CommunicationFailedException, self).__init__(str(response))
+        super().__init__(str(response))
         self.response = response

@@ -12,7 +12,7 @@ from habot.exceptions import CommunicationFailedException
 import habot.logger
 
 
-class HabiticaOperator(object):
+class HabiticaOperator():
     """
     A class that is able to do things that a human user would normally use
     Habitica for.
@@ -121,7 +121,9 @@ class HabiticaOperator(object):
                     "".format(task["_id"], direction))
         try:
             habrequest.post(tick_url, headers=self._header)
+        # pylint: disable=invalid-name
         except requests.exceptions.HTTPError as e:
+            # pylint: disable=raise-missing-from
             raise CommunicationFailedException(str(e))
 
     def join_quest(self):
@@ -144,8 +146,10 @@ class HabiticaOperator(object):
                 habrequest.post(
                     "https://habitica.com/api/v3/groups/party/quests/accept",
                     headers=self._header)
+            # pylint: disable=invalid-name
             except requests.exceptions.HTTPError as e:
                 self._logger.error("Quest joining failed: %s", str(e))
+                # pylint: disable=raise-missing-from
                 raise CommunicationFailedException(str(e))
             self._logger.info("Joined quest %s", questdata["key"])
             return True

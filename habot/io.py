@@ -64,7 +64,9 @@ class HabiticaMessager():
             habrequest.post(api_url, headers=self._header,
                             data={"message": message,
                                   "toUserId": to_uid})
+        #  pylint: disable=invalid-name
         except requests.exceptions.HTTPError as e:
+            #  pylint: disable=raise-missing-from
             raise CommunicationFailedException(str(e))
 
         self._habitica_operator.tick_task(PM_SENT, task_type="habit")
@@ -81,7 +83,9 @@ class HabiticaMessager():
         try:
             habrequest.post(api_url, headers=self._header,
                             data={"message": message})
+        #  pylint: disable=invalid-name
         except requests.exceptions.HTTPError as e:
+            #  pylint: disable=raise-missing-from
             raise CommunicationFailedException(str(e))
         self._habitica_operator.tick_task(GROUP_MSG_SENT, task_type="habit")
 
@@ -567,4 +571,4 @@ class MalformedQuestionFileException(Exception):
     def __init__(self, problem, filename):
         message = ("Problem with question file \"{}\":\n\n{}\n\n{}"
                    "".format(filename, problem, self._INFO))
-        super(MalformedQuestionFileException, self).__init__(message)
+        super().__init__(message)

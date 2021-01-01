@@ -260,6 +260,7 @@ class DBOperator():
         :rows: Data on the rows to be represented
         :column_names: corresponding column names
         """
+        # pylint: disable=no-self-use
         data = []
         for row in rows:
             data.append({
