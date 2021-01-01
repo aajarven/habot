@@ -151,8 +151,116 @@ def test_old_messages(test_messager, db_operator_fx, patch_chat_api_response):
     """
     Read the same messages twice and make sure db only has one copy of each.
     """
-    patch_chat_api_response([USER_MESSAGE_1, USER_MESSAGE_2, SYSTEM_MESSAGE])
+    patch_chat_api_response([PARTY_CHAT_MSG_1, PARTY_CHAT_MSG_2,
+                             SYSTEM_MESSAGE])
     test_messager.get_party_messages()
     test_messager.get_party_messages()
     assert len(db_operator_fx.query_table("chat_messages")) == 2
     assert len(db_operator_fx.query_table("system_messages")) == 1
+
+
+SENT_PM_1 = {
+    "sent": True,
+    "_id": "unique-pm-id",
+    "ownerId": "sender-uuid",
+    "uuid": "own-uuid",
+    "id": "unique-pm-id",
+    "text": "Some private information.",
+    "unformattedText": "Some private information.",
+    "timestamp": "2020-12-31T22:01:07.979Z",
+    "user": "OtherPerson",
+    "username": "Other Person",
+}
+
+SENT_PM_2 = {
+    "sent": True,
+    "_id": "another-unique-id",
+    "ownerId": "sender-uuid",
+    "uuid": "own-uuid",
+    "id": "another-unique-id",
+    "text": "Whispers.",
+    "unformattedText": "Whispers.",
+    "timestamp": "2020-12-31T16:57:19.278Z",
+    "user": "SomeGuy",
+    "username": "Some Third Guy",
+}
+
+
+RECEIVED_PM = {
+    "sent": False,
+    "_id": "third-unique-id",
+    "ownerId": "own-uuid",
+    "id": "third-unique-id",
+    "text": "Hi, I got something to say to you",
+    "unformattedText": "Hi, I got something to say to you",
+    "timestamp": "2020-12-31T16:56:49.258Z",
+    "uuid": "sender-uuid",
+    "user": "OtherPerson",
+    "username": "Other Person",
+}
+
+
+@pytest.fixture
+def purge_message_data(db_connection_fx):
+    """
+    Remove all data in private messages after test run
+    """
+    yield
+    cursor = db_connection_fx.cursor()
+    cursor.execute("USE habdb")
+    cursor.execute("DROP TABLE private_messages")
+    db_connection_fx.commit()
+    cursor.close()
+
+
+def test_get_single_sent_pm(test_messager, db_operator_fx,
+                            patch_chat_api_response, purge_message_data):
+    """
+    Ensure that data for a single sent PM is written correctly to the db.
+    """
+    patch_chat_api_response([SENT_PM_1])
+    test_messager.get_private_messages()
+    private_messages = db_operator_fx.query_table("private_messages")
+    assert len(private_messages) == 1
+
+    expected_pm = {
+        "id": SENT_PM_1["id"],
+        "from_id": SENT_PM_1["ownerId"],
+        "to_id": SENT_PM_1["uuid"],
+        "timestamp": datetime.datetime(2020, 12, 31, 22, 1, 8),
+        "content": SENT_PM_1["text"],
+        }
+    for key in expected_pm:
+        assert private_messages[0][key] == expected_pm[key]
+
+
+def test_get_single_received_pm(test_messager, db_operator_fx,
+                                patch_chat_api_response, purge_message_data):
+    """
+    Ensure that data for a single sent PM is written correctly to the db.
+    """
+    patch_chat_api_response([RECEIVED_PM])
+    test_messager.get_private_messages()
+    private_messages = db_operator_fx.query_table("private_messages")
+    assert len(private_messages) == 1
+
+    expected_pm = {
+        "id": RECEIVED_PM["id"],
+        "from_id": RECEIVED_PM["uuid"],
+        "to_id": RECEIVED_PM["ownerId"],
+        "timestamp": datetime.datetime(2020, 12, 31, 16, 56, 49),
+        "content": RECEIVED_PM["text"],
+        }
+    for key in expected_pm:
+        assert private_messages[0][key] == expected_pm[key]
+
+
+def test_get_multiple_pms(test_messager, db_operator_fx,
+                          patch_chat_api_response, purge_message_data):
+    """
+    Test that the correct number of PMs are found in the db after fetching.
+    """
+    patch_chat_api_response([SENT_PM_1, RECEIVED_PM, SENT_PM_2])
+    test_messager.get_private_messages()
+    private_messages = db_operator_fx.query_table("private_messages")
+    assert len(private_messages) == 3
