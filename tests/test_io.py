@@ -91,7 +91,7 @@ SYSTEM_MESSAGE = {
 
 
 @pytest.fixture
-def patch_chat_api_response(monkeypatch):
+def patch_get_dict_response(monkeypatch):
     """
     Allow monkeypatching `get_dict_from_api` to return arbitrary data.
     """
@@ -104,13 +104,13 @@ def patch_chat_api_response(monkeypatch):
 
 
 def test_get_party_messages(test_messager, db_operator_fx,
-                            patch_chat_api_response):
+                            patch_get_dict_response):
     """
     Test that correct data is written to the database for messages.
 
     A single chat and system messages are tested.
     """
-    patch_chat_api_response([PARTY_CHAT_MSG_1, SYSTEM_MESSAGE])
+    patch_get_dict_response([PARTY_CHAT_MSG_1, SYSTEM_MESSAGE])
     test_messager.get_party_messages()
     chat_messages = db_operator_fx.query_table("chat_messages")
     system_messages = db_operator_fx.query_table("system_messages")
@@ -138,20 +138,20 @@ def test_get_party_messages(test_messager, db_operator_fx,
 
 
 def test_fetch_two_chat_messages(test_messager, db_operator_fx,
-                                 patch_chat_api_response):
+                                 patch_get_dict_response):
     """
     Ensure that when new two messages are read, two messages end up in the db.
     """
-    patch_chat_api_response([PARTY_CHAT_MSG_1, PARTY_CHAT_MSG_2])
+    patch_get_dict_response([PARTY_CHAT_MSG_1, PARTY_CHAT_MSG_2])
     test_messager.get_party_messages()
     assert len(db_operator_fx.query_table("chat_messages")) == 2
 
 
-def test_old_messages(test_messager, db_operator_fx, patch_chat_api_response):
+def test_old_messages(test_messager, db_operator_fx, patch_get_dict_response):
     """
     Read the same messages twice and make sure db only has one copy of each.
     """
-    patch_chat_api_response([PARTY_CHAT_MSG_1, PARTY_CHAT_MSG_2,
+    patch_get_dict_response([PARTY_CHAT_MSG_1, PARTY_CHAT_MSG_2,
                              SYSTEM_MESSAGE])
     test_messager.get_party_messages()
     test_messager.get_party_messages()
@@ -214,11 +214,11 @@ def purge_message_data(db_connection_fx):
 
 
 def test_get_single_sent_pm(test_messager, db_operator_fx,
-                            patch_chat_api_response, purge_message_data):
+                            patch_get_dict_response, purge_message_data):
     """
     Ensure that data for a single sent PM is written correctly to the db.
     """
-    patch_chat_api_response([SENT_PM_1])
+    patch_get_dict_response([SENT_PM_1])
     test_messager.get_private_messages()
     private_messages = db_operator_fx.query_table("private_messages")
     assert len(private_messages) == 1
@@ -235,11 +235,11 @@ def test_get_single_sent_pm(test_messager, db_operator_fx,
 
 
 def test_get_single_received_pm(test_messager, db_operator_fx,
-                                patch_chat_api_response, purge_message_data):
+                                patch_get_dict_response, purge_message_data):
     """
     Ensure that data for a single sent PM is written correctly to the db.
     """
-    patch_chat_api_response([RECEIVED_PM])
+    patch_get_dict_response([RECEIVED_PM])
     test_messager.get_private_messages()
     private_messages = db_operator_fx.query_table("private_messages")
     assert len(private_messages) == 1
@@ -256,11 +256,11 @@ def test_get_single_received_pm(test_messager, db_operator_fx,
 
 
 def test_get_multiple_pms(test_messager, db_operator_fx,
-                          patch_chat_api_response, purge_message_data):
+                          patch_get_dict_response, purge_message_data):
     """
     Test that the correct number of PMs are found in the db after fetching.
     """
-    patch_chat_api_response([SENT_PM_1, RECEIVED_PM, SENT_PM_2])
+    patch_get_dict_response([SENT_PM_1, RECEIVED_PM, SENT_PM_2])
     test_messager.get_private_messages()
     private_messages = db_operator_fx.query_table("private_messages")
     assert len(private_messages) == 3
