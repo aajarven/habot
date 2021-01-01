@@ -3,11 +3,8 @@ Tests for database operations.
 """
 
 import datetime
-
 import mysql.connector
-
 import pytest
-import testing.mysqld
 
 from habot.db import DBOperator
 from conf.db import TABLES
@@ -37,33 +34,21 @@ SHAREBDAY_USER = {"id": "b5845235-a344-4f52-a08b-02084cab00c4",
                   "birthday": datetime.date(2019, 5, 31)}
 
 
-@pytest.fixture(scope="module")
-def connection_fx():
-    """
-    Return a database connection.
-    """
-    with testing.mysqld.Mysqld() as mysqld:
-        conn = mysql.connector.connect(**mysqld.dsn())
-        yield conn
-
-# pylint: disable=redefined-outer-name
-
-
 @pytest.fixture()
-def testdata_db_operator(connection_fx, monkeypatch):
+def testdata_db_operator(db_connection_fx, monkeypatch):
     """
     Yield monkeypatched DBOperator that uses test database.
 
     The same database connection is used for all tests, but the databases and
     tables in it are regenerated for each test.
     """
-    cursor = connection_fx.cursor()
+    cursor = db_connection_fx.cursor()
     cursor.execute("DROP DATABASE IF EXISTS habdb")
     cursor.execute("CREATE DATABASE habdb")
 
     def _connection_factory(**kwargs):
         # pylint: disable=unused-argument
-        return connection_fx
+        return db_connection_fx
     monkeypatch.setattr(mysql.connector, "connect", _connection_factory)
 
     operator = DBOperator()
@@ -78,7 +63,7 @@ def testdata_db_operator(connection_fx, monkeypatch):
                        _member_dict_to_values(CHARSET_USER),
                        _member_dict_to_values(SHAREBDAY_USER),
                        ))
-    connection_fx.commit()
+    db_connection_fx.commit()
     cursor.close()
     yield operator
 

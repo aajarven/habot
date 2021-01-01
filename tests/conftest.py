@@ -3,10 +3,21 @@ Shared test stuff
 """
 
 import re
-
+import mysql.connector
 import pytest
+import testing.mysqld
 
 from tests.data.test_tasks import TEST_TASKS
+
+
+@pytest.fixture(scope="module")
+def db_connection_fx():
+    """
+    Return a database connection.
+    """
+    with testing.mysqld.Mysqld() as mysqld:
+        conn = mysql.connector.connect(**mysqld.dsn())
+        yield conn
 
 
 @pytest.fixture()
