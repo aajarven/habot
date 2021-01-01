@@ -43,7 +43,7 @@ def db_operator_fx(db_connection_fx):
     yield DBOperator()
 
 
-USER_MESSAGE_1 = {
+PARTY_CHAT_MSG_1 = {
         "flagCount": 0,
         "_id": "unique-message-id",
         "id": "unique-message-id",
@@ -57,7 +57,7 @@ USER_MESSAGE_1 = {
         "flags": {},
 }
 
-USER_MESSAGE_2 = {
+PARTY_CHAT_MSG_2 = {
         "flagCount": 0,
         "_id": "different-id",
         "id": "different-id",
@@ -110,7 +110,7 @@ def test_get_party_messages(test_messager, db_operator_fx,
 
     A single chat and system messages are tested.
     """
-    patch_chat_api_response([USER_MESSAGE_1, SYSTEM_MESSAGE])
+    patch_chat_api_response([PARTY_CHAT_MSG_1, SYSTEM_MESSAGE])
     test_messager.get_party_messages()
     chat_messages = db_operator_fx.query_table("chat_messages")
     system_messages = db_operator_fx.query_table("system_messages")
@@ -118,11 +118,11 @@ def test_get_party_messages(test_messager, db_operator_fx,
     assert len(system_messages) == 1
 
     expected_chat_message = {
-        "id": USER_MESSAGE_1["id"],
-        "from_id": USER_MESSAGE_1["uuid"],
-        "to_group": USER_MESSAGE_1["groupId"],
+        "id": PARTY_CHAT_MSG_1["id"],
+        "from_id": PARTY_CHAT_MSG_1["uuid"],
+        "to_group": PARTY_CHAT_MSG_1["groupId"],
         "timestamp": datetime.datetime(2021, 1, 1, 8, 39, 52),
-        "content": USER_MESSAGE_1["text"],
+        "content": PARTY_CHAT_MSG_1["text"],
         }
     for key in expected_chat_message:
         assert chat_messages[0][key] == expected_chat_message[key]
@@ -142,7 +142,7 @@ def test_fetch_two_chat_messages(test_messager, db_operator_fx,
     """
     Ensure that when new two messages are read, two messages end up in the db.
     """
-    patch_chat_api_response([USER_MESSAGE_1, USER_MESSAGE_2])
+    patch_chat_api_response([PARTY_CHAT_MSG_1, PARTY_CHAT_MSG_2])
     test_messager.get_party_messages()
     assert len(db_operator_fx.query_table("chat_messages")) == 2
 
