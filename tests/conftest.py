@@ -11,12 +11,31 @@ from tests.data.test_tasks import TEST_TASKS
 
 
 @pytest.fixture(scope="module")
-def db_connection_fx():
+def modulemonkey(request):
     """
-    Return a database connection.
+    Module-scoped monkeypatch class for slow database test setup.
+    """
+    from _pytest.monkeypatch import MonkeyPatch
+    mpatch = MonkeyPatch()
+    yield mpatch
+    mpatch.undo()
+
+
+@pytest.fixture(scope="module")
+def db_connection_fx(modulemonkey):
+    """
+    Patch mysql connector to return a test database connection.
+
+    Yield that database connection.
     """
     with testing.mysqld.Mysqld() as mysqld:
         conn = mysql.connector.connect(**mysqld.dsn())
+
+        def _connection_factory(**kwargs):
+            # pylint: disable=unused-argument
+            return conn
+        modulemonkey.setattr(mysql.connector, "connect", _connection_factory)
+
         yield conn
 
 
