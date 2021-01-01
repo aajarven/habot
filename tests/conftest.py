@@ -10,10 +10,10 @@ import testing.mysqld
 from tests.data.test_tasks import TEST_TASKS
 
 
-@pytest.fixture(scope="module")
-def modulemonkey(request):
+@pytest.fixture(scope="session")
+def sessionmonkey(request):
     """
-    Module-scoped monkeypatch class for slow database test setup.
+    Session-scoped monkeypatch class for slow database test setup.
     """
     from _pytest.monkeypatch import MonkeyPatch
     mpatch = MonkeyPatch()
@@ -21,8 +21,8 @@ def modulemonkey(request):
     mpatch.undo()
 
 
-@pytest.fixture(scope="module")
-def db_connection_fx(modulemonkey):
+@pytest.fixture(scope="session")
+def db_connection_fx(sessionmonkey):
     """
     Patch mysql connector to return a test database connection.
 
@@ -34,7 +34,7 @@ def db_connection_fx(modulemonkey):
         def _connection_factory(**kwargs):
             # pylint: disable=unused-argument
             return conn
-        modulemonkey.setattr(mysql.connector, "connect", _connection_factory)
+        sessionmonkey.setattr(mysql.connector, "connect", _connection_factory)
 
         yield conn
 
