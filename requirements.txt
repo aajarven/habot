@@ -7,3 +7,4 @@ mysql-connector-python
 pyyaml
 requests
 schedule
+yfinance

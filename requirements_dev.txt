@@ -11,3 +11,4 @@ requests
 requests_mock
 schedule
 testing.mysqld
+yfinance
