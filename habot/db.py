@@ -9,11 +9,11 @@ import conf.db as dbconf
 # credentials added by user, not present always when linting
 # pylint: disable=no-name-in-module,import-error
 try:
-    import conf.secrets.db_credentials as credentials
+    from conf.secrets.db_credentials import USER, PASSWORD
 except ImportError:
     # It's ok for credentials not to be present when running tests
-    credentials.USER = "this_should_be_patched_in_tests"
-    credentials.PASSWORD = ""
+    USER = "this_should_be_patched_in_tests"
+    PASSWORD = ""
 # pylint: enable=no-name-in-module,import-error
 
 import habot.logger
@@ -33,8 +33,8 @@ class DBOperator():
         """
         self._logger = habot.logger.get_logger()
         self.conn = mysql.connector.connect(host="localhost",
-                                            user=credentials.USER,
-                                            passwd=credentials.PASSWORD)
+                                            user=USER,
+                                            passwd=PASSWORD)
         self._ensure_tables()
 
     def query_table_based_on_dict(self, table, condition_dict,
