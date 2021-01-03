@@ -8,7 +8,12 @@ import conf.db as dbconf
 
 # credentials added by user, not present always when linting
 # pylint: disable=no-name-in-module,import-error
-import conf.secrets.db_credentials as credentials
+try:
+    import conf.secrets.db_credentials as credentials
+except ImportError:
+    # It's ok for credentials not to be present when running tests
+    credentials.USER = "this_should_be_patched_in_tests"
+    credentials.PASSWORD = ""
 # pylint: enable=no-name-in-module,import-error
 
 import habot.logger
