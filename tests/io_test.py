@@ -185,7 +185,7 @@ SENT_PM_1 = {
 SENT_PM_2 = {
     "sent": True,
     "_id": "another-unique-id",
-    "ownerId": "sender-uuid",
+    "ownerId": "own-uuid",
     "uuid": "own-uuid",
     "id": "another-unique-id",
     "text": "Whispers.",
@@ -200,11 +200,24 @@ RECEIVED_PM = {
     "sent": False,
     "_id": "third-unique-id",
     "ownerId": "own-uuid",
-    "id": "third-unique-id",
+    "id": "inbox-unique-id",
     "text": "Hi, I got something to say to you",
     "unformattedText": "Hi, I got something to say to you",
     "timestamp": "2020-12-31T16:56:49.258Z",
     "uuid": "sender-uuid",
+    "user": "OtherPerson",
+    "username": "Other Person",
+}
+
+RESPONSE_PM = {
+    "sent": True,
+    "_id": "third-unique-id",
+    "ownerId": "own-uuid",
+    "uuid": "own-uuid",
+    "id": "response-unique-id",
+    "text": "Got it!",
+    "unformattedText": "Got it!",
+    "timestamp": "2020-12-31T16:57:19.278Z",
     "user": "OtherPerson",
     "username": "Other Person",
 }
@@ -277,6 +290,28 @@ def test_get_multiple_pms(test_messager, db_operator_fx,
     test_messager.get_private_messages()
     private_messages = db_operator_fx.query_table("private_messages")
     assert len(private_messages) == 3
+
+
+@pytest.mark.usefixtures("purge_message_data")
+def test_get_already_answered_pm(test_messager, db_operator_fx,
+                                 patch_get_dict_response, monkeypatch):
+    """
+    Test that when a message has been replied to, response isn't pending
+    """
+    # pylint: disable=protected-access
+    monkeypatch.setitem(test_messager._header, "x-api-user",
+                        RESPONSE_PM["ownerId"])
+    patch_get_dict_response([RECEIVED_PM, RESPONSE_PM])
+    test_messager.get_private_messages()
+    private_messages = db_operator_fx.query_table("private_messages")
+    assert len(private_messages) == 2
+    for message in private_messages:
+        if message["id"] == "inbox-unique-id":
+            assert message["reaction_pending"]
+        elif message["id"] == "response-unique-id":
+            assert not message["reaction_pending"]
+        else:
+            assert False, "Unexpected message found in database"
 
 
 @pytest.fixture
