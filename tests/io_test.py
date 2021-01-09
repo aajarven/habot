@@ -43,11 +43,12 @@ def test_group_message(mock_tick, mock_post, test_messager, header_fx):
 
 
 @pytest.fixture
-@pytest.mark.usefixtures("db_connection_fx")
-def db_operator_fx():
+def db_operator_fx(db_connection_fx):
     """
     Yield an operator for a test database.
     """
+    # on some machines, @mark.usefixtures wasn't sufficient to prevent errors
+    # pylint: disable=unused-argument
     yield DBOperator()
 
 
