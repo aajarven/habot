@@ -1,6 +1,9 @@
 click
 freezegun
-git+git://github.com/Antonbury/habitica-helper.git#egg=habitica-helper
+git+git://github.com/aajarven/habitica-helper.git#egg=habitica-helper
+google-api-python-client
+google-auth-httplib2
+google-auth-oauthlib
 mysql-connector-python
 pytest
 pyyaml
@@ -8,3 +11,4 @@ requests
 requests_mock
 schedule
 testing.mysqld
+yfinance

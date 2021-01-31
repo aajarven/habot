@@ -1,5 +1,7 @@
 # Antonbury's Habitica Bot
 
+![Lint & Test](https://github.com/aajarven/habot/workflows/Lint%20&%20Test/badge.svg)
+
 This is a simple bot, written to help with party-related tasks in [Habitica](https://habitica.com/). The functionalities implemented in `run_scheduled` are likely too specific to be much use for others, but the `habot` package contains modules that are likely to at least serve as a good starting point for developing other tools for Habitica using Python.
 
 The bot is in many ways a next step from [habitica-helper](https://github.com/aajarven/habitica-helper), and functionality from there is actually directly used here.

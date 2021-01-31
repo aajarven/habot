@@ -3,11 +3,8 @@ Tests for database operations.
 """
 
 import datetime
-
 import mysql.connector
-
 import pytest
-import testing.mysqld
 
 from habot.db import DBOperator
 from conf.db import TABLES
@@ -36,51 +33,49 @@ SHAREBDAY_USER = {"id": "b5845235-a344-4f52-a08b-02084cab00c4",
                   "loginname": "birthdayfella",
                   "birthday": datetime.date(2019, 5, 31)}
 
-
-@pytest.fixture(scope="module")
-def connection_fx():
-    """
-    Return a database connection.
-    """
-    with testing.mysqld.Mysqld() as mysqld:
-        conn = mysql.connector.connect(**mysqld.dsn())
-        yield conn
-
+# pylint doesn't understand fixtures
 # pylint: disable=redefined-outer-name
 
 
-@pytest.fixture()
-def testdata_db_operator(connection_fx, monkeypatch):
+@pytest.fixture(scope="module")
+def testdata_db_operator(purge_and_init_memberdata_fx):
     """
     Yield monkeypatched DBOperator that uses test database.
 
     The same database connection is used for all tests, but the databases and
     tables in it are regenerated for each test.
     """
-    cursor = connection_fx.cursor()
-    cursor.execute("DROP DATABASE IF EXISTS habdb")
-    cursor.execute("CREATE DATABASE habdb")
-
-    def _connection_factory(**kwargs):
-        # pylint: disable=unused-argument
-        return connection_fx
-    monkeypatch.setattr(mysql.connector, "connect", _connection_factory)
-
+    purge_and_init_memberdata_fx()
     operator = DBOperator()
-
-    cursor.execute("USE habdb")
-    cursor.execute("INSERT INTO members "
-                   "(id, displayname, loginname, birthday) "
-                   "values "
-                   "{}, {}, {}, {}".format(
-                       _member_dict_to_values(SIMPLE_USER),
-                       _member_dict_to_values(NAMEDIFF_USER),
-                       _member_dict_to_values(CHARSET_USER),
-                       _member_dict_to_values(SHAREBDAY_USER),
-                       ))
-    connection_fx.commit()
-    cursor.close()
     yield operator
+
+
+@pytest.fixture(scope="module")
+def purge_and_init_memberdata_fx(db_connection_fx):
+    """
+    Remove all data from the database and reinitialize with test member data.
+    """
+    def _reset():
+        cursor = db_connection_fx.cursor()
+        cursor.execute("DROP DATABASE IF EXISTS habdb")
+        cursor.execute("CREATE DATABASE habdb")
+        db_connection_fx.commit()
+
+        operator = DBOperator()
+        operator._ensure_tables()  # pylint: disable=protected-access
+        cursor.execute("USE habdb")
+        cursor.execute("INSERT INTO members "
+                       "(id, displayname, loginname, birthday) "
+                       "values "
+                       "{}, {}, {}, {}".format(
+                           _member_dict_to_values(SIMPLE_USER),
+                           _member_dict_to_values(NAMEDIFF_USER),
+                           _member_dict_to_values(CHARSET_USER),
+                           _member_dict_to_values(SHAREBDAY_USER),
+                           ))
+        db_connection_fx.commit()
+        cursor.close()
+    return _reset
 
 
 def _member_dict_to_values(member_dict):
@@ -175,9 +170,11 @@ def test_query_table_exceptions(testdata_db_operator, columns,
         testdata_db_operator.query_table("members", columns=columns)
 
 
-def test_insert_data(testdata_db_operator):
+def test_insert_data(testdata_db_operator, purge_and_init_memberdata_fx):
     """
-    Test that a row can be inserted into the database using DBOperator
+    Test that a row can be inserted into the database using DBOperator.
+
+    Resets the state of the test database in the end.
     """
     new_member_data = {"id": "abc123", "loginname": "newguy",
                        "displayname": "newguy9004",
@@ -192,10 +189,12 @@ def test_insert_data(testdata_db_operator):
     for value in new_member_data.values():
         assert value in data
     cursor.close()
+    purge_and_init_memberdata_fx()
 
 
 @pytest.mark.parametrize("updated_id", [SIMPLE_USER["id"], "nonexistent_id"])
-def test_update_data(testdata_db_operator, updated_id):
+def test_update_data(testdata_db_operator, updated_id,
+                     purge_and_init_memberdata_fx):
     """
     Test that updating based on primary key is possible
     """
@@ -219,9 +218,10 @@ def test_update_data(testdata_db_operator, updated_id):
         for value in data:
             assert value in updated_data.values()
     cursor.close()
+    purge_and_init_memberdata_fx()
 
 
-def test_delete_row(testdata_db_operator):
+def test_delete_row(testdata_db_operator, purge_and_init_memberdata_fx):
     """
     Test that a row can be removed using the primary key
     """
@@ -229,6 +229,7 @@ def test_delete_row(testdata_db_operator):
     query_result = testdata_db_operator.query_table(
         "members", condition="id='{}'".format(SIMPLE_USER["id"]))
     assert len(query_result) == 0
+    purge_and_init_memberdata_fx()
 
 
 def test_delete_illegal_row(testdata_db_operator):

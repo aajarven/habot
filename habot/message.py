@@ -56,8 +56,8 @@ class PrivateMessage(Message):
         """
         # pylint: disable=too-many-arguments
         self.to_id = to_id
-        super(PrivateMessage, self).__init__(from_id, timestamp, content,
-                                             message_id)
+        super().__init__(from_id, timestamp, content,
+                         message_id)
 
     def __str__(self):
         return ("from: {}\n"
@@ -102,8 +102,7 @@ class ChatMessage(Message):
         self.group_id = group_id
         self.likers = likers if likers else []
         self.flags = flags if flags else []
-        super(ChatMessage, self).__init__(from_id, timestamp, content,
-                                          message_id)
+        super().__init__(from_id, timestamp, content, message_id)
 
     def __str__(self):
         return ("from: {}\n"
@@ -136,8 +135,7 @@ class SystemMessage(Message):
         self.group_id = group_id
         self.likers = likers if likers else []
         self.info = info
-        super(SystemMessage, self).__init__(None, timestamp, content,
-                                            message_id)
+        super().__init__(None, timestamp, content, message_id)
 
     def __str__(self):
         return ("{} System message:\n\n"

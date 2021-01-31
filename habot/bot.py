@@ -131,6 +131,7 @@ class Functionality():
         If the message contains only the command, e.g. it is just "ping", an
         empty string is returned.
         """
+        # pylint: disable=no-self-use
         parts = message.content.split(" ", 1)
         if len(parts) > 1:
             return parts[1]
@@ -162,7 +163,7 @@ class AddTask(Functionality):
         Initialize a HabiticaOperator in addition to normal init.
         """
         self.habitica_operator = HabiticaOperator(HEADER)
-        super(AddTask, self).__init__()
+        super().__init__()
 
     def act(self, message):
         """
@@ -266,7 +267,7 @@ class SendWinnerMessage(Functionality):
     def __init__(self):
         self.partytool = habiticatool.PartyTool(HEADER)
         self.habitica_operator = HabiticaOperator(HEADER)
-        super(SendWinnerMessage, self).__init__()
+        super().__init__()
 
     def act(self, message):
         """

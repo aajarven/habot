@@ -60,27 +60,33 @@ class HabiticaMessager():
         :message: The contents of the message
         """
         api_url = "https://habitica.com/api/v3/members/send-private-message"
-        response = habrequest.post(api_url, headers=self._header,
-                                   data={"message": message,
-                                         "toUserId": to_uid})
-        if response.status_code != 200:
-            raise CommunicationFailedException(response)
+        try:
+            habrequest.post(api_url, headers=self._header,
+                            data={"message": message,
+                                  "toUserId": to_uid})
+        #  pylint: disable=invalid-name
+        except requests.exceptions.HTTPError as e:
+            #  pylint: disable=raise-missing-from
+            raise CommunicationFailedException(str(e))
 
         self._habitica_operator.tick_task(PM_SENT, task_type="habit")
 
     def send_group_message(self, group_id, message):
         """
-        Send a private message with the given content to the given group.
+        Send a message with the given content to the given group.
 
         :group_id: UUID of the recipient group, or 'party' for current party of
                    the bot.
         :message: Contents of the message to be sent
         """
         api_url = "https://habitica.com/api/v3/groups/{}/chat".format(group_id)
-        response = habrequest.post(api_url, headers=self._header,
-                                   data={"message": message})
-        if response.status_code != 200:
-            raise CommunicationFailedException(response)
+        try:
+            habrequest.post(api_url, headers=self._header,
+                            data={"message": message})
+        #  pylint: disable=invalid-name
+        except requests.exceptions.HTTPError as e:
+            #  pylint: disable=raise-missing-from
+            raise CommunicationFailedException(str(e))
         self._habitica_operator.tick_task(GROUP_MSG_SENT, task_type="habit")
 
     def get_party_messages(self):
@@ -565,4 +571,4 @@ class MalformedQuestionFileException(Exception):
     def __init__(self, problem, filename):
         message = ("Problem with question file \"{}\":\n\n{}\n\n{}"
                    "".format(filename, problem, self._INFO))
-        super(MalformedQuestionFileException, self).__init__(message)
+        super().__init__(message)
