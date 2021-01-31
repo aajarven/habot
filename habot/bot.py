@@ -10,7 +10,7 @@ from habitica_helper.challenge import Challenge
 
 from habot.birthdays import BirthdayReminder
 from habot.habitica_operations import HabiticaOperator
-from habot.io import HabiticaMessager
+from habot.io import HabiticaMessager, DBSyncer
 import habot.logger
 from habot.message import PrivateMessage
 from habot.sharing_weekend import SharingChallengeOperator
@@ -139,10 +139,17 @@ class Functionality():
         return ""
 
 
-class QuestReminder(Functionality):
+class QuestReminders(Functionality):
     """
     Send out quest reminders.
     """
+
+    def __init__(self):
+        """
+        Initialize the class
+        """
+        self._db_syncer = DBSyncer(HEADER)
+        self._messager = HabiticaMessager(HEADER)
 
     def act(self, message):
         """
@@ -160,6 +167,7 @@ class QuestReminder(Functionality):
         Questname; @user1, @user2, @user3
         is a valid line.
         """
+        self._db_syncer.update_partymember_data()
         content = self._command_body(message)
         reminder_data = content.split("```")[1]
         reminder_lines = reminder_data.strip().split("\n")

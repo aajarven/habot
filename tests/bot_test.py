@@ -4,7 +4,7 @@ Tests for the bot functionalities
 
 from unittest.mock import call
 
-from habot.bot import QuestReminder
+from habot.bot import QuestReminders
 from habot.message import PrivateMessage
 
 
@@ -13,7 +13,7 @@ def test_send_reminder_called_with_correct_params(mocker):
     Ensure that the message content is parsed correctly by checking how
     _send_reminder gets called
     """
-    mock_send = mocker.patch("habot.bot.QuestReminder._send_reminder")
+    mock_send = mocker.patch("habot.bot.QuestReminders._send_reminder")
     command = ("quest-reminders\n"
                "```\n"
                "FirstQuest; @thisdoesntmatter\n"
@@ -23,7 +23,7 @@ def test_send_reminder_called_with_correct_params(mocker):
                "```")
     test_message = PrivateMessage("from_id", "to_id", content=command)
 
-    reminder = QuestReminder()
+    reminder = QuestReminders()
     reminder.act(test_message)
 
     expected_calls = [call("Quest1", "@user1", 1, "FirstQuest"),
