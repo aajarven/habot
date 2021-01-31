@@ -11,7 +11,7 @@ from habitica_helper.habiticatool import PartyTool
 from habitica_helper.member import Member
 
 from habot.db import DBOperator
-from habot.io import HabiticaMessager, DBSyncer
+from habot.io import HabiticaMessager, DBSyncer, DBTool
 
 
 @pytest.fixture()
@@ -403,3 +403,32 @@ def test_remove_old_partymembers(test_syncer, db_operator_fx,
     test_syncer.update_partymember_data()
     members = db_operator_fx.query_table("members")
     assert len(members) == 1
+
+
+@pytest.fixture
+def db_tool_fx(db_connection_fx):
+    """
+    Yield an operator for a test database.
+    """
+    # on some machines, @mark.usefixtures wasn't sufficient to prevent errors
+    # pylint: disable=unused-argument
+    yield DBTool()
+
+
+@pytest.mark.usefixtures("purge_and_set_memberdata_fx")
+def test_get_user_id(db_tool_fx):
+    """
+    Test that user ID can be fetched from the database based on login name
+    """
+    assert db_tool_fx.get_user_id("member1") == "member-already-in-db-1-id"
+
+
+@pytest.mark.usefixtures("purge_and_set_memberdata_fx")
+def test_get_non_existent_user_id(db_tool_fx):
+    """
+    Test that an exception is raised when a matching user is not found.
+    """
+    with pytest.raises(ValueError) as err:
+        db_tool_fx.get_user_id("nonexistent-member")
+    assert ("User with login name nonexistent-member not found"
+            in str(err.value))

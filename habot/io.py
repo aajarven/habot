@@ -22,6 +22,33 @@ import habot.logger
 from habot.message import PrivateMessage, ChatMessage, SystemMessage
 
 
+class DBTool():
+    """
+    High-level tools for using the database.
+    """
+
+    def __init__(self):
+        """
+        Initialize the class
+        """
+        self._logger = habot.logger.get_logger()
+        self._db = DBOperator()
+
+    def get_user_id(self, habitica_loginname):
+        """
+        Return the user ID of a party member corresponding to given login name.
+        """
+        members = self._db.query_table(
+            "members",
+            condition="loginname='{}'".format(habitica_loginname),
+            columns="id",
+            )
+        if not members:
+            raise ValueError("User with login name {} not found"
+                             "".format(habitica_loginname))
+        return members[0]["id"]
+
+
 class HabiticaMessager():
     """
     A class for handling Habitica messages (private and party).
