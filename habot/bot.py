@@ -60,6 +60,7 @@ def react_to_message(message):
         "award-latest-winner": AwardWinner,
         "ping": Ping,
         "add-task": AddTask,
+        "quest-reminders": QuestReminders,
         }
     first_word = message.content.strip().split()[0]
     logger.debug("Got message starting with %s", first_word)
@@ -132,10 +133,72 @@ class Functionality():
         empty string is returned.
         """
         # pylint: disable=no-self-use
-        parts = message.content.split(" ", 1)
+        parts = message.content.split(None, 1)
         if len(parts) > 1:
             return parts[1]
         return ""
+
+
+class QuestReminder(Functionality):
+    """
+    Send out quest reminders.
+    """
+
+    def act(self, message):
+        """
+        Send reminders for quests in the message body.
+
+        The body is expected to consist of a code block (enclosed by three
+        backticks ``` on each side) containing one line for each quest
+        for which a reminder is to be sent. The earliest quests are assumed
+        to be in order from earliest in the queue to the last.
+
+        Each line must begin with a identifier of the quest (this can be
+        anything, e.g. the name of the quest) followed by a semicolon and a
+        comma-separeted list of Habitica login names of the partymembers who
+        should be reminded of this quest. For example
+        Questname; @user1, @user2, @user3
+        is a valid line.
+        """
+        content = self._command_body(message)
+        reminder_data = content.split("```")[1]
+        reminder_lines = reminder_data.strip().split("\n")
+        previous_quest = reminder_lines[0].split(";")[0]
+        for line in reminder_lines[1:]:
+            if line.strip():
+                parts = line.split(";")
+                quest_name = parts[0]
+                users = [name.strip() for name in parts[1].split(",")]
+                for user in users:
+                    self._send_reminder(quest_name, user, len(users),
+                                        previous_quest)
+                previous_quest = quest_name
+
+        return "This command is still work in progress. No messages sent."
+
+    def _validate(self, command_body):
+        """
+        Ensure that the command body looks sensible.
+
+        Make sure that
+          - the command body contains exactly one code block
+          - each non-empty line in the code block contains exactly one
+            semicolon
+          - there is content both before and after the semicolon
+        """
+        return True  # TODO
+
+    def _send_reminder(self, quest_name, user, n_users, previous_quest):
+        """
+        Send out a reminder about given quest to given user.
+
+        :quest_name: Name of the quest
+        :user: Habitica login name for the recipient
+        :n_users: Total number of users recieving this reminder
+        :previous_quest: Name of the quest after which the user should send out
+                         the invitation to their quest
+        """
+        pass  # TODO
 
 
 class Ping(Functionality):
