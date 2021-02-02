@@ -26,6 +26,7 @@ class DBTool():
     """
     High-level tools for using the database.
     """
+    # pylint: disable=too-few-public-methods
 
     def __init__(self):
         """

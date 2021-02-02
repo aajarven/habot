@@ -10,7 +10,7 @@ from habitica_helper.challenge import Challenge
 
 from habot.birthdays import BirthdayReminder
 from habot.habitica_operations import HabiticaOperator
-from habot.io import HabiticaMessager, DBSyncer
+from habot.io import HabiticaMessager, DBSyncer, DBTool
 import habot.logger
 from habot.message import PrivateMessage
 from habot.sharing_weekend import SharingChallengeOperator
@@ -149,7 +149,9 @@ class QuestReminders(Functionality):
         Initialize the class
         """
         self._db_syncer = DBSyncer(HEADER)
+        self._db_tool = DBTool()
         self._messager = HabiticaMessager(HEADER)
+        super().__init__()
 
     def act(self, message):
         """
@@ -196,17 +198,42 @@ class QuestReminders(Functionality):
         """
         return True  # TODO
 
-    def _send_reminder(self, quest_name, user, n_users, previous_quest):
+    def _send_reminder(self, quest_name, user_name, n_users, previous_quest):
         """
         Send out a reminder about given quest to given user.
 
         :quest_name: Name of the quest
-        :user: Habitica login name for the recipient
+        :user_name: Habitica login name for the recipient
         :n_users: Total number of users recieving this reminder
         :previous_quest: Name of the quest after which the user should send out
                          the invitation to their quest
         """
-        pass  # TODO
+        recipient_uid = self._db_tool.get_user_id(user_name)
+        message = self._message(quest_name, n_users, previous_quest)
+        self._messager.send_private_message(recipient_uid, message)
+
+    def _message(self, quest_name, n_users, previous_quest):
+        """
+        Return a reminder message for the parameters.
+
+        :quest_name: Name of the quest
+        :n_users: Total number of users recieving this reminder
+        :previous_quest: Name of the quest after which the user should send out
+                         the invitation to their quest
+        """
+        # pylint: disable=no-self-use
+        if n_users > 2:
+            who = "You (and {} others)".format(n_users - 1)
+        elif n_users == 2:
+            who = "You (and one other partymember)"
+        else:
+            who = "You"
+        return ("{who} have a quest coming up in the queue: {quest_name}! "
+                "It comes after {previous_quest}, so when you notice that "
+                "{previous_quest} has ended, please send out the invite for "
+                "{quest_name}.".format(who=who,
+                                       quest_name=quest_name,
+                                       previous_quest=previous_quest))
 
 
 class Ping(Functionality):
