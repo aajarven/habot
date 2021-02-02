@@ -12,7 +12,18 @@ from habot.message import PrivateMessage
 from tests.conftest import SIMPLE_USER
 
 
-@pytest.mark.usefixtures("db_connection_fx")
+@pytest.fixture
+def no_db_update(mocker):
+    """
+    Prevent DBSyncer.update_partymember_data from doing anything.
+
+    This way the database can be set up with an arbitrary data.
+    """
+    update = mocker.patch("habot.io.DBSyncer.update_partymember_data")
+    yield
+    update.assert_called()
+
+@pytest.mark.usefixtures("db_connection_fx", "no_db_update")
 def test_send_reminder_called_with_correct_params(mocker):
     """
     Ensure that the message content is parsed correctly by checking how
@@ -81,7 +92,7 @@ def test_construct_reminder_multiple_users():
                        "send out the invite for Quest name.")
 
 
-@pytest.mark.usefixtures("db_connection_fx")
+@pytest.mark.usefixtures("db_connection_fx", "no_db_update")
 def test_sending_single_message(mocker, purge_and_init_memberdata_fx):
     """
     Ensure that the correct message is sent out for a single quest.
@@ -89,14 +100,10 @@ def test_sending_single_message(mocker, purge_and_init_memberdata_fx):
     The format of the messages is thoroughly tested in when testing the
     _message function, so here the only thing to do is to test that a matching
     message is really sent to the correct recipient.
-
-    The standard test database is used, so party member updating is mocked to
-    prevent the test trying to rewrite it using online data.
     """
     purge_and_init_memberdata_fx()
     mock_messager = mocker.patch(
             "habot.io.HabiticaMessager.send_private_message")
-    mocker.patch("habot.io.DBSyncer.update_partymember_data")
 
     command = ("quest-reminders\n"
                "```\n"

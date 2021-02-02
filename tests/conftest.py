@@ -15,6 +15,21 @@ from tests.data.test_tasks import TEST_TASKS
 # pylint: disable=redefined-outer-name
 
 
+@pytest.fixture(autouse=True)
+def prevent_online_requests(monkeypatch):
+    """
+    Patch urlopen so that all non-patched requests raise an error.
+    """
+    def urlopen_error(self, method, url, *args, **kwargs):
+        raise RuntimeError(
+                "Requests are not allowed, but a test attempted a {} request "
+                "to {}://{}{}".format(method, self.scheme, self.host, url))
+
+    monkeypatch.setattr(
+        "urllib3.connectionpool.HTTPConnectionPool.urlopen", urlopen_error
+    )
+
+
 @pytest.fixture(scope="session")
 def sessionmonkey():
     """
