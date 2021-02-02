@@ -153,6 +153,13 @@ class QuestReminders(Functionality):
         self._messager = HabiticaMessager(HEADER)
         super().__init__()
 
+    def help(self):
+        """
+        Provide instructions for the reminder command.
+        """
+        # pylint: disable=no-self-use
+        return "Help not available (yet)"  # TODO
+
     def act(self, message):
         """
         Send reminders for quests in the message body.
@@ -171,6 +178,14 @@ class QuestReminders(Functionality):
         """
         self._db_syncer.update_partymember_data()
         content = self._command_body(message)
+
+        try:
+            self._validate(content)
+        except ValidationError as err:
+            return ("A problem was encountered when reading the quest list: {}"
+                    "\n\n"
+                    "No messages were sent.".format(str(err)))
+
         reminder_data = content.split("```")[1]
         reminder_lines = reminder_data.strip().split("\n")
         previous_quest = reminder_lines[0].split(";")[0]
@@ -195,8 +210,60 @@ class QuestReminders(Functionality):
           - each non-empty line in the code block contains exactly one
             semicolon
           - there is content both before and after the semicolon
+          - all names in the list of quest owners start with an '@'
+
+        If the command is deemed faulty, a ValidationError is raised.
         """
-        return True  # TODO
+        # pylint: disable=no-self-use
+        parts = command_body.split("```")
+        if not len(parts) == 3:
+            raise ValidationError(
+                    "The list of reminders to be sent must be given inside "
+                    "a code block (surrounded by three backticks \\`\\`\\`). "
+                    "A code block was not found in the message."
+                    )
+
+        reminder_data = parts[1]
+        first_line = True
+
+        for line in reminder_data.split("\n"):
+
+            if not line.strip():
+                continue
+
+            parts = line.split(";")
+            if len(parts) != 2:
+                raise ValidationError(
+                        "Each line in the quest queue must be divided into "
+                        "two parts by a semicolon (;), the first part "
+                        "containing the name of the quest and the latter "
+                        "holding the names of the participants. Line `{}` "
+                        "did not match this format.".format(line)
+                        )
+
+            if not parts[0].strip():
+                raise ValidationError(
+                        "Problem in line `{}`: quest name cannot be empty."
+                        "".format(line))
+
+            if not first_line:
+                if not parts[1].strip():
+                    raise ValidationError(
+                            "No quest owners listed for quest {}"
+                            "".format(parts[0].strip()))
+
+                for owner_str in parts[1].split(","):
+                    owner_name = owner_str.strip()
+                    if not owner_name:
+                        raise ValidationError(
+                                "Malformed quest owner list for quest {}"
+                                "".format(line))
+                    if not owner_name[0] == "@":
+                        raise ValidationError(
+                                "Quest owner `{}` found on line `{}` doesn't "
+                                "appear to be a valid Habitica user id"
+                                "".format(owner_name, line))
+            first_line = False
 
     def _send_reminder(self, quest_name, user_name, n_users, previous_quest):
         """
@@ -234,6 +301,12 @@ class QuestReminders(Functionality):
                 "{quest_name}.".format(who=who,
                                        quest_name=quest_name,
                                        previous_quest=previous_quest))
+
+
+class ValidationError(ValueError):
+    """
+    Error for cases where user input is erroneous
+    """
 
 
 class Ping(Functionality):

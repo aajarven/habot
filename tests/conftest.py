@@ -108,25 +108,25 @@ def testdata_db_operator(purge_and_init_memberdata_fx):
 # A simple user: one with identical diplay and loginnames
 SIMPLE_USER = {"id": "9cb40345-720f-4c9e-974d-18e016d9564d",
                "displayname": "testuser",
-               "loginname": "testuser",
+               "loginname": "@testuser",
                "birthday": datetime.date(2016, 12, 4)}
 
 # User wth different display and login names
 NAMEDIFF_USER = {"id": "a431b1a5-d287-4c34-93c4-7d607905a947",
                  "displayname": "habitician",
-                 "loginname": "habiticianlogin",
+                 "loginname": "@habiticianlogin",
                  "birthday": datetime.date(2019, 5, 31)}
 
 # User with non-ascii characters in displayname
 CHARSET_USER = {"id": "7319d61c-1940-460d-8dc8-007f7e9537f0",
                 "displayname": "somedüde",
-                "loginname": "somedude",
+                "loginname": "@somedude",
                 "birthday": datetime.date(2019, 5, 31)}
 
 # User sharing a birthday with another user
 SHAREBDAY_USER = {"id": "b5845235-a344-4f52-a08b-02084cab00c4",
                   "displayname": "showingYaMyBDAY",
-                  "loginname": "birthdayfella",
+                  "loginname": "@birthdayfella",
                   "birthday": datetime.date(2019, 5, 31)}
 
 

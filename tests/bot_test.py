@@ -23,6 +23,7 @@ def no_db_update(mocker):
     yield
     update.assert_called()
 
+
 @pytest.mark.usefixtures("db_connection_fx", "no_db_update")
 def test_send_reminder_called_with_correct_params(mocker):
     """
@@ -121,3 +122,41 @@ def test_sending_single_message(mocker, purge_and_init_memberdata_fx):
     reminder.act(test_command_msg)
 
     mock_messager.assert_called_with(SIMPLE_USER["id"], expected_message)
+
+
+@pytest.mark.usefixtures("no_db_update")
+@pytest.mark.parametrize(
+        ["quests", "expected_message_part"],
+        [
+            (["q1;@user", "q2;invalid_habid"],
+             "doesn't appear to be a valid Habitica user id"),
+            (["q1;@user", "q2;"],
+             "No quest owners listed"),
+            (["q1;@user", "q2 @u2"],
+             "Each line in the quest queue must be divided into two parts"),
+            (["q1;@user", "   ;@u2"],
+             "quest name cannot be empty"),
+            (["q1;@user", "q2; @u1, ,@u3"],
+             "Malformed quest owner list"),
+        ]
+)
+def test_faulty_quest_queue(mocker, quests, expected_message_part):
+    """
+    Test that no messages are sent when given quest queue is faulty.
+    """
+    mock_messager = mocker.patch(
+            "habot.io.HabiticaMessager.send_private_message")
+
+    command = ("quest-reminders\n"
+               "```\n"
+               "{}\n"
+               "```"
+               "".format("\n".join(quests)))
+    test_command_msg = PrivateMessage("from_id", "to_id", content=command)
+
+    reminder = QuestReminders()
+
+    response = reminder.act(test_command_msg)
+    assert expected_message_part in response
+
+    mock_messager.assert_not_called()

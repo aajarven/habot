@@ -27,9 +27,9 @@ def test_db_operator(testdata_db_operator):
         (None, "displayname like 'habitician'", [NAMEDIFF_USER]),
         (None, "displayname like 'nobodyhere'", []),
         ("displayname, loginname", "displayname like 'habitician'",
-         [{"displayname": "habitician", "loginname": "habiticianlogin"}]),
+         [{"displayname": "habitician", "loginname": "@habiticianlogin"}]),
         (["displayname", "loginname"], "displayname like 'habitician'",
-         [{"displayname": "habitician", "loginname": "habiticianlogin"}]),
+         [{"displayname": "habitician", "loginname": "@habiticianlogin"}]),
     ]
 )
 def test_query_table(testdata_db_operator, columns, condition,
