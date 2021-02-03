@@ -25,28 +25,36 @@ def no_db_update(mocker):
 
 
 @pytest.mark.usefixtures("db_connection_fx", "no_db_update")
-def test_send_reminder_called_with_correct_params(mocker):
+def test_send_reminder_called_with_correct_params(
+        mocker, purge_and_init_memberdata_fx):
     """
     Ensure that the message content is parsed correctly by checking how
     _send_reminder gets called
     """
+    purge_and_init_memberdata_fx()
+
+    # these users are the ones added in database init
+    user1 = "@testuser"
+    user2 = "@somedude"
+
     mock_send = mocker.patch("habot.bot.QuestReminders._send_reminder")
     command = ("quest-reminders\n"
                "```\n"
                "FirstQuest; @thisdoesntmatter\n"
-               "Quest1; @user1\n"
-               "Quest number 2; @user2\n"
-               "Quest 3; @user1, @user2\n"
-               "```")
+               "Quest1; {user1}\n"
+               "Quest number 2; {user2}\n"
+               "Quest 3; {user1}, {user2}\n"
+               "```"
+               "".format(user1=user1, user2=user2))
     test_message = PrivateMessage("from_id", "to_id", content=command)
 
     reminder = QuestReminders()
     reminder.act(test_message)
 
-    expected_calls = [call("Quest1", "@user1", 1, "FirstQuest"),
-                      call("Quest number 2", "@user2", 1, "Quest1"),
-                      call("Quest 3", "@user1", 2, "Quest number 2"),
-                      call("Quest 3", "@user2", 2, "Quest number 2"),
+    expected_calls = [call("Quest1", "@testuser", 1, "FirstQuest"),
+                      call("Quest number 2", "@somedude", 1, "Quest1"),
+                      call("Quest 3", "@testuser", 2, "Quest number 2"),
+                      call("Quest 3", "@somedude", 2, "Quest number 2"),
                       ]
     mock_send.assert_has_calls(expected_calls)
 
@@ -128,22 +136,31 @@ def test_sending_single_message(mocker, purge_and_init_memberdata_fx):
 @pytest.mark.parametrize(
         ["quests", "expected_message_part"],
         [
-            (["q1;@user", "q2;invalid_habid"],
+            (["q1;@anyuser", "q2;invalid_habid"],
              "doesn't appear to be a valid Habitica user id"),
-            (["q1;@user", "q2;"],
+            (["q1;@anyuser", "q2;"],
              "No quest owners listed"),
-            (["q1;@user", "q2 @u2"],
+            (["q1;@anyuser", "q2 @testuser"],
              "Each line in the quest queue must be divided into two parts"),
-            (["q1;@user", "   ;@u2"],
+            (["q1;@anyuser", "   ;@testuser"],
              "quest name cannot be empty"),
-            (["q1;@user", "q2; @u1, ,@u3"],
+            (["q1;@anyuser", "q2; @testuser, ,@testuser"],
              "Malformed quest owner list"),
+            (["q1;@anyuser", "q2; @noSuchUser"],
+             "User @noSuchUser not found in the party"),
         ]
 )
-def test_faulty_quest_queue(mocker, quests, expected_message_part):
+def test_faulty_quest_queue(mocker, quests, expected_message_part,
+                            purge_and_init_memberdata_fx):
     """
     Test that no messages are sent when given quest queue is faulty.
+
+    The user @testuser found in the test data is inserted into the database
+    during test database initialization. Note that the owner of the first
+    quest doesn't have to be in the database: that information is not used by
+    the bot.
     """
+    purge_and_init_memberdata_fx()
     mock_messager = mocker.patch(
             "habot.io.HabiticaMessager.send_private_message")
 

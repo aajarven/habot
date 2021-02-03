@@ -214,7 +214,6 @@ class QuestReminders(Functionality):
 
         If the command is deemed faulty, a ValidationError is raised.
         """
-        # pylint: disable=no-self-use
         parts = command_body.split("```")
         if not len(parts) == 3:
             raise ValidationError(
@@ -263,6 +262,13 @@ class QuestReminders(Functionality):
                                 "Quest owner `{}` found on line `{}` doesn't "
                                 "appear to be a valid Habitica user id"
                                 "".format(owner_name, line))
+                    try:
+                        self._db_tool.get_user_id(owner_name)
+                    except ValueError as err:
+                        raise ValidationError(
+                                "User {} not found in the party"
+                                "".format(owner_name)
+                                ) from err
             first_line = False
 
     def _send_reminder(self, quest_name, user_name, n_users, previous_quest):
