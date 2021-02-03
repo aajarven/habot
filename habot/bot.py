@@ -189,6 +189,7 @@ class QuestReminders(Functionality):
         reminder_data = content.split("```")[1]
         reminder_lines = reminder_data.strip().split("\n")
         previous_quest = reminder_lines[0].split(";")[0]
+        sent_reminders = 0
         for line in reminder_lines[1:]:
             if line.strip():
                 parts = line.split(";")
@@ -197,9 +198,10 @@ class QuestReminders(Functionality):
                 for user in users:
                     self._send_reminder(quest_name, user, len(users),
                                         previous_quest)
+                    sent_reminders += 1
                 previous_quest = quest_name
 
-        return "This command is still work in progress. No messages sent."
+        return "Sent out {} quest reminders.".format(sent_reminders)
 
     def _validate(self, command_body):
         """
@@ -270,6 +272,7 @@ class QuestReminders(Functionality):
                                 "".format(owner_name)
                                 ) from err
             first_line = False
+        self._logger.debug("Quest data successfully validated")
 
     def _send_reminder(self, quest_name, user_name, n_users, previous_quest):
         """
@@ -283,6 +286,8 @@ class QuestReminders(Functionality):
         """
         recipient_uid = self._db_tool.get_user_id(user_name)
         message = self._message(quest_name, n_users, previous_quest)
+        self._logger.debug("Sending a quest reminder for {} to {} ({})"
+                           "".format(quest_name, user_name, recipient_uid))
         self._messager.send_private_message(recipient_uid, message)
 
     def _message(self, quest_name, n_users, previous_quest):
