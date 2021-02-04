@@ -179,14 +179,15 @@ class QuestReminders(Functionality):
                 "they will receive more than one message."
                 ""
                 "For example the following message is a valid quest reminder "
-                "request:\n"
+                "request whe the apostrophes (') are replaced with backticks "
+                "(\`):\n"  # noqa: W605
                 "```\n"
                 "quest-reminders\n"
-                "\`\`\`\n"  # noqa: W605
+                "'''\n"
                 "Lunar Battle: Part 1; @FirstInQueue\n"
                 "Unicorn; @SomePartyMember\n"
                 "Brazen Beetle Battle; @OtherGuy, @Questgoer9000\n"
-                "\`\`\`\n"  # noqa: W605
+                "'''\n"
                 "```\n"
                 "and will result in quest reminder being sent out to "
                 "`@SomePartyMember` for unicorn quest and to `@OtherGuy` "
