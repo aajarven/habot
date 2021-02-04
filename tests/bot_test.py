@@ -197,3 +197,41 @@ def test_quest_queue_outside_code(mocker):
     assert "code block was not found" in response
 
     mock_messager.assert_not_called()
+
+
+@pytest.mark.usefixtures("db_connection_fx", "no_db_update")
+def test_complex_quest_reminder(mocker,
+                                purge_and_init_memberdata_fx):
+    """
+    Test that difficult but legal quest queue is parsed correctly.
+    """
+    purge_and_init_memberdata_fx()
+
+    # these users are the ones added in database init
+    user1 = "testuser"
+    user2 = "somedude"
+
+    mock_send = mocker.patch("habot.bot.QuestReminders._send_reminder")
+    command = ("quest-reminders\n\n"
+               "there's some weird content here\n"
+               "but it shouldn't matter\n\n"
+               "```\n"
+               "FirstQuest;\n"
+               "Quest1; @{user1}\n"
+               "\n"
+               "    Quest number 2 ; {user2}\n"
+               "  Quest 3;{user1},{user2}\n"
+               "Quest 3;{user1}    ,    {user2}\n"
+               "```"
+               "".format(user1=user1, user2=user2))
+    test_message = PrivateMessage("from_id", "to_id", content=command)
+
+    reminder = QuestReminders()
+    reminder.act(test_message)
+
+    expected_calls = [call("Quest1", "testuser", 1, "FirstQuest"),
+                      call("Quest number 2", "somedude", 1, "Quest1"),
+                      call("Quest 3", "testuser", 2, "Quest number 2"),
+                      call("Quest 3", "somedude", 2, "Quest number 2"),
+                      ]
+    mock_send.assert_has_calls(expected_calls)

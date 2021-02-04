@@ -228,7 +228,7 @@ class QuestReminders(Functionality):
         for line in reminder_lines[1:]:
             if line.strip():
                 parts = line.split(";")
-                quest_name = parts[0]
+                quest_name = parts[0].strip()
                 users = [name.strip().lstrip("@")
                          for name in parts[1].split(",")]
                 for user in users:
