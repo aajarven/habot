@@ -177,7 +177,7 @@ class QuestReminders(Functionality):
                 "Each user is sent a separate message for each quest. Thus, "
                 "if one user owns copies of more than one quest in the queue, "
                 "they will receive more than one message."
-                ""
+                "\n\n"
                 "For example the following message is a valid quest reminder:"
                 "\n"
                 "````\n"
