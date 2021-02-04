@@ -158,7 +158,35 @@ class QuestReminders(Functionality):
         Provide instructions for the reminder command.
         """
         # pylint: disable=no-self-use
-        return "Help not available (yet)"  # TODO
+        return ("Send out quest reminders to the people in the given quest "
+                "queue. The quest queue must be given inside a code block "
+                "with each quest on its own line. Each quest line starts with "
+                "the name of the quest, followed by a semicolon (;) and a "
+                "comma-separated list of quest owner Habitica login names."
+                "\n\n"
+                "Reminders are sent for all except the first quest in the "
+                "given queue. The first quest name is only used for telling "
+                "the owner(s) of the second quest after which quest they "
+                "should send the invite."
+                "\n\n"
+                "Each user is sent a separate message for each quest. Thus, "
+                "if one user owns copies of more than one quest in the queue, "
+                "they will receive more than one message."
+                ""
+                "For example the following message is a valid quest reminder "
+                "request:\n"
+                "```\n"
+                "\\`\\`\\`\n"
+                "Lunar Battle: Part 1; @FirstInQueue\n"
+                "Unicorn; @SomePartyMember\n"
+                "Brazen Beetle Battle; @OtherGuy, @Questgoer9000\n"
+                "\\`\\`\\`\n"
+                "```\n"
+                "and will result in quest reminder being sent out to "
+                "`@SomePartyMember` for unicorn quest and to `@OtherGuy` "
+                "and `@QuestGoer9000` for the beetle. Note that as mentioned, "
+                "@FirstInQueue gets no reminder of their quest."
+                "")
 
     def act(self, message):
         """
