@@ -143,6 +143,10 @@ class QuestReminders(Functionality):
     """
     Send out quest reminders.
     """
+    # In this class, responses to user contain backticks which have to be
+    # escaped for Habitica. Thus this warning is disabled to avoid them being
+    # flagged as possibly erroneous.
+    # pylint: disable=anomalous-backslash-in-string
 
     def __init__(self):
         """
@@ -158,7 +162,8 @@ class QuestReminders(Functionality):
         Provide instructions for the reminder command.
         """
         # pylint: disable=no-self-use
-        return ("Send out quest reminders to the people in the given quest "
+        return (
+                "Send out quest reminders to the people in the given quest "
                 "queue. The quest queue must be given inside a code block "
                 "with each quest on its own line. Each quest line starts with "
                 "the name of the quest, followed by a semicolon (;) and a "
@@ -176,11 +181,11 @@ class QuestReminders(Functionality):
                 "For example the following message is a valid quest reminder "
                 "request:\n"
                 "```\n"
-                "\\`\\`\\`\n"
+                "\`\`\`\n"  # noqa: W605
                 "Lunar Battle: Part 1; @FirstInQueue\n"
                 "Unicorn; @SomePartyMember\n"
                 "Brazen Beetle Battle; @OtherGuy, @Questgoer9000\n"
-                "\\`\\`\\`\n"
+                "\`\`\`n"  # noqa: W605
                 "```\n"
                 "and will result in quest reminder being sent out to "
                 "`@SomePartyMember` for unicorn quest and to `@OtherGuy` "
@@ -248,8 +253,9 @@ class QuestReminders(Functionality):
         if not len(parts) == 3:
             raise ValidationError(
                     "The list of reminders to be sent must be given inside "
-                    "a code block (surrounded by three backticks \\`\\`\\`). "
-                    "A code block was not found in the message."
+                    "a code block (surrounded by three backticks i"
+                    "\`\`\`). A code block was not found in "  # noqa: W605
+                    "the message."
                     )
 
         reminder_data = parts[1]
