@@ -181,6 +181,7 @@ class QuestReminders(Functionality):
                 "For example the following message is a valid quest reminder "
                 "request:\n"
                 "```\n"
+                "quest-reminders\n"
                 "\`\`\`\n"  # noqa: W605
                 "Lunar Battle: Part 1; @FirstInQueue\n"
                 "Unicorn; @SomePartyMember\n"
