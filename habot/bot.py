@@ -186,7 +186,7 @@ class QuestReminders(Functionality):
                 "Lunar Battle: Part 1; @FirstInQueue\n"
                 "Unicorn; @SomePartyMember\n"
                 "Brazen Beetle Battle; @OtherGuy, @Questgoer9000\n"
-                "\`\`\`n"  # noqa: W605
+                "\`\`\`\n"  # noqa: W605
                 "```\n"
                 "and will result in quest reminder being sent out to "
                 "`@SomePartyMember` for unicorn quest and to `@OtherGuy` "
