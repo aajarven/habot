@@ -314,8 +314,8 @@ class QuestReminders(Functionality):
         """
         recipient_uid = self._db_tool.get_user_id(user_name)
         message = self._message(quest_name, n_users, previous_quest)
-        self._logger.debug("Sending a quest reminder for {} to {} ({})"
-                           "".format(quest_name, user_name, recipient_uid))
+        self._logger.debug("Sending a quest reminder for %s to %s (%s)",
+                           quest_name, user_name, recipient_uid)
         self._messager.send_private_message(recipient_uid, message)
 
     def _message(self, quest_name, n_users, previous_quest):
