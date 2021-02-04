@@ -51,10 +51,10 @@ def test_send_reminder_called_with_correct_params(
     reminder = QuestReminders()
     reminder.act(test_message)
 
-    expected_calls = [call("Quest1", "@testuser", 1, "FirstQuest"),
-                      call("Quest number 2", "@somedude", 1, "Quest1"),
-                      call("Quest 3", "@testuser", 2, "Quest number 2"),
-                      call("Quest 3", "@somedude", 2, "Quest number 2"),
+    expected_calls = [call("Quest1", "testuser", 1, "FirstQuest"),
+                      call("Quest number 2", "somedude", 1, "Quest1"),
+                      call("Quest 3", "testuser", 2, "Quest number 2"),
+                      call("Quest 3", "somedude", 2, "Quest number 2"),
                       ]
     mock_send.assert_has_calls(expected_calls)
 
