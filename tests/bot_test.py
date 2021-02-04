@@ -177,3 +177,25 @@ def test_faulty_quest_queue(mocker, quests, expected_message_part,
     assert expected_message_part in response
 
     mock_messager.assert_not_called()
+
+
+@pytest.mark.usefixtures("no_db_update")
+def test_quest_queue_outside_code(mocker):
+    """
+    Test that a well-formed quest queue is not accepted if outside a code block
+    """
+    mock_messager = mocker.patch(
+            "habot.io.HabiticaMessager.send_private_message")
+
+    command = ("quest-reminders\n"
+               "q1;@user1\n"
+               "q2;@user2\n"
+               )
+    test_command_msg = PrivateMessage("from_id", "to_id", content=command)
+
+    reminder = QuestReminders()
+
+    response = reminder.act(test_command_msg)
+    assert "code block was not found" in response
+
+    mock_messager.assert_not_called()
