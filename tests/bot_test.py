@@ -136,8 +136,6 @@ def test_sending_single_message(mocker, purge_and_init_memberdata_fx):
 @pytest.mark.parametrize(
         ["quests", "expected_message_part"],
         [
-            (["q1;@anyuser", "q2;invalid_habid"],
-             "doesn't appear to be a valid Habitica user id"),
             (["q1;@anyuser", "q2;"],
              "No quest owners listed"),
             (["q1;@anyuser", "q2 @testuser"],

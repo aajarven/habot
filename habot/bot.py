@@ -229,7 +229,8 @@ class QuestReminders(Functionality):
             if line.strip():
                 parts = line.split(";")
                 quest_name = parts[0]
-                users = [name.strip() for name in parts[1].split(",")]
+                users = [name.strip().lstrip("@")
+                         for name in parts[1].split(",")]
                 for user in users:
                     self._send_reminder(quest_name, user, len(users),
                                         previous_quest)
@@ -290,21 +291,16 @@ class QuestReminders(Functionality):
                             "".format(parts[0].strip()))
 
                 for owner_str in parts[1].split(","):
-                    owner_name = owner_str.strip()
+                    owner_name = owner_str.strip().lstrip("@")
                     if not owner_name:
                         raise ValidationError(
                                 "Malformed quest owner list for quest {}"
                                 "".format(line))
-                    if not owner_name[0] == "@":
-                        raise ValidationError(
-                                "Quest owner `{}` found on line `{}` doesn't "
-                                "appear to be a valid Habitica user id"
-                                "".format(owner_name, line))
                     try:
                         self._db_tool.get_user_id(owner_name)
                     except ValueError as err:
                         raise ValidationError(
-                                "User {} not found in the party"
+                                "User @{} not found in the party"
                                 "".format(owner_name)
                                 ) from err
             first_line = False
