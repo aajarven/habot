@@ -6,6 +6,7 @@ google-auth-httplib2
 google-auth-oauthlib
 mysql-connector-python
 pytest
+pytest-mock
 pyyaml
 requests
 requests_mock

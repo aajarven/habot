@@ -2,15 +2,32 @@
 Shared test stuff
 """
 
+import datetime
 import re
 import mysql.connector
 import pytest
 import testing.mysqld
 
+from habot.db import DBOperator
 from tests.data.test_tasks import TEST_TASKS
 
 # pylint doesn't handle fixtures well
 # pylint: disable=redefined-outer-name
+
+
+@pytest.fixture(autouse=True)
+def prevent_online_requests(monkeypatch):
+    """
+    Patch urlopen so that all non-patched requests raise an error.
+    """
+    def urlopen_error(self, method, url, *args, **kwargs):
+        raise RuntimeError(
+                "Requests are not allowed, but a test attempted a {} request "
+                "to {}://{}{}".format(method, self.scheme, self.host, url))
+
+    monkeypatch.setattr(
+        "urllib3.connectionpool.HTTPConnectionPool.urlopen", urlopen_error
+    )
 
 
 @pytest.fixture(scope="session")
@@ -73,3 +90,79 @@ def header_fx():
         "x-api-user": "totally-not-a-real-userid",
         "x-api-key":  "totally-not-a-real-apikey",
     }
+
+
+@pytest.fixture(scope="module")
+def testdata_db_operator(purge_and_init_memberdata_fx):
+    """
+    Yield monkeypatched DBOperator that uses test database.
+
+    The same database connection is used for all tests, but the databases and
+    tables in it are regenerated for each test.
+    """
+    purge_and_init_memberdata_fx()
+    operator = DBOperator()
+    yield operator
+
+
+# A simple user: one with identical diplay and loginnames
+SIMPLE_USER = {"id": "9cb40345-720f-4c9e-974d-18e016d9564d",
+               "displayname": "testuser",
+               "loginname": "testuser",
+               "birthday": datetime.date(2016, 12, 4)}
+
+# User wth different display and login names
+NAMEDIFF_USER = {"id": "a431b1a5-d287-4c34-93c4-7d607905a947",
+                 "displayname": "habitician",
+                 "loginname": "habiticianlogin",
+                 "birthday": datetime.date(2019, 5, 31)}
+
+# User with non-ascii characters in displayname
+CHARSET_USER = {"id": "7319d61c-1940-460d-8dc8-007f7e9537f0",
+                "displayname": "somedüde",
+                "loginname": "somedude",
+                "birthday": datetime.date(2019, 5, 31)}
+
+# User sharing a birthday with another user
+SHAREBDAY_USER = {"id": "b5845235-a344-4f52-a08b-02084cab00c4",
+                  "displayname": "showingYaMyBDAY",
+                  "loginname": "birthdayfella",
+                  "birthday": datetime.date(2019, 5, 31)}
+
+
+@pytest.fixture(scope="module")
+def purge_and_init_memberdata_fx(db_connection_fx):
+    """
+    Remove all data from the database and reinitialize with test member data.
+    """
+    def _reset():
+        cursor = db_connection_fx.cursor()
+        cursor.execute("DROP DATABASE IF EXISTS habdb")
+        cursor.execute("CREATE DATABASE habdb")
+        db_connection_fx.commit()
+
+        operator = DBOperator()
+        operator._ensure_tables()  # pylint: disable=protected-access
+        cursor.execute("USE habdb")
+        cursor.execute("INSERT INTO members "
+                       "(id, displayname, loginname, birthday) "
+                       "values "
+                       "{}, {}, {}, {}".format(
+                           _member_dict_to_values(SIMPLE_USER),
+                           _member_dict_to_values(NAMEDIFF_USER),
+                           _member_dict_to_values(CHARSET_USER),
+                           _member_dict_to_values(SHAREBDAY_USER),
+                           ))
+        db_connection_fx.commit()
+        cursor.close()
+    return _reset
+
+
+def _member_dict_to_values(member_dict):
+    """
+    Return a string that represents the given member dict for INSERT statement
+    """
+    return "('{}', '{}', '{}', '{}')".format(member_dict["id"],
+                                             member_dict["displayname"],
+                                             member_dict["loginname"],
+                                             member_dict["birthday"])

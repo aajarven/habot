@@ -32,3 +32,4 @@ Commands for these actions are recognized:
  - Send a message with a list of party members celebrating their Habitica birthday
  - Create a new sharing weekend challenge (e.g. the name of the challenge is currently hard-coded, so this might not be of use for others out of the box)
  - Award a random winner for a challenge (again, uses some hard-coded values, so usage requires some programming)
+ - Send reminders for a list of people who are supposed to invite the party to a quest soon
