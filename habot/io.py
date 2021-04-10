@@ -49,6 +49,16 @@ class DBTool():
                              "".format(habitica_loginname))
         return members[0]["id"]
 
+    def get_party_user_ids(self):
+        """
+        Return a list of user IDs for all party members.
+        """
+        members = self._db.query_table(
+            "members",
+            columns="id",
+            )
+        return [data_dict["id"] for data_dict in members]
+
 
 class HabiticaMessager():
     """
