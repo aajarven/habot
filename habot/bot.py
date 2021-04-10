@@ -185,6 +185,8 @@ class PartyNewsletter(Functionality):
 
         recipient_uids = self._db_tool.get_party_user_ids()
         for recipient_uid in recipient_uids:
+            if recipient_uid == HEADER["x-api-user"]:
+                continue
             self._messager.send_private_message(recipient_uid, content)
 
         # TODO: add confirmation message to the requestor

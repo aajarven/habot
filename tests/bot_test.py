@@ -255,3 +255,29 @@ def test_party_newsletter(mocker, purge_and_init_memberdata_fx):
 
     expected_calls = [call(userdata["id"], message) for userdata in ALL_USERS]
     mock_send.assert_has_calls(expected_calls, any_order=True)
+
+
+@pytest.mark.usefixtures("db_connection_fx", "no_db_update")
+def test_newsletter_not_sent_to_self(mocker, purge_and_init_memberdata_fx):
+    """
+    Test that the bot doesn't send the newsletter to itself.
+    """
+    purge_and_init_memberdata_fx()
+
+    mock_send = mocker.patch("habot.io.HabiticaMessager.send_private_message")
+    message = ("This is some content for the newsletter!\n\n"
+               "It might contain **more than one paragraph**, wow.")
+    command = ("send-party-newsletter\n \n{} \n ".format(message))
+    test_message = PrivateMessage(ALL_USERS[2]["id"], "to_id", content=command)
+
+    newsletter_functionality = PartyNewsletter()
+
+    mocker.patch.dict("conf.header.HEADER",
+                      {"x-api-user": SIMPLE_USER["id"]})
+    newsletter_functionality.act(test_message)
+
+    recipients = list(ALL_USERS)
+    recipients.remove(SIMPLE_USER)
+    expected_calls = [call(userdata["id"], message)
+                      for userdata in recipients]
+    mock_send.assert_has_calls(expected_calls, any_order=True)
