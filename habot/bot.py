@@ -192,12 +192,17 @@ class PartyNewsletter(Functionality):
             return ("This command is usable only by people within the "
                     "party. No messages sent.")
 
+        recipients = []
         for uid in partymember_uids:
             if uid == HEADER["x-api-user"]:
                 continue
             self._messager.send_private_message(uid, content)
+            recipients.append(self._db_tool.get_loginname(uid))
 
-        # TODO: add confirmation message to the requestor
+        recipient_list_str = "\n".join(["- @{}".format(name)
+                                        for name in recipients])
+        return ("Sent the given newsletter to the following users:\n"
+                "{}".format(recipient_list_str))
 
 
 class QuestReminders(Functionality):

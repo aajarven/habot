@@ -240,7 +240,8 @@ def test_complex_quest_reminder(mocker,
 @pytest.mark.usefixtures("db_connection_fx", "no_db_update")
 def test_party_newsletter(mocker, purge_and_init_memberdata_fx):
     """
-    Test that party newsletters are sent out for all party members
+    Test that party newsletters are sent out for all party members and a report
+    is given to the requestor.
     """
     purge_and_init_memberdata_fx()
 
@@ -248,13 +249,19 @@ def test_party_newsletter(mocker, purge_and_init_memberdata_fx):
     message = ("This is some content for the newsletter!\n\n"
                "It might contain **more than one paragraph**, wow.")
     command = ("send-party-newsletter\n \n{} \n ".format(message))
-    test_message = PrivateMessage(ALL_USERS[2]["id"], "to_id", content=command)
+    test_message = PrivateMessage(ALL_USERS[-1]["id"],
+                                  "to_id",
+                                  content=command)
 
     newsletter_functionality = PartyNewsletter()
-    newsletter_functionality.act(test_message)
+    response = newsletter_functionality.act(test_message)
 
     expected_calls = [call(userdata["id"], message) for userdata in ALL_USERS]
     mock_send.assert_has_calls(expected_calls, any_order=True)
+
+    assert "Sent the given newsletter to the following users:" in response
+    for user in ALL_USERS[:-1]:
+        assert "\n- @{}".format(user["loginname"]) in response
 
 
 @pytest.mark.usefixtures("db_connection_fx", "no_db_update")
