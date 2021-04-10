@@ -174,6 +174,11 @@ class PartyNewsletter(Functionality):
                 ">There's something very interesting going on and you should "
                 "know about it. That's why you are recieving this newsletter. "
                 "Please read it carefully :blush:\n"
+                "\n\n---\n\n"
+                "This is a party newsletter written by @yourUsername and "
+                "brought you by the party bot. If you suspect you should "
+                "not have recieved this message, please contact "
+                "@Antonbury."
                 "")
 
     def act(self, message):
@@ -183,6 +188,8 @@ class PartyNewsletter(Functionality):
         The bot does not send the message to itself. The command is only usable
         from within the party: if an external user requests sending a
         newsletter, they get an error message instead.
+
+        The requestor gets a list of users to whom the newsletter was sent.
         """
         self._db_syncer.update_partymember_data()
         content = self._command_body(message).strip()
@@ -192,11 +199,21 @@ class PartyNewsletter(Functionality):
             return ("This command is usable only by people within the "
                     "party. No messages sent.")
 
+        message = ("{content}"
+                   "\n\n---\n\n"
+                   "This is a party newsletter written by @{user} and "
+                   "brought you by the party bot. If you suspect you should "
+                   "not have recieved this message, please contact "
+                   "@Antonbury."
+                   "".format(content=content,
+                             user=self._db_tool.get_loginname(message.from_id))
+                   )
+
         recipients = []
         for uid in partymember_uids:
             if uid == HEADER["x-api-user"]:
                 continue
-            self._messager.send_private_message(uid, content)
+            self._messager.send_private_message(uid, message)
             recipients.append(self._db_tool.get_loginname(uid))
 
         recipient_list_str = "\n".join(["- @{}".format(name)

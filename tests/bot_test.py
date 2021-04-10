@@ -256,7 +256,19 @@ def test_party_newsletter(mocker, purge_and_init_memberdata_fx):
     newsletter_functionality = PartyNewsletter()
     response = newsletter_functionality.act(test_message)
 
-    expected_calls = [call(userdata["id"], message) for userdata in ALL_USERS]
+    expected_message = (
+                   "{content}"
+                   "\n\n---\n\n"
+                   "This is a party newsletter written by @{user} and "
+                   "brought you by the party bot. If you suspect you should "
+                   "not have recieved this message, please contact "
+                   "@Antonbury."
+                   "".format(content=message,
+                             user=ALL_USERS[-1]["loginname"])
+                   )
+
+    expected_calls = [call(userdata["id"], expected_message)
+                      for userdata in ALL_USERS]
     mock_send.assert_has_calls(expected_calls, any_order=True)
 
     assert "Sent the given newsletter to the following users:" in response
@@ -285,7 +297,19 @@ def test_newsletter_not_sent_to_self(mocker, purge_and_init_memberdata_fx):
 
     recipients = list(ALL_USERS)
     recipients.remove(SIMPLE_USER)
-    expected_calls = [call(userdata["id"], message)
+
+    expected_message = (
+                   "{content}"
+                   "\n\n---\n\n"
+                   "This is a party newsletter written by @{user} and "
+                   "brought you by the party bot. If you suspect you should "
+                   "not have recieved this message, please contact "
+                   "@Antonbury."
+                   "".format(content=message,
+                             user=ALL_USERS[2]["loginname"])
+                   )
+
+    expected_calls = [call(userdata["id"], expected_message)
                       for userdata in recipients]
     mock_send.assert_has_calls(expected_calls, any_order=True)
 
