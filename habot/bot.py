@@ -166,18 +166,18 @@ class PartyNewsletter(Functionality):
                 "\n\n"
                 "# Important News!\n"
                 "There's something very interesting going on and you should "
-                "know about it. That's why you are recieving this newsletter. "
+                "know about it. That's why you are receiving this newsletter. "
                 "Please read it carefully :blush:\n"
                 "```\n"
                 "will send the following message to all party members:\n"
                 "># Important News!\n"
                 ">There's something very interesting going on and you should "
-                "know about it. That's why you are recieving this newsletter. "
+                "know about it. That's why you are receiving this newsletter. "
                 "Please read it carefully :blush:\n"
                 "\n\n---\n\n"
                 "This is a party newsletter written by @yourUsername and "
                 "brought you by the party bot. If you suspect you should "
-                "not have recieved this message, please contact "
+                "not have received this message, please contact "
                 "@Antonbury."
                 "")
 
@@ -203,7 +203,7 @@ class PartyNewsletter(Functionality):
                    "\n\n---\n\n"
                    "This is a party newsletter written by @{user} and "
                    "brought you by the party bot. If you suspect you should "
-                   "not have recieved this message, please contact "
+                   "not have received this message, please contact "
                    "@Antonbury."
                    "".format(content=content,
                              user=self._db_tool.get_loginname(message.from_id))
@@ -394,7 +394,7 @@ class QuestReminders(Functionality):
 
         :quest_name: Name of the quest
         :user_name: Habitica login name for the recipient
-        :n_users: Total number of users recieving this reminder
+        :n_users: Total number of users receiving this reminder
         :previous_quest: Name of the quest after which the user should send out
                          the invitation to their quest
         """
@@ -409,7 +409,7 @@ class QuestReminders(Functionality):
         Return a reminder message for the parameters.
 
         :quest_name: Name of the quest
-        :n_users: Total number of users recieving this reminder
+        :n_users: Total number of users receiving this reminder
         :previous_quest: Name of the quest after which the user should send out
                          the invitation to their quest
         """

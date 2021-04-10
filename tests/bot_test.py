@@ -261,7 +261,7 @@ def test_party_newsletter(mocker, purge_and_init_memberdata_fx):
                    "\n\n---\n\n"
                    "This is a party newsletter written by @{user} and "
                    "brought you by the party bot. If you suspect you should "
-                   "not have recieved this message, please contact "
+                   "not have received this message, please contact "
                    "@Antonbury."
                    "".format(content=message,
                              user=ALL_USERS[-1]["loginname"])
@@ -303,7 +303,7 @@ def test_newsletter_not_sent_to_self(mocker, purge_and_init_memberdata_fx):
                    "\n\n---\n\n"
                    "This is a party newsletter written by @{user} and "
                    "brought you by the party bot. If you suspect you should "
-                   "not have recieved this message, please contact "
+                   "not have received this message, please contact "
                    "@Antonbury."
                    "".format(content=message,
                              user=ALL_USERS[2]["loginname"])
