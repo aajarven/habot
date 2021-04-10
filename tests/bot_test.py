@@ -6,10 +6,10 @@ from unittest.mock import call
 
 import pytest
 
-from habot.bot import QuestReminders
+from habot.bot import QuestReminders, PartyNewsletter
 from habot.message import PrivateMessage
 
-from tests.conftest import SIMPLE_USER
+from tests.conftest import SIMPLE_USER, ALL_USERS
 
 
 @pytest.fixture
@@ -235,3 +235,23 @@ def test_complex_quest_reminder(mocker,
                       call("Quest 3", "somedude", 2, "Quest number 2"),
                       ]
     mock_send.assert_has_calls(expected_calls)
+
+
+@pytest.mark.usefixtures("db_connection_fx", "no_db_update")
+def test_party_newsletter(mocker, purge_and_init_memberdata_fx):
+    """
+    Test that party newsletters are sent out for all party members
+    """
+    purge_and_init_memberdata_fx()
+
+    mock_send = mocker.patch("habot.io.HabiticaMessager.send_private_message")
+    message = ("This is some content for the newsletter!\n\n"
+               "It might contain **more than one paragraph**, wow.")
+    command = ("send-party-newsletter\n \n{} \n ".format(message))
+    test_message = PrivateMessage("from_id", "to_id", content=command)
+
+    newsletter_functionality = PartyNewsletter()
+    newsletter_functionality.act(test_message)
+
+    expected_calls = [call(userdata["id"], message) for userdata in ALL_USERS]
+    mock_send.assert_has_calls(expected_calls, any_order=True)

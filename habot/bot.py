@@ -61,6 +61,7 @@ def react_to_message(message):
         "ping": Ping,
         "add-task": AddTask,
         "quest-reminders": QuestReminders,
+        "party-newsletter": PartyNewsletter,
         }
     first_word = message.content.strip().split()[0]
     logger.debug("Got message starting with %s", first_word)
@@ -137,6 +138,57 @@ class Functionality():
         if len(parts) > 1:
             return parts[1]
         return ""
+
+
+class PartyNewsletter(Functionality):
+    """
+    Send a message to all party members.
+    """
+
+    def __init__(self):
+        """
+        Initialize the class
+        """
+        self._db_syncer = DBSyncer(HEADER)
+        self._db_tool = DBTool()
+        self._messager = HabiticaMessager(HEADER)
+        super().__init__()
+
+    def help(self):
+        """
+        Return a help string.
+        """
+        return ("Send an identical message to all party members."
+                "\n\n"
+                "For example the following command:\n"
+                "```\n"
+                "party-newsletter"
+                "\n\n"
+                "# Important News!\n"
+                "There's something very interesting going on and you should "
+                "know about it. That's why you are recieving this newsletter. "
+                "Please read it carefully :blush:\n"
+                "```\n"
+                "will send the following message to all party members:\n"
+                "># Important News!\n"
+                ">There's something very interesting going on and you should "
+                "know about it. That's why you are recieving this newsletter. "
+                "Please read it carefully :blush:\n"
+                "")
+
+    def act(self, message):
+        """
+        Send out a newsletter to all party members.
+        """
+        self._db_syncer.update_partymember_data()
+        content = self._command_body(message).strip()
+
+        recipient_uids = self._db_tool.get_party_user_ids()
+        for recipient_uid in recipient_uids:
+            self._messager.send_private_message(recipient_uid, content)
+
+        # TODO: add confirmation message to the requestor
+        # TODO: ensure that the sender is in the party!!
 
 
 class QuestReminders(Functionality):

@@ -129,6 +129,8 @@ SHAREBDAY_USER = {"id": "b5845235-a344-4f52-a08b-02084cab00c4",
                   "loginname": "birthdayfella",
                   "birthday": datetime.date(2019, 5, 31)}
 
+ALL_USERS = [SIMPLE_USER, NAMEDIFF_USER, CHARSET_USER, SHAREBDAY_USER]
+
 
 @pytest.fixture(scope="module")
 def purge_and_init_memberdata_fx(db_connection_fx):
