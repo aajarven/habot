@@ -179,18 +179,25 @@ class PartyNewsletter(Functionality):
     def act(self, message):
         """
         Send out a newsletter to all party members.
+
+        The bot does not send the message to itself. The command is only usable
+        from within the party: if an external user requests sending a
+        newsletter, they get an error message instead.
         """
         self._db_syncer.update_partymember_data()
         content = self._command_body(message).strip()
+        partymember_uids = self._db_tool.get_party_user_ids()
 
-        recipient_uids = self._db_tool.get_party_user_ids()
-        for recipient_uid in recipient_uids:
-            if recipient_uid == HEADER["x-api-user"]:
+        if message.from_id not in partymember_uids:
+            return ("This command is usable only by people within the "
+                    "party. No messages sent.")
+
+        for uid in partymember_uids:
+            if uid == HEADER["x-api-user"]:
                 continue
-            self._messager.send_private_message(recipient_uid, content)
+            self._messager.send_private_message(uid, content)
 
         # TODO: add confirmation message to the requestor
-        # TODO: ensure that the sender is in the party!!
 
 
 class QuestReminders(Functionality):

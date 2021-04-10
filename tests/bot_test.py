@@ -248,7 +248,7 @@ def test_party_newsletter(mocker, purge_and_init_memberdata_fx):
     message = ("This is some content for the newsletter!\n\n"
                "It might contain **more than one paragraph**, wow.")
     command = ("send-party-newsletter\n \n{} \n ".format(message))
-    test_message = PrivateMessage("from_id", "to_id", content=command)
+    test_message = PrivateMessage(ALL_USERS[2]["id"], "to_id", content=command)
 
     newsletter_functionality = PartyNewsletter()
     newsletter_functionality.act(test_message)
@@ -281,3 +281,21 @@ def test_newsletter_not_sent_to_self(mocker, purge_and_init_memberdata_fx):
     expected_calls = [call(userdata["id"], message)
                       for userdata in recipients]
     mock_send.assert_has_calls(expected_calls, any_order=True)
+
+
+@pytest.mark.usefixtures("db_connection_fx", "no_db_update")
+def test_newsletter_anti_spam(mocker, purge_and_init_memberdata_fx):
+    """
+    Test that requesting a newsletter is only possible from within the party.
+    """
+    purge_and_init_memberdata_fx()
+
+    mock_send = mocker.patch("habot.io.HabiticaMessager.send_private_message")
+    command = "send-party-newsletter some content"
+    test_message = PrivateMessage("not_in_party_id", "to_id", content=command)
+
+    newsletter_functionality = PartyNewsletter()
+    response = newsletter_functionality.act(test_message)
+
+    mock_send.assert_not_called()
+    assert "No messages sent." in response
