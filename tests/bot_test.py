@@ -237,7 +237,8 @@ def test_complex_quest_reminder(mocker,
     mock_send.assert_has_calls(expected_calls)
 
 
-@pytest.mark.usefixtures("db_connection_fx", "no_db_update")
+@pytest.mark.usefixtures("db_connection_fx", "no_db_update",
+                         "configure_test_admin")
 def test_party_newsletter(mocker, purge_and_init_memberdata_fx):
     """
     Test that party newsletters are sent out for all party members and a report
@@ -262,7 +263,7 @@ def test_party_newsletter(mocker, purge_and_init_memberdata_fx):
                    "This is a party newsletter written by @{user} and "
                    "brought you by the party bot. If you suspect you should "
                    "not have received this message, please contact "
-                   "@Antonbury."
+                   "@testuser."
                    "".format(content=message,
                              user=ALL_USERS[-1]["loginname"])
                    )
@@ -276,7 +277,8 @@ def test_party_newsletter(mocker, purge_and_init_memberdata_fx):
         assert "\n- @{}".format(user["loginname"]) in response
 
 
-@pytest.mark.usefixtures("db_connection_fx", "no_db_update")
+@pytest.mark.usefixtures("db_connection_fx", "no_db_update",
+                         "configure_test_admin")
 def test_newsletter_not_sent_to_self(mocker, purge_and_init_memberdata_fx):
     """
     Test that the bot doesn't send the newsletter to itself.
@@ -304,7 +306,7 @@ def test_newsletter_not_sent_to_self(mocker, purge_and_init_memberdata_fx):
                    "This is a party newsletter written by @{user} and "
                    "brought you by the party bot. If you suspect you should "
                    "not have received this message, please contact "
-                   "@Antonbury."
+                   "@testuser."
                    "".format(content=message,
                              user=ALL_USERS[2]["loginname"])
                    )
@@ -314,7 +316,8 @@ def test_newsletter_not_sent_to_self(mocker, purge_and_init_memberdata_fx):
     mock_send.assert_has_calls(expected_calls, any_order=True)
 
 
-@pytest.mark.usefixtures("db_connection_fx", "no_db_update")
+@pytest.mark.usefixtures("db_connection_fx", "no_db_update",
+                         "configure_test_admin")
 def test_newsletter_anti_spam(mocker, purge_and_init_memberdata_fx):
     """
     Test that requesting a newsletter is only possible from within the party.

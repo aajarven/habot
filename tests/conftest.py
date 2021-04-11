@@ -168,3 +168,11 @@ def _member_dict_to_values(member_dict):
                                              member_dict["displayname"],
                                              member_dict["loginname"],
                                              member_dict["birthday"])
+
+
+@pytest.fixture
+def configure_test_admin(monkeypatch):
+    """
+    Set one of the test data users as admin.
+    """
+    monkeypatch.setattr("conf.conf.ADMIN_UID", SIMPLE_USER["id"])

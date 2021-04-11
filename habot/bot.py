@@ -158,28 +158,28 @@ class PartyNewsletter(Functionality):
         """
         Return a help string.
         """
+        example_content = (
+                "# Important News!\n"
+                "There's something very interesting going on and you should "
+                "know about it. That's why you are receiving this newsletter. "
+                "Please read it carefully :blush:\n\n"
+                "Another paragraph with something **real** important here!"
+                )
         return ("Send an identical message to all party members."
                 "\n\n"
                 "For example the following command:\n"
                 "```\n"
                 "party-newsletter"
                 "\n\n"
-                "# Important News!\n"
-                "There's something very interesting going on and you should "
-                "know about it. That's why you are receiving this newsletter. "
-                "Please read it carefully :blush:\n"
+                "{example_content}"
                 "```\n"
                 "will send the following message to all party members:\n"
-                "# Important News!\n"
-                "There's something very interesting going on and you should "
-                "know about it. That's why you are receiving this newsletter. "
-                "Please read it carefully :blush:\n"
-                "\n\n---\n\n"
-                "This is a party newsletter written by @yourUsername and "
-                "brought you by the party bot. If you suspect you should "
-                "not have received this message, please contact "
-                "@Antonbury."
-                "")
+                "{example_result}"
+                "".format(
+                    example_content=example_content,
+                    example_result=self._format_newsletter(example_content,
+                                                           "YourUsername"))
+                )
 
     def act(self, message):
         """
@@ -199,15 +199,8 @@ class PartyNewsletter(Functionality):
             return ("This command is usable only by people within the "
                     "party. No messages sent.")
 
-        message = ("{content}"
-                   "\n\n---\n\n"
-                   "This is a party newsletter written by @{user} and "
-                   "brought you by the party bot. If you suspect you should "
-                   "not have received this message, please contact "
-                   "@Antonbury."
-                   "".format(content=content,
-                             user=self._db_tool.get_loginname(message.from_id))
-                   )
+        message = self._format_newsletter(
+                content, self._db_tool.get_loginname(message.from_id))
 
         recipients = []
         for uid in partymember_uids:
@@ -220,6 +213,24 @@ class PartyNewsletter(Functionality):
                                         for name in recipients])
         return ("Sent the given newsletter to the following users:\n"
                 "{}".format(recipient_list_str))
+
+    def _format_newsletter(self, message, sender_name):
+        """
+        Return the given message with a standard footer appended.
+
+        The footer tells who originally sent the newsletter and urges people to
+        contact the admin if the bot is misbehaving.
+        """
+        return ("{message}"
+                "\n\n---\n\n"
+                "This is a party newsletter written by @{user} and "
+                "brought you by the party bot. If you suspect you should "
+                "not have received this message, please contact "
+                "@{admin}."
+                "".format(message=message,
+                          user=sender_name,
+                          admin=self._db_tool.get_loginname(conf.ADMIN_UID))
+                )
 
 
 class QuestReminders(Functionality):
