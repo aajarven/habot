@@ -196,21 +196,28 @@ class PartyNewsletter(Functionality):
         partymember_uids = self._db_tool.get_party_user_ids()
 
         if message.from_id not in partymember_uids:
+            self._logger.debug("Unauthorized newsletter request from %s",
+                               message.from_id)
             return ("This command is usable only by people within the "
                     "party. No messages sent.")
 
         message = self._format_newsletter(
                 content, self._db_tool.get_loginname(message.from_id))
 
+        self._logger.debug("Going to send out the following party newsletter:"
+                           "\n%s", message)
         recipients = []
         for uid in partymember_uids:
             if uid == HEADER["x-api-user"]:
                 continue
             self._messager.send_private_message(uid, message)
             recipients.append(self._db_tool.get_loginname(uid))
+            self._logger.debug("Sent out a newsletter to %s", recipients[-1])
 
         recipient_list_str = "\n".join(["- @{}".format(name)
                                         for name in recipients])
+        self._logger.debug("A newsletter sent to %d party members",
+                           len(recipients))
         return ("Sent the given newsletter to the following users:\n"
                 "{}".format(recipient_list_str))
 
