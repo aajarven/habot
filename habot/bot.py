@@ -171,7 +171,7 @@ class PartyNewsletter(Functionality):
                 "```\n"
                 "party-newsletter"
                 "\n\n"
-                "{example_content}"
+                "{example_content}\n"
                 "```\n"
                 "will send the following message to all party members:\n"
                 "{example_result}"
