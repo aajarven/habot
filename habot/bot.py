@@ -7,6 +7,7 @@ import re
 
 from habitica_helper import habiticatool
 from habitica_helper.challenge import Challenge
+from habitica_helper.utils import get_dict_from_api
 
 from habot.birthdays import BirthdayReminder
 from habot.habitica_operations import HabiticaOperator
@@ -159,6 +160,54 @@ class Functionality():
         if len(parts) > 1:
             return parts[1]
         return ""
+
+
+class QuestList(Functionality):
+    """
+    Respond with a list of quests owned by the party members and their owners.
+    """
+
+    def __init__(self):
+        """
+        Initialize the class
+        """
+        self._db_tool = DBTool()
+        super().__init__()
+
+    def help(self):
+        return ("List all quests someone in party owns and the names of the "
+                "owners.")
+
+    @requires_party_membership
+    def act(self, message):
+        """
+        Return a table containing quests and their owners.
+        """
+        partymember_uids = self._db_tool.get_party_user_ids()
+        quests = {}
+        for member_uid in partymember_uids:
+            member_name = self._db_tool.get_loginname(member_uid)
+            member_data = get_dict_from_api(
+                HEADER,
+                "https://habitica.com/api/v3/members/{}".format(member_uid))
+            quest_counts = member_data["items"]["quests"]
+            for quest_name in quest_counts:
+                count = quest_counts[quest_name]
+                if count == 1:
+                    partymember_str = "@{}".format(member_name)
+                elif count >= 1:
+                    partymember_str = ("{user} ({count})"
+                                       "".format(user=member_name,
+                                                 count=count))
+                else:
+                    continue
+
+                if quest_name in quests:
+                    quests[quest_name] = ", ".join([quests[quest_name],
+                                                    partymember_str])
+                else:
+                    quests[quest_name] = partymember_str
+        # TODO format a message
 
 
 class PartyNewsletter(Functionality):
