@@ -89,6 +89,27 @@ def react_to_message(message):
     HabiticaMessager.set_reaction_pending(message, False)
 
 
+def requires_party_membership(act_function):
+    """
+    Wrapper for `act` functions that can only be used by party members.
+
+    If a non-member tries to use a command with this decorator, they
+    get an error message instead.
+    """
+    def wrapper(self, message):
+        partymember_uids = DBTool().get_party_user_ids()
+
+        if message.from_id not in partymember_uids:
+            # pylint: disable=protected-access
+            self._logger.debug("Unauthorized %s request from %s",
+                               message.content.strip().split()[0],
+                               message.from_id)
+            return ("This command is usable only by people within the "
+                    "party. No messages sent.")
+        return act_function(self, message)
+    return wrapper
+
+
 class Functionality():
     """
     Base class for implementing real functionality.
@@ -181,6 +202,7 @@ class PartyNewsletter(Functionality):
                                                            "YourUsername"))
                 )
 
+    @requires_party_membership
     def act(self, message):
         """
         Send out a newsletter to all party members.
