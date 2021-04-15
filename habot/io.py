@@ -49,6 +49,30 @@ class DBTool():
                              "".format(habitica_loginname))
         return members[0]["id"]
 
+    def get_party_user_ids(self):
+        """
+        Return a list of user IDs for all party members.
+        """
+        members = self._db.query_table(
+            "members",
+            columns="id",
+            )
+        return [data_dict["id"] for data_dict in members]
+
+    def get_loginname(self, uid):
+        """
+        Return the login name of the party member with the given UID.
+        """
+        members = self._db.query_table(
+            "members",
+            condition="id='{}'".format(uid),
+            columns="loginname",
+            )
+        if not members:
+            raise ValueError("User with user ID {} not found"
+                             "".format(uid))
+        return members[0]["loginname"]
+
 
 class HabiticaMessager():
     """

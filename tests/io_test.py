@@ -432,3 +432,33 @@ def test_get_non_existent_user_id(db_tool_fx):
         db_tool_fx.get_user_id("nonexistent-member")
     assert ("User with login name nonexistent-member not found"
             in str(err.value))
+
+
+@pytest.mark.usefixtures("purge_and_set_memberdata_fx")
+def test_get_party_user_ids(db_tool_fx):
+    """
+    Test that all user IDs for all party members are returned.
+    """
+    ids = db_tool_fx.get_party_user_ids()
+    assert len(ids) == 2
+    assert set(ids) == set(["member-already-in-db-1-id",
+                            "member-already-in-db-2-id"])
+
+
+@pytest.mark.usefixtures("purge_and_set_memberdata_fx")
+def test_get_login_name(db_tool_fx):
+    """
+    Test that user ID can be fetched from the database based on login name
+    """
+    assert db_tool_fx.get_loginname("member-already-in-db-1-id") == "member1"
+
+
+@pytest.mark.usefixtures("purge_and_set_memberdata_fx")
+def test_get_non_existent_login_name(db_tool_fx):
+    """
+    Test that an exception is raised when a matching user is not found.
+    """
+    with pytest.raises(ValueError) as err:
+        db_tool_fx.get_loginname("nonexistent-member-uid")
+    assert ("User with user ID nonexistent-member-uid not found"
+            in str(err.value))
