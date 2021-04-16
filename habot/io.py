@@ -138,6 +138,7 @@ class HabiticaMessager():
                 split_index = next_split_candidate
             messages.append(message[:split_index])
             message = message[split_index+1:]
+        messages.append(message)
         return messages
 
     def send_private_message(self, to_uid, message):
