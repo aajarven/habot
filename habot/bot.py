@@ -63,6 +63,7 @@ def react_to_message(message):
         "add-task": AddTask,
         "quest-reminders": QuestReminders,
         "party-newsletter": PartyNewsletter,
+        "owned-quests": QuestList,
         }
     first_word = message.content.strip().split()[0]
     logger.debug("Got message starting with %s", first_word)
