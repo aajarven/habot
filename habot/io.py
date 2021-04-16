@@ -101,6 +101,45 @@ class HabiticaMessager():
         if not self._db:
             self._db = DBOperator()
 
+    def _split_long_message(self, message, max_length=3000):
+        """
+        If the given message is too long, split it into multiple messages.
+
+        If the message is shorter than the given max_length, the returned list
+        will just contain the original message. Otherwise the message is split
+        into parts, each shorter than the given max_length. Splitting is only
+        done at newlines.
+
+        :message: String containing the message body
+        :max_length: Maximum length for one message. Default 3000.
+        :raises: `UnsplittableMessage` if the message contains a paragraph that
+                 is longer than `max_length` and thus cannot be split at a
+                 newline.
+        :returns: A list of strings, each string containing one piece of the
+                  given message.
+        """
+        if len(message) < max_length:
+            return [message]
+
+        split_at = "\n"
+        messages = []
+        while len(message) > max_length:
+            split_index = message.find(split_at)
+            if split_index > max_length or split_index == -1:
+                raise UnsplittableMessage("Cannot find a legal split "
+                                          "location in the following part "
+                                          "of an outgoing message:\n"
+                                          "{}".format(message))
+            while split_index != -1:
+                next_split_candidate = message.find(split_at, split_index + 1)
+                if (next_split_candidate > max_length
+                        or next_split_candidate == -1):
+                    break
+                split_index = next_split_candidate
+            messages.append(message[:split_index])
+            message = message[split_index+1:]
+        return messages
+
     def send_private_message(self, to_uid, message):
         """
         Send a private message with the given content to the given user.
@@ -112,14 +151,19 @@ class HabiticaMessager():
         :message: The contents of the message
         """
         api_url = "https://habitica.com/api/v3/members/send-private-message"
-        try:
-            habrequest.post(api_url, headers=self._header,
-                            data={"message": message,
-                                  "toUserId": to_uid})
-        #  pylint: disable=invalid-name
-        except requests.exceptions.HTTPError as e:
-            #  pylint: disable=raise-missing-from
-            raise CommunicationFailedException(str(e))
+        message_parts = self._split_long_message(message)
+        if len(message_parts) > 3:
+            raise SpamDetected("Sending {} messages at once is not supported."
+                               "".format(len(message_parts)))
+        for message_part in message_parts:
+            try:
+                habrequest.post(api_url, headers=self._header,
+                                data={"message": message_part,
+                                      "toUserId": to_uid})
+            #  pylint: disable=invalid-name
+            except requests.exceptions.HTTPError as e:
+                #  pylint: disable=raise-missing-from
+                raise CommunicationFailedException(str(e))
 
         self._habitica_operator.tick_task(PM_SENT, task_type="habit")
 
@@ -624,3 +668,15 @@ class MalformedQuestionFileException(Exception):
         message = ("Problem with question file \"{}\":\n\n{}\n\n{}"
                    "".format(filename, problem, self._INFO))
         super().__init__(message)
+
+
+class UnsplittableMessage(Exception):
+    """
+    Exception raised when splitting a too long message is not possible.
+    """
+
+
+class SpamDetected(Exception):
+    """
+    Exception for situations where the spot is being used for spamming.
+    """
