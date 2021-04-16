@@ -207,7 +207,12 @@ class QuestList(Functionality):
                                                     partymember_str])
                 else:
                     quests[quest_name] = partymember_str
-        # TODO format a message
+
+        header = ("quest | owners\n"
+                  "------|-------")
+        content_lines = ["{} | {}".format(quest, quests[quest])
+                         for quest in quests]
+        return "\n".join([header] + content_lines)
 
 
 class PartyNewsletter(Functionality):
