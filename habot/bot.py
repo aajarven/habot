@@ -197,7 +197,7 @@ class QuestList(Functionality):
                 if count == 1:
                     partymember_str = "@{}".format(member_name)
                 elif count >= 1:
-                    partymember_str = ("{user} ({count})"
+                    partymember_str = ("@{user} ({count})"
                                        "".format(user=member_name,
                                                  count=count))
                 else:
