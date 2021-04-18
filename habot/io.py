@@ -118,6 +118,8 @@ class HabiticaMessager():
         :returns: A list of strings, each string containing one piece of the
                   given message.
         """
+        # pylint: disable=no-self-use
+
         if len(message) < max_length:
             return [message]
 
