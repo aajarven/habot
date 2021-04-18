@@ -34,3 +34,4 @@ Commands for these actions are recognized:
  - Award a random winner for a challenge (again, uses some hard-coded values, so usage requires some programming)
  - Send reminders for a list of people who are supposed to invite the party to a quest soon
  - Forward a newsletter to all party members
+ - List the quests owned by party members (and their owners)
