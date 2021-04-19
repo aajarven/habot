@@ -316,8 +316,7 @@ def test_newsletter_not_sent_to_self(mocker, purge_and_init_memberdata_fx):
     mock_send.assert_has_calls(expected_calls, any_order=True)
 
 
-@pytest.mark.usefixtures("db_connection_fx", "no_db_update",
-                         "configure_test_admin")
+@pytest.mark.usefixtures("db_connection_fx", "configure_test_admin")
 def test_newsletter_anti_spam(mocker, purge_and_init_memberdata_fx):
     """
     Test that requesting a newsletter is only possible from within the party.

@@ -7,6 +7,7 @@ import re
 
 from habitica_helper import habiticatool
 from habitica_helper.challenge import Challenge
+from habitica_helper.utils import get_dict_from_api
 
 from habot.birthdays import BirthdayReminder
 from habot.habitica_operations import HabiticaOperator
@@ -62,6 +63,7 @@ def react_to_message(message):
         "add-task": AddTask,
         "quest-reminders": QuestReminders,
         "party-newsletter": PartyNewsletter,
+        "owned-quests": QuestList,
         }
     first_word = message.content.strip().split()[0]
     logger.debug("Got message starting with %s", first_word)
@@ -87,6 +89,27 @@ def react_to_message(message):
 
     HabiticaMessager(HEADER).send_private_message(message.from_id, response)
     HabiticaMessager.set_reaction_pending(message, False)
+
+
+def requires_party_membership(act_function):
+    """
+    Wrapper for `act` functions that can only be used by party members.
+
+    If a non-member tries to use a command with this decorator, they
+    get an error message instead.
+    """
+    def wrapper(self, message):
+        partymember_uids = DBTool().get_party_user_ids()
+
+        if message.from_id not in partymember_uids:
+            # pylint: disable=protected-access
+            self._logger.debug("Unauthorized %s request from %s",
+                               message.content.strip().split()[0],
+                               message.from_id)
+            return ("This command is usable only by people within the "
+                    "party. No messages sent.")
+        return act_function(self, message)
+    return wrapper
 
 
 class Functionality():
@@ -140,6 +163,57 @@ class Functionality():
         return ""
 
 
+class QuestList(Functionality):
+    """
+    Respond with a list of quests owned by the party members and their owners.
+    """
+
+    def __init__(self):
+        """
+        Initialize the class
+        """
+        self._db_tool = DBTool()
+        super().__init__()
+
+    def help(self):
+        return ("List all quests someone in party owns and the names of the "
+                "owners.")
+
+    @requires_party_membership
+    def act(self, message):
+        """
+        Return a table containing quests and their owners.
+        """
+        partymember_uids = self._db_tool.get_party_user_ids()
+        quests = {}
+        for member_uid in partymember_uids:
+            member_name = self._db_tool.get_loginname(member_uid)
+            member_data = get_dict_from_api(
+                HEADER,
+                "https://habitica.com/api/v3/members/{}".format(member_uid))
+            quest_counts = member_data["items"]["quests"]
+            for quest_name in quest_counts:
+                count = quest_counts[quest_name]
+                if count == 1:
+                    partymember_str = "@{}".format(member_name)
+                elif count >= 1:
+                    partymember_str = ("@{user} ({count})"
+                                       "".format(user=member_name,
+                                                 count=count))
+                else:
+                    continue
+
+                if quest_name in quests:
+                    quests[quest_name] = ", ".join([quests[quest_name],
+                                                    partymember_str])
+                else:
+                    quests[quest_name] = partymember_str
+
+        content_lines = ["- **{}**: {}".format(quest, quests[quest])
+                         for quest in quests]
+        return "\n".join(content_lines)
+
+
 class PartyNewsletter(Functionality):
     """
     Send a message to all party members.
@@ -181,6 +255,7 @@ class PartyNewsletter(Functionality):
                                                            "YourUsername"))
                 )
 
+    @requires_party_membership
     def act(self, message):
         """
         Send out a newsletter to all party members.
