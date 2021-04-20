@@ -708,6 +708,31 @@ class WikiReader():
         """
         return self._page
 
+    @Decorators.needs_page
+    def find_elements_with_matching_subelement(self, element_selector,
+                                               child_text):
+        """
+        Return a list of elements of given type that have a matching children.
+
+        The given `child_text` must only be present in one of the children
+        elements: it is not necessary for it to be the full content of the
+        element.
+
+        :element_selector: CSS selector for finding the elements. E.g. `div` or
+                           `#someid` or `ul.navigation`.
+        :child_text: A string that must be found in the content of at least one
+                     of the child elements.
+        :returns: A list of lxml ElementTrees, each startig from an element
+                  that matched the search criteria.
+        """
+        css_matching_elements = self._page.cssselect(element_selector)
+        full_match_elements = []
+        for element in css_matching_elements:
+            for child in element.iterchildren():
+                if child.text and child_text in child.text:
+                    full_match_elements.append(element)
+        return full_match_elements
+
 
 class MalformedQuestionFileException(Exception):
     """
@@ -748,6 +773,7 @@ class SpamDetected(Exception):
     """
     Exception for situations where the spot is being used for spamming.
     """
+
 
 class WikiParsingError(Exception):
     """
