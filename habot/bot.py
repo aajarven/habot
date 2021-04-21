@@ -11,7 +11,8 @@ from habitica_helper.utils import get_dict_from_api
 
 from habot.birthdays import BirthdayReminder
 from habot.habitica_operations import HabiticaOperator
-from habot.io import HabiticaMessager, DBSyncer, DBTool
+from habot.io import (HabiticaMessager, DBSyncer, DBTool, WikiReader,
+                      WikiParsingError)
 import habot.logger
 from habot.message import PrivateMessage
 from habot.sharing_weekend import SharingChallengeOperator
@@ -64,6 +65,7 @@ def react_to_message(message):
         "quest-reminders": QuestReminders,
         "party-newsletter": PartyNewsletter,
         "owned-quests": QuestList,
+        "update-party-description": UpdatePartyDescription,
         }
     first_word = message.content.strip().split()[0]
     logger.debug("Got message starting with %s", first_word)
@@ -161,6 +163,86 @@ class Functionality():
         if len(parts) > 1:
             return parts[1]
         return ""
+
+
+class UpdatePartyDescription(Functionality):
+    """
+    Replace the quest queue in the party description with an updated one.
+
+    The quest queue contents are fetched from the party wiki page (determined
+    in `conf.PARTY_WIKI_URL`).
+
+    The response contains the old and new contents of the party description.
+    """
+
+    def __init__(self):
+        """
+        Initialize the class
+        """
+        self._partytool = habiticatool.PartyTool(HEADER)
+        self._wikireader = WikiReader(conf.PARTY_WIKI_URL)
+
+    def act(self, message):
+        """
+        Update the quest queue in party description.
+
+        :returns: A response containing the old and new party descriptions.
+        """
+        old_description = self._partytool.party_description()
+        new_queue = self._parse_quest_queue_from_wiki()
+        new_description = self._replace_quest_queue(old_description, new_queue)
+        return ("Old description:\n\n"
+                "{}\n"
+                "---\n\n"
+                "New description:\n"
+                "{}"
+                "".format(old_description, new_description))
+
+    def _parse_quest_queue_from_wiki(self):
+        """
+        Return a string containing a Habitica markdown formatted quest queue.
+
+        The returned quest queue begins with a "header" containing the date and
+        time at which the queue was read from the wiki.
+
+        The data is fetched from an unordered list in the wiki page, identified
+        by it containing an item containing "(CURRENT)". It is returned in
+        Habitica list format, e.g.
+        ```
+         - (CURRENT) Wind-Up Hatching Potions (Boss 1000)
+         - 1) Dolphin (Boss 300)
+         - 2) Seahorse (Boss 300)
+         - 3) Monkey (Boss 400)
+         - 4) Cheetah (Boss 600)
+         - 5) Kangaroo (Boss 700)
+         - 6) Silver Hatching Potions (collection)
+         - 7) Ferret (Boss 400)
+        ```
+
+        :returns: A string containing the current quest queue.
+        """
+        uls = self._wikireader.find_elements_with_matching_subelement(
+                "ul", "(CURRENT)")
+        if len(uls) != 1:
+            raise WikiParsingError("Identifying a single quest queue in party "
+                                   "wiki page {} failed: {} queue candidates "
+                                   "found.".format(conf.PARTY_WIKI_URL,
+                                                   len(uls)))
+        quest_queue_items = [" - {}".format(li.text)
+                             for li in uls[0].getchildren()]
+        current_time = datetime.datetime.now()
+        quest_queue_lines = (
+                ["The Quest Queue (as in Wiki on {}):"
+                 "".format(current_time.strftime("%b %d at %H:%M UTC%z"))]
+                + quest_queue_items)
+        return "\n".join(quest_queue_lines)
+
+    def _replace_quest_queue(self, old_description, new_queue):
+        """
+        Return the old description with everything in it starting with "The
+        Quest queue" replaced with the given new_queue.
+        """
+        return old_description.split("The Quest Queue ")[0] + new_queue
 
 
 class QuestList(Functionality):
