@@ -1,4 +1,5 @@
 click
+cssselect
 freezegun
 git+git://github.com/aajarven/habitica-helper.git#egg=habitica-helper
 google-api-python-client
