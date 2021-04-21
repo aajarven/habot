@@ -181,6 +181,15 @@ class UpdatePartyDescription(Functionality):
         """
         self._partytool = habiticatool.PartyTool(HEADER)
         self._wikireader = WikiReader(conf.PARTY_WIKI_URL)
+        super().__init__()
+
+    def help(self):
+        """
+        Return a help string
+        """
+        # pylint: disable=no-self-use
+        return ("Fetch new quest queue from the party wiki page and update it "
+                "to the party description.")
 
     def act(self, message):
         """
