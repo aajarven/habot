@@ -230,15 +230,15 @@ class UpdatePartyDescription(Functionality):
 
         :returns: A string containing the current quest queue.
         """
-        uls = self._wikireader.find_elements_with_matching_subelement(
-                "ul", "(CURRENT)")
-        if len(uls) != 1:
+        ols = self._wikireader.find_elements_with_matching_subelement(
+                "ol", "(CURRENT)")
+        if len(ols) != 1:
             raise WikiParsingError("Identifying a single quest queue in party "
                                    "wiki page {} failed: {} queue candidates "
                                    "found.".format(conf.PARTY_WIKI_URL,
-                                                   len(uls)))
+                                                   len(ols)))
         quest_queue_items = ["1. {}".format(li.text)
-                             for li in uls[0].getchildren()]
+                             for li in ols[0].getchildren()]
         current_time = datetime.datetime.now()
         quest_queue_lines = (
                 ["The Quest Queue (as in Wiki on {}):"
