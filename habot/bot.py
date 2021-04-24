@@ -240,7 +240,7 @@ class UpdatePartyDescription(Functionality):
                                    "wiki page {} failed: {} queue candidates "
                                    "found.".format(conf.PARTY_WIKI_URL,
                                                    len(ols)))
-        quest_queue_items = ["{}. {}".format(i-1, li.text)
+        quest_queue_items = ["{}. {}".format(i, li.text)
                              for i, li in enumerate(ols[0].getchildren())]
         current_time = datetime.datetime.now()
         quest_queue_lines = (
