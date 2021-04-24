@@ -246,10 +246,10 @@ class UpdatePartyDescription(Functionality):
         for item in list_items[1:]:
             quest_queue_items.append("1. {}".format(item.text))
 
-        current_time = datetime.datetime.now()
+        current_time = datetime.datetime.now(datetime.timezone.utc)
         quest_queue_lines = (
                 ["The Quest Queue (as in Wiki on {}):\n"
-                 "".format(current_time.strftime("%b %d at %H:%M UTC%z"))]
+                 "".format(current_time.strftime("%b %d at %H:%M %z"))]
                 + quest_queue_items)
         return "\n".join(quest_queue_lines)
 
