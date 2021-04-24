@@ -192,6 +192,7 @@ class UpdatePartyDescription(Functionality):
         return ("Fetch new quest queue from the party wiki page and update it "
                 "to the party description.")
 
+    @requires_party_membership
     def act(self, message):
         """
         Update the quest queue in party description.
