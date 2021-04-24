@@ -216,19 +216,19 @@ class UpdatePartyDescription(Functionality):
 
         The data is fetched from an unordered list in the wiki page, identified
         by it containing an item containing "(CURRENT)". It is returned in
-        Habitica ordered list format with the first quest shown as the
-        "zeroeth", e.g.
+        Habitica ordered list format with the first quest shown outside the
+        list, e.g.
         ```
         The Quest Queue (as in Wiki on Apr 24 at 14:18 UTC):
 
-         0. (CURRENT) Wind-Up Hatching Potions (Boss 1000)
+         (CURRENT) Wind-Up Hatching Potions (Boss 1000)
          1. Dolphin (Boss 300)
-         2. Seahorse (Boss 300)
-         3. Monkey (Boss 400)
-         4. Cheetah (Boss 600)
-         5. Kangaroo (Boss 700)
-         6. Silver Hatching Potions (collection)
-         7. Ferret (Boss 400)
+         1. Seahorse (Boss 300)
+         1. Monkey (Boss 400)
+         1. Cheetah (Boss 600)
+         1. Kangaroo (Boss 700)
+         1. Silver Hatching Potions (collection)
+         1. Ferret (Boss 400)
         ```
 
         :returns: A string containing the current quest queue.
@@ -240,8 +240,12 @@ class UpdatePartyDescription(Functionality):
                                    "wiki page {} failed: {} queue candidates "
                                    "found.".format(conf.PARTY_WIKI_URL,
                                                    len(ols)))
-        quest_queue_items = ["{}. {}".format(i, li.text)
-                             for i, li in enumerate(ols[0].getchildren())]
+        list_items = ols[0].getchildren()
+        quest_queue_items = []
+        quest_queue_items.append(list_items[0].text)
+        for item in list_items[1:]:
+            quest_queue_items.append("1. {}".format(item.text))
+
         current_time = datetime.datetime.now()
         quest_queue_lines = (
                 ["The Quest Queue (as in Wiki on {}):\n"
