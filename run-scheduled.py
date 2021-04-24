@@ -11,11 +11,21 @@ from conf.header import HEADER
 from conf import conf
 from habot.birthdays import BirthdayReminder
 from habot.bot import (handle_PMs, SendWinnerMessage, AwardWinner,
-                       CreateNextSharingWeekend)
+                       CreateNextSharingWeekend, UpdatePartyDescription)
 from habot.exceptions import CommunicationFailedException
 from habot.io import HabiticaMessager
 from habot.habitica_operations import HabiticaOperator
 from habot.logger import get_logger
+
+
+def update_party_description():
+    """
+    Update the quest queue in the party description to match the wiki page.
+
+    This is done silently: if everything works as intended, nobody is notified.
+    """
+    result = UpdatePartyDescription().act("update-party-description")
+    get_logger().info(result)
 
 
 def bday():
@@ -127,6 +137,7 @@ if __name__ == "__main__":
     schedule.every(1).minutes.do(fetch_messages)
     schedule.every(1).minutes.do(handle_PMs)
     schedule.every(4).hours.do(join_quest)
+    schedule.every(6).hours.do(update_party_description)
 
     schedule.every().tuesday.at("18:00").do(sharing_winner_message)
     schedule.every().tuesday.at("18:10").do(handle_sharing_weekend)
