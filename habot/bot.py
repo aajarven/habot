@@ -205,7 +205,7 @@ class UpdatePartyDescription(Functionality):
         self._partytool.update_party_description(
                 new_description,
                 user_id=habitica_credentials.PARTY_OWNER_USER_ID,
-                user_api_token=habitica_credentials.PARTY_OWNER_API_TOKEN)
+                api_token=habitica_credentials.PARTY_OWNER_API_TOKEN)
         return ("Updated the party description. Old description:\n\n"
                 "```\n"
                 "{}\n"
