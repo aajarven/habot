@@ -203,7 +203,7 @@ class UpdatePartyDescription(Functionality):
         return ("Old description:\n\n"
                 "{}\n"
                 "---\n\n"
-                "New description:\n"
+                "New description:\n\n"
                 "{}"
                 "".format(old_description, new_description))
 
@@ -244,7 +244,7 @@ class UpdatePartyDescription(Functionality):
                              for i, li in enumerate(ols[0].getchildren())]
         current_time = datetime.datetime.now()
         quest_queue_lines = (
-                ["The Quest Queue (as in Wiki on {}):"
+                ["The Quest Queue (as in Wiki on {}):\n"
                  "".format(current_time.strftime("%b %d at %H:%M UTC%z"))]
                 + quest_queue_items)
         return "\n".join(quest_queue_lines)
