@@ -22,6 +22,7 @@ from conf.header import HEADER
 from conf.tasks import WINNER_PICKED
 from conf.sharing_weekend import STOCK_DAY_NUMBER, STOCK_NAME
 from conf import conf
+from conf.secrets import habitica_credentials
 
 
 def handle_PMs():
@@ -200,8 +201,14 @@ class UpdatePartyDescription(Functionality):
         old_description = self._partytool.party_description()
         new_queue = self._parse_quest_queue_from_wiki()
         new_description = self._replace_quest_queue(old_description, new_queue)
-        return ("Old description:\n\n"
+        self._partytool.update_party_description(
+                new_description,
+                user_id=habitica_credentials.PARTY_OWNER_USER_ID,
+                user_api_token=habitica_credentials.PARTY_OWNER_API_TOKEN)
+        return ("Updated the party description. Old description:\n\n"
+                "```\n"
                 "{}\n"
+                "```\n"
                 "---\n\n"
                 "New description:\n\n"
                 "{}"
