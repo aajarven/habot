@@ -1,9 +1,11 @@
 click
+cssselect
 freezegun
 git+git://github.com/aajarven/habitica-helper.git#egg=habitica-helper
 google-api-python-client
 google-auth-httplib2
 google-auth-oauthlib
+lxml
 mysql-connector-python
 pytest
 pytest-mock
@@ -11,5 +13,6 @@ pyyaml
 requests
 requests_mock
 schedule
+surrogate
 testing.mysqld
 yfinance
