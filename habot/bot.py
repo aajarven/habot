@@ -22,7 +22,17 @@ from conf.header import HEADER
 from conf.tasks import WINNER_PICKED
 from conf.sharing_weekend import STOCK_DAY_NUMBER, STOCK_NAME
 from conf import conf
-from conf.secrets import habitica_credentials
+
+try:
+    # It's okay for the secrets not to be in place during testing: they are
+    # mocked.
+    # pylint: disable=no-name-in-module
+    from conf.secrets import habitica_credentials
+except ImportError:
+    habot.logger.get_logger().error(
+            "Credential file not found. If you are trying to use "
+            "the bot instead of just running unit tests, please "
+            "see readme and properly set Habitica credentials.")
 
 
 def handle_PMs():
