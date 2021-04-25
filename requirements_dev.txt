@@ -13,5 +13,6 @@ pyyaml
 requests
 requests_mock
 schedule
+surrogate
 testing.mysqld
 yfinance

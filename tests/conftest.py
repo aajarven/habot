@@ -4,8 +4,11 @@ Shared test stuff
 
 import datetime
 import re
+import unittest.mock
+
 import mysql.connector
 import pytest
+from surrogate import surrogate
 import testing.mysqld
 
 from habot.db import DBOperator
@@ -13,6 +16,22 @@ from tests.data.test_tasks import TEST_TASKS
 
 # pylint doesn't handle fixtures well
 # pylint: disable=redefined-outer-name
+
+
+@pytest.fixture(autouse=True)
+@surrogate("conf.secrets.habitica_credentials")
+def set_test_credentials():
+    """
+    Set the configuration values of PLAYER_USER_ID and PLAYER_API_TOKEN.
+
+    This is done using different patching mechanic (surrogate + unittest.mock
+    instead of monkeypatch) than most other mocking/patching due to this being
+    required in order to patch a possibly non-existent module.
+    """
+    unittest.mock.patch("conf.secrets.habitica_credentials",
+                        "PLAYER_USER_ID", "not-a-real-user-id")
+    unittest.mock.patch("conf.secrets.habitica_credentials",
+                        "PLAYER_API_TOKEN", "not-a-real-token")
 
 
 @pytest.fixture(autouse=True)
