@@ -20,18 +20,23 @@ from tests.data.test_tasks import TEST_TASKS
 
 @pytest.fixture(autouse=True)
 @surrogate("conf.secrets.habitica_credentials")
-def set_test_credentials():
+def test_credentials():
     """
     Set the configuration values of PLAYER_USER_ID and PLAYER_API_TOKEN.
+
+    Returns them as a dict for use in other tests.
 
     This is done using different patching mechanic (surrogate + unittest.mock
     instead of monkeypatch) than most other mocking/patching due to this being
     required in order to patch a possibly non-existent module.
     """
+    credentials = {"PLAYER_USER_ID": "totally-not-a-real-user-id",
+                   "PLAYER_API_TOKEN": "totally-not-a-real-apikey"}
     unittest.mock.patch("conf.secrets.habitica_credentials",
-                        "PLAYER_USER_ID", "not-a-real-user-id")
+                        "PLAYER_USER_ID", credentials["PLAYER_USER_ID"])
     unittest.mock.patch("conf.secrets.habitica_credentials",
-                        "PLAYER_API_TOKEN", "not-a-real-token")
+                        "PLAYER_API_TOKEN", credentials["PLAYER_API_TOKEN"])
+    return credentials
 
 
 @pytest.fixture(autouse=True)
@@ -99,15 +104,15 @@ def mock_task_finding(requests_mock):
 
 
 @pytest.fixture()
-def header_fx():
+def header_fx(test_credentials):
     """
     Return a header dict for testing.
     """
     return {
         "x-client":
             "f687a6c7-860a-4c7c-8a07-9d0dcbb7c831-habot_testing",
-        "x-api-user": "totally-not-a-real-userid",
-        "x-api-key":  "totally-not-a-real-apikey",
+        "x-api-user": test_credentials["PLAYER_USER_ID"],
+        "x-api-key": test_credentials["PLAYER_API_TOKEN"],
     }
 
 
