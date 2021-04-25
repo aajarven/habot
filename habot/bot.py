@@ -263,6 +263,7 @@ class UpdatePartyDescription(Functionality):
         Return the old description with everything in it starting with "The
         Quest queue" replaced with the given new_queue.
         """
+        # pylint: disable=no-self-use
         return old_description.split("The Quest Queue ")[0] + new_queue
 
 
