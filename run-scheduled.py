@@ -9,11 +9,12 @@ import schedule
 
 from conf.header import HEADER
 from conf import conf
+from conf.secrets import habitica_credentials
 from habot.birthdays import BirthdayReminder
 from habot.bot import (handle_PMs, SendWinnerMessage, AwardWinner,
                        CreateNextSharingWeekend, UpdatePartyDescription)
 from habot.exceptions import CommunicationFailedException
-from habot.io import HabiticaMessager
+from habot.io import HabiticaMessager, PrivateMessage
 from habot.habitica_operations import HabiticaOperator
 from habot.logger import get_logger
 
@@ -24,7 +25,9 @@ def update_party_description():
 
     This is done silently: if everything works as intended, nobody is notified.
     """
-    result = UpdatePartyDescription().act("update-party-description")
+    fake_request_message = PrivateMessage(habitica_credentials.PLAYER_USER_ID,
+                                          habitica_credentials.PLAYER_USER_ID)
+    result = UpdatePartyDescription().act(fake_request_message)
     get_logger().info(result)
 
 
