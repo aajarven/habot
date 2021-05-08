@@ -2,7 +2,7 @@
 Representations for Habitica messages.
 """
 
-from habot.db import DBOperator
+from habot.io.db import DBOperator
 
 
 class Message():

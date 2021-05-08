@@ -11,8 +11,9 @@ from habitica_helper.utils import get_dict_from_api
 
 from habot.birthdays import BirthdayReminder
 from habot.habitica_operations import HabiticaOperator
-from habot.io import (HabiticaMessager, DBSyncer, DBTool, WikiReader,
-                      WikiParsingError)
+from habot.io.db import DBTool, DBSyncer
+from habot.io.messages import HabiticaMessager
+from habot.io.wiki import WikiReader, WikiParsingError
 import habot.logger
 from habot.message import PrivateMessage
 from habot.sharing_weekend import SharingChallengeOperator
