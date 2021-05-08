@@ -7,7 +7,7 @@ from unittest.mock import call
 import pytest
 
 from habot.bot import QuestReminders, PartyNewsletter
-from habot.message import PrivateMessage
+from habot.io.messages import PrivateMessage
 
 from tests.conftest import SIMPLE_USER, ALL_USERS
 
@@ -19,7 +19,7 @@ def no_db_update(mocker):
 
     This way the database can be set up with an arbitrary data.
     """
-    update = mocker.patch("habot.io.DBSyncer.update_partymember_data")
+    update = mocker.patch("habot.io.db.DBSyncer.update_partymember_data")
     yield
     update.assert_called()
 
@@ -112,7 +112,7 @@ def test_sending_single_message(mocker, purge_and_init_memberdata_fx):
     """
     purge_and_init_memberdata_fx()
     mock_messager = mocker.patch(
-            "habot.io.HabiticaMessager.send_private_message")
+            "habot.io.messages.HabiticaMessager.send_private_message")
 
     command = ("quest-reminders\n"
                "```\n"
@@ -160,7 +160,7 @@ def test_faulty_quest_queue(mocker, quests, expected_message_part,
     """
     purge_and_init_memberdata_fx()
     mock_messager = mocker.patch(
-            "habot.io.HabiticaMessager.send_private_message")
+            "habot.io.messages.HabiticaMessager.send_private_message")
 
     command = ("quest-reminders\n"
                "```\n"
@@ -183,7 +183,7 @@ def test_quest_queue_outside_code(mocker):
     Test that a well-formed quest queue is not accepted if outside a code block
     """
     mock_messager = mocker.patch(
-            "habot.io.HabiticaMessager.send_private_message")
+            "habot.io.messages.HabiticaMessager.send_private_message")
 
     command = ("quest-reminders\n"
                "q1;@user1\n"
@@ -246,7 +246,8 @@ def test_party_newsletter(mocker, purge_and_init_memberdata_fx):
     """
     purge_and_init_memberdata_fx()
 
-    mock_send = mocker.patch("habot.io.HabiticaMessager.send_private_message")
+    mock_send = mocker.patch(
+            "habot.io.messages.HabiticaMessager.send_private_message")
     message = ("This is some content for the newsletter!\n\n"
                "It might contain **more than one paragraph**, wow.")
     command = ("send-party-newsletter\n \n{} \n ".format(message))
@@ -285,7 +286,8 @@ def test_newsletter_not_sent_to_self(mocker, purge_and_init_memberdata_fx):
     """
     purge_and_init_memberdata_fx()
 
-    mock_send = mocker.patch("habot.io.HabiticaMessager.send_private_message")
+    mock_send = mocker.patch(
+            "habot.io.messages.HabiticaMessager.send_private_message")
     message = ("This is some content for the newsletter!\n\n"
                "It might contain **more than one paragraph**, wow.")
     command = ("send-party-newsletter\n \n{} \n ".format(message))
@@ -323,7 +325,8 @@ def test_newsletter_anti_spam(mocker, purge_and_init_memberdata_fx):
     """
     purge_and_init_memberdata_fx()
 
-    mock_send = mocker.patch("habot.io.HabiticaMessager.send_private_message")
+    mock_send = mocker.patch(
+            "habot.io.messages.HabiticaMessager.send_private_message")
     command = "send-party-newsletter some content"
     test_message = PrivateMessage("not_in_party_id", "to_id", content=command)
 

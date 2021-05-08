@@ -14,7 +14,7 @@ from habot.birthdays import BirthdayReminder
 from habot.bot import (handle_PMs, SendWinnerMessage, AwardWinner,
                        CreateNextSharingWeekend, UpdatePartyDescription)
 from habot.exceptions import CommunicationFailedException
-from habot.io import HabiticaMessager, PrivateMessage
+from habot.io.messages import HabiticaMessager, PrivateMessage
 from habot.habitica_operations import HabiticaOperator
 from habot.logger import get_logger
 

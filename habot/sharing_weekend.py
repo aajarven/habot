@@ -8,7 +8,7 @@ from habitica_helper.utils import get_dict_from_api, get_next_weekday
 from conf.sharing_weekend import SUMMARY, DESCRIPTION
 from conf.tasks import CHALLENGE_CREATED
 from habot.habitica_operations import HabiticaOperator, NotFoundException
-from habot.io import YAMLFileIO
+from habot.io.yaml import YAMLFileIO
 
 
 class SharingChallengeOperator():

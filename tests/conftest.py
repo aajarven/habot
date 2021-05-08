@@ -11,7 +11,7 @@ import pytest
 from surrogate import surrogate
 import testing.mysqld
 
-from habot.db import DBOperator
+from habot.io.db import DBOperator
 from tests.data.test_tasks import TEST_TASKS
 
 # pylint doesn't handle fixtures well
