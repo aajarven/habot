@@ -6,7 +6,8 @@ from unittest.mock import call
 
 import pytest
 
-from habot.bot import QuestReminders, PartyNewsletter
+from habot.functionality.quests import SendQuestReminders
+from habot.functionality.newsletter import SendPartyNewsletter
 from habot.io.messages import PrivateMessage
 
 from tests.conftest import SIMPLE_USER, ALL_USERS
@@ -37,7 +38,8 @@ def test_send_reminder_called_with_correct_params(
     user1 = "@testuser"
     user2 = "@somedude"
 
-    mock_send = mocker.patch("habot.bot.QuestReminders._send_reminder")
+    mock_send = mocker.patch("habot.functionality.quests."
+                             "SendQuestReminders._send_reminder")
     command = ("quest-reminders\n"
                "```\n"
                "FirstQuest; @thisdoesntmatter\n"
@@ -48,7 +50,7 @@ def test_send_reminder_called_with_correct_params(
                "".format(user1=user1, user2=user2))
     test_message = PrivateMessage("from_id", "to_id", content=command)
 
-    reminder = QuestReminders()
+    reminder = SendQuestReminders()
     reminder.act(test_message)
 
     expected_calls = [call("Quest1", "testuser", 1, "FirstQuest"),
@@ -65,7 +67,7 @@ def test_construct_reminder_single_user():
     Test that the quest reminder for a single person looks as it should.
     """
     # pylint: disable=protected-access
-    reminder = QuestReminders()
+    reminder = SendQuestReminders()
     message = reminder._message("Quest name", 1, "Previous quest")
     assert message == ("You have a quest coming up in the queue: "
                        "Quest name! It comes after Previous quest, so when "
@@ -79,7 +81,7 @@ def test_construct_reminder_two_users():
     Test that the quest reminder for a single person looks as it should.
     """
     # pylint: disable=protected-access
-    reminder = QuestReminders()
+    reminder = SendQuestReminders()
     message = reminder._message("Quest name", 2, "Previous quest")
     assert message == ("You (and one other partymember) have a quest coming "
                        "up in the queue: Quest name! It comes after Previous "
@@ -93,7 +95,7 @@ def test_construct_reminder_multiple_users():
     Test that the quest reminder for a single person looks as it should.
     """
     # pylint: disable=protected-access
-    reminder = QuestReminders()
+    reminder = SendQuestReminders()
     message = reminder._message("Quest name", 3, "Previous quest")
     assert message == ("You (and 2 others) have a quest coming up in the "
                        "queue: Quest name! It comes after Previous quest, so "
@@ -126,7 +128,7 @@ def test_sending_single_message(mocker, purge_and_init_memberdata_fx):
                         "send out the invite for quest.")
     test_command_msg = PrivateMessage("from_id", "to_id", content=command)
 
-    reminder = QuestReminders()
+    reminder = SendQuestReminders()
     reminder.act(test_command_msg)
 
     mock_messager.assert_called_with(SIMPLE_USER["id"], expected_message)
@@ -169,7 +171,7 @@ def test_faulty_quest_queue(mocker, quests, expected_message_part,
                "".format("\n".join(quests)))
     test_command_msg = PrivateMessage("from_id", "to_id", content=command)
 
-    reminder = QuestReminders()
+    reminder = SendQuestReminders()
 
     response = reminder.act(test_command_msg)
     assert expected_message_part in response
@@ -191,7 +193,7 @@ def test_quest_queue_outside_code(mocker):
                )
     test_command_msg = PrivateMessage("from_id", "to_id", content=command)
 
-    reminder = QuestReminders()
+    reminder = SendQuestReminders()
 
     response = reminder.act(test_command_msg)
     assert "code block was not found" in response
@@ -211,7 +213,8 @@ def test_complex_quest_reminder(mocker,
     user1 = "testuser"
     user2 = "somedude"
 
-    mock_send = mocker.patch("habot.bot.QuestReminders._send_reminder")
+    mock_send = mocker.patch("habot.functionality.quests."
+                             "SendQuestReminders._send_reminder")
     command = ("quest-reminders\n\n"
                "there's some weird content here\n"
                "but it shouldn't matter\n\n"
@@ -226,7 +229,7 @@ def test_complex_quest_reminder(mocker,
                "".format(user1=user1, user2=user2))
     test_message = PrivateMessage("from_id", "to_id", content=command)
 
-    reminder = QuestReminders()
+    reminder = SendQuestReminders()
     reminder.act(test_message)
 
     expected_calls = [call("Quest1", "testuser", 1, "FirstQuest"),
@@ -255,7 +258,7 @@ def test_party_newsletter(mocker, purge_and_init_memberdata_fx):
                                   "to_id",
                                   content=command)
 
-    newsletter_functionality = PartyNewsletter()
+    newsletter_functionality = SendPartyNewsletter()
     response = newsletter_functionality.act(test_message)
 
     expected_message = (
@@ -293,7 +296,7 @@ def test_newsletter_not_sent_to_self(mocker, purge_and_init_memberdata_fx):
     command = ("send-party-newsletter\n \n{} \n ".format(message))
     test_message = PrivateMessage(ALL_USERS[2]["id"], "to_id", content=command)
 
-    newsletter_functionality = PartyNewsletter()
+    newsletter_functionality = SendPartyNewsletter()
 
     mocker.patch.dict("conf.header.HEADER",
                       {"x-api-user": SIMPLE_USER["id"]})
@@ -330,7 +333,7 @@ def test_newsletter_anti_spam(mocker, purge_and_init_memberdata_fx):
     command = "send-party-newsletter some content"
     test_message = PrivateMessage("not_in_party_id", "to_id", content=command)
 
-    newsletter_functionality = PartyNewsletter()
+    newsletter_functionality = SendPartyNewsletter()
     response = newsletter_functionality.act(test_message)
 
     mock_send.assert_not_called()
