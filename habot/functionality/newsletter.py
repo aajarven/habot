@@ -5,7 +5,6 @@ Functionality for sending a PM to everyone in the party
 from habot.functionality.base import Functionality, requires_party_membership
 from habot.io.db import DBTool, DBSyncer
 from habot.io.messages import HabiticaMessager
-import habot.logger
 
 from conf.header import HEADER
 from conf import conf

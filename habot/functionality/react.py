@@ -4,6 +4,7 @@ Reacting to PMs by initiating the correct functionality.
 
 import re
 
+from habot.functionality.base import Ping
 from habot.functionality.birthdays import ListBirthdays
 from habot.functionality.newsletter import SendPartyNewsletter
 from habot.functionality.party_description import UpdatePartyDescription
