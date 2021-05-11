@@ -1,10 +1,13 @@
 """
-Database operations for the bot.
+Interface for interacting with the database.
 """
 
 import mysql.connector
 
+from habitica_helper.habiticatool import PartyTool
+
 import conf.db as dbconf
+import habot.logger
 
 # credentials added by user, not present always when linting
 # pylint: disable=no-name-in-module,import-error
@@ -16,12 +19,126 @@ except ImportError:
     PASSWORD = ""
 # pylint: enable=no-name-in-module,import-error
 
-import habot.logger
+
+class DBSyncer():
+    """
+    Fetch data from Habitica API and write it to the database.
+    """
+
+    def __init__(self, header):
+        """
+        :header: Habitica API call header for a party member
+        """
+        self._header = header
+        self._db = DBOperator()
+        self._logger = habot.logger.get_logger()
+
+    def update_partymember_data(self):
+        """
+        Fetch current party member data from Habitica and update the database.
+
+        If the database contains members that are not currently in the party,
+        they are removed from the database.
+        """
+        self._logger.debug("Going to update partymember data in the DB.")
+        partytool = PartyTool(self._header)
+        partymembers = partytool.party_members()
+
+        self.add_new_members(partymembers)
+        self._logger.debug("Added new members")
+        self.remove_old_members(partymembers)
+        self._logger.debug("Removed outdated members")
+
+    def remove_old_members(self, partymembers):
+        """
+        Remove everyone who is not a current party member from "members" table.
+
+        :partymembers: A complete list of current party members.
+        """
+        member_ids_in_party = [member.id for member in partymembers]
+        members_in_db = self._db.query_table("members", "id")
+        for member in members_in_db:
+            if member["id"] not in member_ids_in_party:
+                self._db.delete_row("members", "id", member["id"])
+
+    def add_new_members(self, partymembers):
+        """
+        Update the database to contain data for all given party members.
+
+        If someone is missing entirely, they are added, or if someone's
+        information has changed (e.g. displayname), the corresponding row is
+        updated.
+        """
+        for member in partymembers:
+            db_data = {
+                "id": member.id,
+                "displayname": member.displayname,
+                "loginname": member.login_name,
+                "birthday": member.habitica_birthday,
+                }
+            user_row = self._db.query_table(
+                "members", condition="id='{}'".format(member.id))
+            if len(user_row) == 0:
+                self._db.insert_data("members", db_data)
+            elif user_row != db_data:
+                self._db.update_row("members", member.id, db_data)
+
+
+class DBTool():
+    """
+    High-level tools for using the database.
+    """
+    # pylint: disable=too-few-public-methods
+
+    def __init__(self):
+        """
+        Initialize the class
+        """
+        self._logger = habot.logger.get_logger()
+        self._db = DBOperator()
+
+    def get_user_id(self, habitica_loginname):
+        """
+        Return the user ID of a party member corresponding to given login name.
+        """
+        members = self._db.query_table(
+            "members",
+            condition="loginname='{}'".format(habitica_loginname),
+            columns="id",
+            )
+        if not members:
+            raise ValueError("User with login name {} not found"
+                             "".format(habitica_loginname))
+        return members[0]["id"]
+
+    def get_party_user_ids(self):
+        """
+        Return a list of user IDs for all party members.
+        """
+        members = self._db.query_table(
+            "members",
+            columns="id",
+            )
+        return [data_dict["id"] for data_dict in members]
+
+    def get_loginname(self, uid):
+        """
+        Return the login name of the party member with the given UID.
+        """
+        members = self._db.query_table(
+            "members",
+            condition="id='{}'".format(uid),
+            columns="loginname",
+            )
+        if not members:
+            raise ValueError("User with user ID {} not found"
+                             "".format(uid))
+        return members[0]["loginname"]
 
 
 class DBOperator():
     """
-    A tool for working with the habitica database.
+    Provides low-level operations for  working with the habitica database.
     """
 
     def __init__(self):

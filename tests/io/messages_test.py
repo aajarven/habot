@@ -2,17 +2,10 @@
 Test IO via Habitica private messages
 """
 
+from unittest import mock
 import pytest
 
-from habot.io import HabiticaMessager, CommunicationFailedException
-
-
-@pytest.fixture()
-def test_messager(header_fx):
-    """
-    Create a HabiticaMessager for tests.
-    """
-    return HabiticaMessager(header_fx)
+from habot.io.messages import CommunicationFailedException
 
 
 # pylint: disable=redefined-outer-name
@@ -46,3 +39,20 @@ def test_pm_failure_exception(requests_mock, test_messager):
         status_code=500)
     with pytest.raises(CommunicationFailedException):
         test_messager.send_private_message("test_uid", "test_message")
+
+
+@mock.patch("habitica_helper.habrequest.post")
+@mock.patch("habot.habitica_operations.HabiticaOperator.tick_task")
+def test_group_message(mock_tick, mock_post, test_messager, header_fx):
+    """
+    Test group message sending.
+
+    Ensure that a correct API call is made to send a group message with the
+    message in its payload, and that a task is ticked afterwards.
+    """
+    test_messager.send_group_message("group-id", "some message")
+    mock_post.assert_called_with(
+            "https://habitica.com/api/v3/groups/group-id/chat",
+            headers=header_fx,
+            data={"message": "some message"})
+    mock_tick.assert_called()

@@ -11,11 +11,47 @@ import pytest
 from surrogate import surrogate
 import testing.mysqld
 
-from habot.db import DBOperator
+from habot.io.db import DBOperator
+from habot.io.messages import HabiticaMessager
 from tests.data.test_tasks import TEST_TASKS
 
 # pylint doesn't handle fixtures well
 # pylint: disable=redefined-outer-name
+
+
+@pytest.fixture()
+def mock_send_private_message_fx(mocker):
+    """
+    Patch the `habot.io.messages.HabiticaMessager.send_private_message` method.
+
+    Attempting to send a private message causes no message to be sent. Instead
+    the "sent" messages can be queried from the returned Mock object.
+
+    :returns: `MagicMock` object that records calls to `send_private_message`
+    """
+    mock_send = mocker.patch(
+            "habot.io.messages.HabiticaMessager.send_private_message")
+    return mock_send
+
+
+@pytest.fixture()
+def test_messager(header_fx):
+    """
+    Create a HabiticaMessager for testing purposes.
+    """
+    return HabiticaMessager(header_fx)
+
+
+@pytest.fixture
+def no_db_update(mocker):
+    """
+    Prevent DBSyncer.update_partymember_data from doing anything.
+
+    This way the database can be set up with an arbitrary data.
+    """
+    update = mocker.patch("habot.io.db.DBSyncer.update_partymember_data")
+    yield
+    update.assert_called()
 
 
 @pytest.fixture(autouse=True)

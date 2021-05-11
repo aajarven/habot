@@ -4,8 +4,8 @@ Functionality for sending Habitica birthday reminders
 
 import datetime
 
-from habot.db import DBOperator
-from habot.io import HabiticaMessager, DBSyncer
+from habot.io.db import DBOperator, DBSyncer
+from habot.io.messages import HabiticaMessager
 
 
 class BirthdayReminder():

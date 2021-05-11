@@ -1,27 +1,15 @@
 """
-Tests for the bot functionalities
+Test SendQuestReminders functionality
 """
 
 from unittest.mock import call
 
 import pytest
 
-from habot.bot import QuestReminders, PartyNewsletter
+from habot.functionality.quests import SendQuestReminders
 from habot.message import PrivateMessage
 
-from tests.conftest import SIMPLE_USER, ALL_USERS
-
-
-@pytest.fixture
-def no_db_update(mocker):
-    """
-    Prevent DBSyncer.update_partymember_data from doing anything.
-
-    This way the database can be set up with an arbitrary data.
-    """
-    update = mocker.patch("habot.io.DBSyncer.update_partymember_data")
-    yield
-    update.assert_called()
+from tests.conftest import SIMPLE_USER
 
 
 @pytest.mark.usefixtures("db_connection_fx", "no_db_update")
@@ -37,7 +25,8 @@ def test_send_reminder_called_with_correct_params(
     user1 = "@testuser"
     user2 = "@somedude"
 
-    mock_send = mocker.patch("habot.bot.QuestReminders._send_reminder")
+    mock_send = mocker.patch("habot.functionality.quests."
+                             "SendQuestReminders._send_reminder")
     command = ("quest-reminders\n"
                "```\n"
                "FirstQuest; @thisdoesntmatter\n"
@@ -48,7 +37,7 @@ def test_send_reminder_called_with_correct_params(
                "".format(user1=user1, user2=user2))
     test_message = PrivateMessage("from_id", "to_id", content=command)
 
-    reminder = QuestReminders()
+    reminder = SendQuestReminders()
     reminder.act(test_message)
 
     expected_calls = [call("Quest1", "testuser", 1, "FirstQuest"),
@@ -65,7 +54,7 @@ def test_construct_reminder_single_user():
     Test that the quest reminder for a single person looks as it should.
     """
     # pylint: disable=protected-access
-    reminder = QuestReminders()
+    reminder = SendQuestReminders()
     message = reminder._message("Quest name", 1, "Previous quest")
     assert message == ("You have a quest coming up in the queue: "
                        "Quest name! It comes after Previous quest, so when "
@@ -79,7 +68,7 @@ def test_construct_reminder_two_users():
     Test that the quest reminder for a single person looks as it should.
     """
     # pylint: disable=protected-access
-    reminder = QuestReminders()
+    reminder = SendQuestReminders()
     message = reminder._message("Quest name", 2, "Previous quest")
     assert message == ("You (and one other partymember) have a quest coming "
                        "up in the queue: Quest name! It comes after Previous "
@@ -93,7 +82,7 @@ def test_construct_reminder_multiple_users():
     Test that the quest reminder for a single person looks as it should.
     """
     # pylint: disable=protected-access
-    reminder = QuestReminders()
+    reminder = SendQuestReminders()
     message = reminder._message("Quest name", 3, "Previous quest")
     assert message == ("You (and 2 others) have a quest coming up in the "
                        "queue: Quest name! It comes after Previous quest, so "
@@ -102,7 +91,8 @@ def test_construct_reminder_multiple_users():
 
 
 @pytest.mark.usefixtures("db_connection_fx", "no_db_update")
-def test_sending_single_message(mocker, purge_and_init_memberdata_fx):
+def test_sending_single_message(purge_and_init_memberdata_fx,
+                                mock_send_private_message_fx):
     """
     Ensure that the correct message is sent out for a single quest.
 
@@ -111,8 +101,7 @@ def test_sending_single_message(mocker, purge_and_init_memberdata_fx):
     message is really sent to the correct recipient.
     """
     purge_and_init_memberdata_fx()
-    mock_messager = mocker.patch(
-            "habot.io.HabiticaMessager.send_private_message")
+    mock_messager = mock_send_private_message_fx
 
     command = ("quest-reminders\n"
                "```\n"
@@ -126,7 +115,7 @@ def test_sending_single_message(mocker, purge_and_init_memberdata_fx):
                         "send out the invite for quest.")
     test_command_msg = PrivateMessage("from_id", "to_id", content=command)
 
-    reminder = QuestReminders()
+    reminder = SendQuestReminders()
     reminder.act(test_command_msg)
 
     mock_messager.assert_called_with(SIMPLE_USER["id"], expected_message)
@@ -148,8 +137,9 @@ def test_sending_single_message(mocker, purge_and_init_memberdata_fx):
              "User @noSuchUser not found in the party"),
         ]
 )
-def test_faulty_quest_queue(mocker, quests, expected_message_part,
-                            purge_and_init_memberdata_fx):
+def test_faulty_quest_queue(quests, expected_message_part,
+                            purge_and_init_memberdata_fx,
+                            mock_send_private_message_fx):
     """
     Test that no messages are sent when given quest queue is faulty.
 
@@ -159,8 +149,7 @@ def test_faulty_quest_queue(mocker, quests, expected_message_part,
     the bot.
     """
     purge_and_init_memberdata_fx()
-    mock_messager = mocker.patch(
-            "habot.io.HabiticaMessager.send_private_message")
+    mock_messager = mock_send_private_message_fx
 
     command = ("quest-reminders\n"
                "```\n"
@@ -169,7 +158,7 @@ def test_faulty_quest_queue(mocker, quests, expected_message_part,
                "".format("\n".join(quests)))
     test_command_msg = PrivateMessage("from_id", "to_id", content=command)
 
-    reminder = QuestReminders()
+    reminder = SendQuestReminders()
 
     response = reminder.act(test_command_msg)
     assert expected_message_part in response
@@ -178,12 +167,11 @@ def test_faulty_quest_queue(mocker, quests, expected_message_part,
 
 
 @pytest.mark.usefixtures("no_db_update")
-def test_quest_queue_outside_code(mocker):
+def test_quest_queue_outside_code(mock_send_private_message_fx):
     """
     Test that a well-formed quest queue is not accepted if outside a code block
     """
-    mock_messager = mocker.patch(
-            "habot.io.HabiticaMessager.send_private_message")
+    mock_messager = mock_send_private_message_fx
 
     command = ("quest-reminders\n"
                "q1;@user1\n"
@@ -191,7 +179,7 @@ def test_quest_queue_outside_code(mocker):
                )
     test_command_msg = PrivateMessage("from_id", "to_id", content=command)
 
-    reminder = QuestReminders()
+    reminder = SendQuestReminders()
 
     response = reminder.act(test_command_msg)
     assert "code block was not found" in response
@@ -211,7 +199,8 @@ def test_complex_quest_reminder(mocker,
     user1 = "testuser"
     user2 = "somedude"
 
-    mock_send = mocker.patch("habot.bot.QuestReminders._send_reminder")
+    mock_send = mocker.patch("habot.functionality.quests."
+                             "SendQuestReminders._send_reminder")
     command = ("quest-reminders\n\n"
                "there's some weird content here\n"
                "but it shouldn't matter\n\n"
@@ -226,7 +215,7 @@ def test_complex_quest_reminder(mocker,
                "".format(user1=user1, user2=user2))
     test_message = PrivateMessage("from_id", "to_id", content=command)
 
-    reminder = QuestReminders()
+    reminder = SendQuestReminders()
     reminder.act(test_message)
 
     expected_calls = [call("Quest1", "testuser", 1, "FirstQuest"),
@@ -235,100 +224,3 @@ def test_complex_quest_reminder(mocker,
                       call("Quest 3", "somedude", 2, "Quest number 2"),
                       ]
     mock_send.assert_has_calls(expected_calls)
-
-
-@pytest.mark.usefixtures("db_connection_fx", "no_db_update",
-                         "configure_test_admin")
-def test_party_newsletter(mocker, purge_and_init_memberdata_fx):
-    """
-    Test that party newsletters are sent out for all party members and a report
-    is given to the requestor.
-    """
-    purge_and_init_memberdata_fx()
-
-    mock_send = mocker.patch("habot.io.HabiticaMessager.send_private_message")
-    message = ("This is some content for the newsletter!\n\n"
-               "It might contain **more than one paragraph**, wow.")
-    command = ("send-party-newsletter\n \n{} \n ".format(message))
-    test_message = PrivateMessage(ALL_USERS[-1]["id"],
-                                  "to_id",
-                                  content=command)
-
-    newsletter_functionality = PartyNewsletter()
-    response = newsletter_functionality.act(test_message)
-
-    expected_message = (
-                   "{content}"
-                   "\n\n---\n\n"
-                   "This is a party newsletter written by @{user} and "
-                   "brought you by the party bot. If you suspect you should "
-                   "not have received this message, please contact "
-                   "@testuser."
-                   "".format(content=message,
-                             user=ALL_USERS[-1]["loginname"])
-                   )
-
-    expected_calls = [call(userdata["id"], expected_message)
-                      for userdata in ALL_USERS]
-    mock_send.assert_has_calls(expected_calls, any_order=True)
-
-    assert "Sent the given newsletter to the following users:" in response
-    for user in ALL_USERS[:-1]:
-        assert "\n- @{}".format(user["loginname"]) in response
-
-
-@pytest.mark.usefixtures("db_connection_fx", "no_db_update",
-                         "configure_test_admin")
-def test_newsletter_not_sent_to_self(mocker, purge_and_init_memberdata_fx):
-    """
-    Test that the bot doesn't send the newsletter to itself.
-    """
-    purge_and_init_memberdata_fx()
-
-    mock_send = mocker.patch("habot.io.HabiticaMessager.send_private_message")
-    message = ("This is some content for the newsletter!\n\n"
-               "It might contain **more than one paragraph**, wow.")
-    command = ("send-party-newsletter\n \n{} \n ".format(message))
-    test_message = PrivateMessage(ALL_USERS[2]["id"], "to_id", content=command)
-
-    newsletter_functionality = PartyNewsletter()
-
-    mocker.patch.dict("conf.header.HEADER",
-                      {"x-api-user": SIMPLE_USER["id"]})
-    newsletter_functionality.act(test_message)
-
-    recipients = list(ALL_USERS)
-    recipients.remove(SIMPLE_USER)
-
-    expected_message = (
-                   "{content}"
-                   "\n\n---\n\n"
-                   "This is a party newsletter written by @{user} and "
-                   "brought you by the party bot. If you suspect you should "
-                   "not have received this message, please contact "
-                   "@testuser."
-                   "".format(content=message,
-                             user=ALL_USERS[2]["loginname"])
-                   )
-
-    expected_calls = [call(userdata["id"], expected_message)
-                      for userdata in recipients]
-    mock_send.assert_has_calls(expected_calls, any_order=True)
-
-
-@pytest.mark.usefixtures("db_connection_fx", "configure_test_admin")
-def test_newsletter_anti_spam(mocker, purge_and_init_memberdata_fx):
-    """
-    Test that requesting a newsletter is only possible from within the party.
-    """
-    purge_and_init_memberdata_fx()
-
-    mock_send = mocker.patch("habot.io.HabiticaMessager.send_private_message")
-    command = "send-party-newsletter some content"
-    test_message = PrivateMessage("not_in_party_id", "to_id", content=command)
-
-    newsletter_functionality = PartyNewsletter()
-    response = newsletter_functionality.act(test_message)
-
-    mock_send.assert_not_called()
-    assert "No messages sent." in response
