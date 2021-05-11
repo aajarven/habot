@@ -7,7 +7,7 @@ from unittest.mock import call
 import pytest
 
 from habot.functionality.quests import SendQuestReminders
-from habot.io.messages import PrivateMessage
+from habot.message import PrivateMessage
 
 from tests.conftest import SIMPLE_USER
 
@@ -91,7 +91,8 @@ def test_construct_reminder_multiple_users():
 
 
 @pytest.mark.usefixtures("db_connection_fx", "no_db_update")
-def test_sending_single_message(mocker, purge_and_init_memberdata_fx):
+def test_sending_single_message(purge_and_init_memberdata_fx,
+                                mock_send_private_message_fx):
     """
     Ensure that the correct message is sent out for a single quest.
 
@@ -100,8 +101,7 @@ def test_sending_single_message(mocker, purge_and_init_memberdata_fx):
     message is really sent to the correct recipient.
     """
     purge_and_init_memberdata_fx()
-    mock_messager = mocker.patch(
-            "habot.io.messages.HabiticaMessager.send_private_message")
+    mock_messager = mock_send_private_message_fx
 
     command = ("quest-reminders\n"
                "```\n"
@@ -137,8 +137,9 @@ def test_sending_single_message(mocker, purge_and_init_memberdata_fx):
              "User @noSuchUser not found in the party"),
         ]
 )
-def test_faulty_quest_queue(mocker, quests, expected_message_part,
-                            purge_and_init_memberdata_fx):
+def test_faulty_quest_queue(quests, expected_message_part,
+                            purge_and_init_memberdata_fx,
+                            mock_send_private_message_fx):
     """
     Test that no messages are sent when given quest queue is faulty.
 
@@ -148,8 +149,7 @@ def test_faulty_quest_queue(mocker, quests, expected_message_part,
     the bot.
     """
     purge_and_init_memberdata_fx()
-    mock_messager = mocker.patch(
-            "habot.io.messages.HabiticaMessager.send_private_message")
+    mock_messager = mock_send_private_message_fx
 
     command = ("quest-reminders\n"
                "```\n"
@@ -167,12 +167,11 @@ def test_faulty_quest_queue(mocker, quests, expected_message_part,
 
 
 @pytest.mark.usefixtures("no_db_update")
-def test_quest_queue_outside_code(mocker):
+def test_quest_queue_outside_code(mock_send_private_message_fx):
     """
     Test that a well-formed quest queue is not accepted if outside a code block
     """
-    mock_messager = mocker.patch(
-            "habot.io.messages.HabiticaMessager.send_private_message")
+    mock_messager = mock_send_private_message_fx
 
     command = ("quest-reminders\n"
                "q1;@user1\n"

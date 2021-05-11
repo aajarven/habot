@@ -20,6 +20,21 @@ from tests.data.test_tasks import TEST_TASKS
 
 
 @pytest.fixture()
+def mock_send_private_message_fx(mocker):
+    """
+    Patch the `habot.io.messages.HabiticaMessager.send_private_message` method.
+
+    Attempting to send a private message causes no message to be sent. Instead
+    the "sent" messages can be queried from the returned Mock object.
+
+    :returns: `MagicMock` object that records calls to `send_private_message`
+    """
+    mock_send = mocker.patch(
+            "habot.io.messages.HabiticaMessager.send_private_message")
+    return mock_send
+
+
+@pytest.fixture()
 def test_messager(header_fx):
     """
     Create a HabiticaMessager for testing purposes.
