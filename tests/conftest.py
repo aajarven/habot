@@ -18,6 +18,18 @@ from tests.data.test_tasks import TEST_TASKS
 # pylint: disable=redefined-outer-name
 
 
+@pytest.fixture
+def no_db_update(mocker):
+    """
+    Prevent DBSyncer.update_partymember_data from doing anything.
+
+    This way the database can be set up with an arbitrary data.
+    """
+    update = mocker.patch("habot.io.db.DBSyncer.update_partymember_data")
+    yield
+    update.assert_called()
+
+
 @pytest.fixture(autouse=True)
 @surrogate("conf.secrets.habitica_credentials")
 def test_credentials():
