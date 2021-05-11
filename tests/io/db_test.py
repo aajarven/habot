@@ -10,15 +10,6 @@ from habitica_helper.habiticatool import PartyTool
 from habitica_helper.member import Member
 
 from habot.io.db import DBOperator, DBSyncer, DBTool
-from habot.io.messages import HabiticaMessager
-
-
-@pytest.fixture()
-def test_messager(header_fx):
-    """
-    Create a HabiticaMessager for testing purposes.
-    """
-    return HabiticaMessager(header_fx)
 
 
 @pytest.fixture

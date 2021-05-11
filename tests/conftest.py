@@ -12,10 +12,19 @@ from surrogate import surrogate
 import testing.mysqld
 
 from habot.io.db import DBOperator
+from habot.io.messages import HabiticaMessager
 from tests.data.test_tasks import TEST_TASKS
 
 # pylint doesn't handle fixtures well
 # pylint: disable=redefined-outer-name
+
+
+@pytest.fixture()
+def test_messager(header_fx):
+    """
+    Create a HabiticaMessager for testing purposes.
+    """
+    return HabiticaMessager(header_fx)
 
 
 @pytest.fixture

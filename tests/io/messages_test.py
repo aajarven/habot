@@ -5,15 +5,7 @@ Test IO via Habitica private messages
 from unittest import mock
 import pytest
 
-from habot.io.messages import HabiticaMessager, CommunicationFailedException
-
-
-@pytest.fixture()
-def test_messager(header_fx):
-    """
-    Create a HabiticaMessager for tests.
-    """
-    return HabiticaMessager(header_fx)
+from habot.io.messages import CommunicationFailedException
 
 
 # pylint: disable=redefined-outer-name
