@@ -179,7 +179,7 @@ class HtmlToMd():
 
         The node must not have any children.
         """
-        return "*{}*{}".format(self._text(node.text), self._tail(node))
+        return "*{}*{}".format(self._text(node), self._tail(node))
 
     def _convert_b(self, node):
         """
