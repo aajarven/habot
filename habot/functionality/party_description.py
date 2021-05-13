@@ -7,7 +7,7 @@ import datetime
 from habitica_helper import habiticatool
 
 from habot.functionality.base import Functionality, requires_party_membership
-from habot.io.wiki import WikiReader, WikiParsingError
+from habot.io.wiki import WikiReader, WikiParsingError, HtmlToMd
 import habot.logger
 
 from conf.header import HEADER
@@ -107,15 +107,13 @@ class UpdatePartyDescription(Functionality):
                                    "wiki page {} failed: {} queue candidates "
                                    "found.".format(conf.PARTY_WIKI_URL,
                                                    len(ols)))
-        quest_queue_items = ["{}. {}".format(i, li.text)
-                             for i, li in enumerate(ols[0].getchildren())]
 
         current_time = datetime.datetime.now(datetime.timezone.utc)
-        quest_queue_lines = (
-                ["The Quest Queue (as in Wiki on {}):\n"
-                 "".format(current_time.strftime("%b %d at %H:%M UTC%z"))]
-                + quest_queue_items)
-        return "\n".join(quest_queue_lines)
+        quest_queue_header = ("The Quest Queue (as in Wiki on {}):"
+                              "".format(current_time.strftime(
+                                  "%b %d at %H:%M UTC%z")))
+        quest_queue_content = HtmlToMd().convert(ols[0])
+        return "{}\n{}".format(quest_queue_header, quest_queue_content)
 
     def _replace_quest_queue(self, old_description, new_queue):
         """
