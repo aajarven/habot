@@ -113,8 +113,9 @@ class HtmlToMd():
     """
     # pylint: disable=too-few-public-methods
 
-    def __init__(self):
+    def __init__(self, ol_starting_index=1):
         """
+        Create a new converter.
         """
         self._conversion_functions = {
             "i": self._convert_i,
@@ -125,6 +126,7 @@ class HtmlToMd():
             "ol": self._convert_ol,
             "ul": self._convert_ul,
             }
+        self._ol_starting_index = ol_starting_index
 
     def convert(self, html_node):
         """
@@ -212,7 +214,7 @@ class HtmlToMd():
         """
         children_texts = self._children_texts(node)
         if node.getparent().tag == "ol":
-            list_indicator = "1. "
+            list_indicator = "{}. ".format(self._ol_starting_index)
         elif node.getparent().tag == "ul":
             list_indicator = "- "
         else:

@@ -112,8 +112,8 @@ class UpdatePartyDescription(Functionality):
         quest_queue_header = ("The Quest Queue (as in Wiki on {}):"
                               "".format(current_time.strftime(
                                   "%b %d at %H:%M UTC%z")))
-        quest_queue_content = HtmlToMd().convert(ols[0])
-        return "{}\n{}".format(quest_queue_header, quest_queue_content)
+        quest_queue_content = HtmlToMd(ol_starting_index=0).convert(ols[0])
+        return "{}\n\n{}".format(quest_queue_header, quest_queue_content)
 
     def _replace_quest_queue(self, old_description, new_queue):
         """
