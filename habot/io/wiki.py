@@ -2,6 +2,7 @@
 Read Habitica wiki pages.
 """
 
+from codecs import decode, encode
 import copy
 from io import StringIO
 
@@ -152,11 +153,23 @@ class HtmlToMd():
     # is the most sensible place for them at the moment.
     # pylint: disable=no-self-use
 
+    def _text(self, node):
+        """
+        Return the text of the node without escapes.
+        """
+        return decode(encode(node.text, "latin-1"), "unicode-escape")
+
+    def _tail(self, node):
+        """
+        Return the "tail" text of the node without escapes.
+        """
+        return decode(encode(node.tail, "latin-1"), "unicode-escape")
+
     def _children_texts(self, node):
         """
         Return the text content from all children nodes concatenated together.
         """
-        return "".join([c.text for c in node.getchildren() if c.text])
+        return "".join([self._text(c) for c in node.getchildren() if c.text])
 
     def _convert_i(self, node):
         """
@@ -164,7 +177,7 @@ class HtmlToMd():
 
         The node must not have any children.
         """
-        return "*{}*{}".format(node.text, node.tail)
+        return "*{}*{}".format(self._text(node.text), self._tail(node))
 
     def _convert_b(self, node):
         """
@@ -172,7 +185,7 @@ class HtmlToMd():
 
         The node must not have any children.
         """
-        return "**{}**{}".format(node.text, node.tail)
+        return "**{}**{}".format(self._text(node), self._tail(node))
 
     def _convert_s(self, node):
         """
@@ -180,7 +193,7 @@ class HtmlToMd():
 
         The node must not have any children.
         """
-        return "~~{}~~{}".format(node.text, node.tail)
+        return "~~{}~~{}".format(self._text(node), self._tail(node))
 
     def _convert_code(self, node):
         """
@@ -188,7 +201,7 @@ class HtmlToMd():
 
         The node must not have any children.
         """
-        return "`{}`{}".format(node.text, node.tail)
+        return "`{}`{}".format(self._text(node), self._tail(node))
 
     def _convert_li(self, node):
         """
@@ -209,13 +222,19 @@ class HtmlToMd():
                                              node.text))
         return "{}{}{}".format(list_indicator, node.text, children_texts)
 
+    def _join_children_with_newline(self, node):
+        """
+        Return the text contents for all children joined with newlines.
+        """
+        return "\n".join([self._text(c) for c in node.getchildren()])
+
     def _convert_ul(self, node):
         """
         Return markdown corresponding to an `ul` in HTML.
 
         The returned string also contains contents for all child nodes.
         """
-        return "\n".join([c.text for c in node.getchildren()]) + "\n\n"
+        return self._join_children_with_newline(node) + "\n\n"
 
     def _convert_ol(self, node):
         """
@@ -223,7 +242,7 @@ class HtmlToMd():
 
         The returned string also contains contents for all child nodes.
         """
-        return "\n".join([c.text for c in node.getchildren()]) + "\n\n"
+        return self._join_children_with_newline(node) + "\n\n"
 
 
 class WikiParsingError(Exception):
