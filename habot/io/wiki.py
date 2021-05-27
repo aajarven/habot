@@ -2,7 +2,10 @@
 Read Habitica wiki pages.
 """
 
+from codecs import decode, encode
+import copy
 from io import StringIO
+
 from lxml import etree
 import requests.exceptions
 
@@ -95,7 +98,162 @@ class WikiReader():
         return full_match_elements
 
 
+class HtmlToMd():
+    """
+    Produce Habitica markdown from a HTML lxml etree.
+
+    The support is at this point very limited: only the following HTML tags can
+    be converted:
+    - <i> (italic)
+    - <b> (bold)
+    - <s> (strikethrough)
+    - <code> (inline code)
+    - <ol> and the <li> within (ordered list)
+    - <ul> and the <li> within (unordered list)
+    """
+    # pylint: disable=too-few-public-methods
+
+    def __init__(self, ol_starting_index=1):
+        """
+        Create a new converter.
+        """
+        self._conversion_functions = {
+            "i": self._convert_i,
+            "b": self._convert_b,
+            "s": self._convert_s,
+            "code": self._convert_code,
+            "li": self._convert_li,
+            "ol": self._convert_ol,
+            "ul": self._convert_ul,
+            }
+        self._ol_starting_index = ol_starting_index
+
+    def convert(self, html_node):
+        """
+        Return a string corresponding in which content has been converted to md
+
+        The returned tree has nodes corresponding to the ones in the original
+        tree, but their text contents have been converted to markdown.
+        """
+        new_tree = copy.deepcopy(html_node)
+        for node in self._traverse_depth_first(new_tree):
+            if node.tag in self._conversion_functions:
+                node.text = self._conversion_functions[node.tag](node)
+        return new_tree.text
+
+    def _traverse_depth_first(self, node):
+        """
+        Return nodes in dept-first order, yielding each node.
+
+        The nodes are yielded in post-order (all children before parent).
+        """
+        for child in node.getchildren():
+            yield from self._traverse_depth_first(child)
+        yield node
+
+    # Methods here are for internal use only despite not using `self`, so this
+    # is the most sensible place for them at the moment.
+    # pylint: disable=no-self-use
+
+    def _text(self, node):
+        """
+        Return the text of the node without escapes.
+        """
+        return decode(encode(node.text, "latin-1"), "unicode-escape")
+
+    def _tail(self, node):
+        """
+        Return the "tail" text of the node without escapes.
+        """
+        return decode(encode(node.tail, "latin-1"), "unicode-escape")
+
+    def _children_texts(self, node):
+        """
+        Return the text content from all children nodes concatenated together.
+        """
+        return "".join([self._text(c) for c in node.getchildren() if c.text])
+
+    def _convert_i(self, node):
+        """
+        Return a markdown string corresponding to `i` html node contents.
+
+        The node must not have any children.
+        """
+        return "*{}*{}".format(self._text(node), self._tail(node))
+
+    def _convert_b(self, node):
+        """
+        Return a markdown string corresponding to `b` html node contents.
+
+        The node must not have any children.
+        """
+        return "**{}**{}".format(self._text(node), self._tail(node))
+
+    def _convert_s(self, node):
+        """
+        Return a markdown string corresponding to `s` html node contents.
+
+        The node must not have any children.
+        """
+        return "~~{}~~{}".format(self._text(node), self._tail(node))
+
+    def _convert_code(self, node):
+        """
+        Return a markdown string corresponding to `i` html node contents.
+
+        The node must not have any children.
+        """
+        return "`{}`{}".format(self._text(node), self._tail(node))
+
+    def _convert_li(self, node):
+        """
+        Return markdown string corresponding to a `li` in HTML.
+
+        Depending on the parent node (`ol`/`ul`), the children nodes are
+        prepended either with "- " or "1. ".
+        """
+        children_texts = self._children_texts(node)
+        if node.getparent().tag == "ol":
+            list_indicator = "{}. ".format(self._ol_starting_index)
+        elif node.getparent().tag == "ul":
+            list_indicator = "- "
+        else:
+            raise HtmlParsingError("Unsupported parent tag {} encountered "
+                                   "for a list item {}"
+                                   "".format(node.getparent().tag,
+                                             node.text))
+        return "{}{}{}".format(list_indicator, node.text, children_texts)
+
+    def _join_children_with_newline(self, node):
+        """
+        Return the text contents for all children joined with newlines.
+        """
+        return "\n".join([self._text(c) for c in node.getchildren()])
+
+    def _convert_ul(self, node):
+        """
+        Return markdown corresponding to an `ul` in HTML.
+
+        The returned string also contains contents for all child nodes.
+        """
+        return self._join_children_with_newline(node) + "\n\n"
+
+    def _convert_ol(self, node):
+        """
+        Return markdown corresponding to an `ol` in HTML.
+
+        The returned string also contains contents for all child nodes.
+        """
+        return self._join_children_with_newline(node) + "\n\n"
+
+
 class WikiParsingError(Exception):
     """
     Exception for unexpected content from Habitica Wiki.
+    """
+
+
+class HtmlParsingError(ValueError):
+    """
+    Exception for HTML content that cannot be parsed.
     """
