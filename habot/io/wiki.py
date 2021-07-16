@@ -56,9 +56,12 @@ class WikiReader():
         response.raise_for_status()
         full_page_tree = etree.parse(StringIO(str(response.content)),
                                      self._parser)
-        content = full_page_tree.getroot().cssselect(".WikiaPage")
+        content = full_page_tree.getroot().cssselect(".page__main")
+        if not content:
+            raise WikiParsingError("Could not identify the content of the "
+                                   "wiki page: no `page__main` element found")
         if len(content) != 1:
-            raise WikiParsingError("More than one `WikiaPage` element "
+            raise WikiParsingError("More than one `page__main` element "
                                    "encountered")
         self._page = content[0]
 
