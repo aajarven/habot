@@ -36,9 +36,9 @@ def test_get_wiki_page():
     reader = WikiReader("https://habitica.fandom.com/wiki/test_article")
     assert reader.page
     assert ("The Keep:Mental Health Warriors Unite" in
-            [h.text for h in reader.page.xpath("//h1")])
+            reader.page.xpath("//h1")[0].text)
     assert (reader.page.xpath("//span")[-1].text ==
-            "Take your favorite fandoms with you and never miss a beat.")
+            "Join Fan Lab")
 
 
 @pytest.mark.usefixtures("patch_wiki_page")
@@ -51,14 +51,14 @@ def test_find_elements_with_matching_subelement():
     the expected content.
     """
     reader = WikiReader("https://habitica.fandom.com/wiki/test_article")
-    quest_list = reader.find_elements_with_matching_subelement("ul",
+    quest_list = reader.find_elements_with_matching_subelement("ol",
                                                                "(CURRENT)")
     assert len(quest_list) == 1
-    assert quest_list[0].tag == "ul"
+    assert quest_list[0].tag == "ol"
 
     li_elements = quest_list[0].getchildren()
-    assert len(li_elements) == 8
-    assert li_elements[0].text == "(CURRENT) Robot (collection)"
+    assert len(li_elements) == 9
+    assert li_elements[0].text == "(CURRENT) Spider (Boss 400)"
 
     for element in li_elements:
         assert element.tag == "li"
