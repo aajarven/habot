@@ -64,6 +64,9 @@ def react_to_message(message):
         }
     first_word = message.content.strip().split()[0]
     logger.debug("Got message starting with %s", first_word)
+
+    # We need to call a function from the dict value, so this is easiest
+    # pylint: disable=consider-using-dict-items
     if first_word in commands:
         try:
             functionality = commands[first_word]()

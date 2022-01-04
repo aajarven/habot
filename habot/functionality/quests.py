@@ -59,7 +59,8 @@ class ListOwnedQuests(Functionality):
                 else:
                     quests[quest_name] = partymember_str
 
-        content_lines = [f"- **{quest}**: {quests[quest]}" for quest in quests]
+        content_lines = [f"- **{quest}**: {owners}"
+                         for quest, owners in quests.items()]
         return "\n".join(content_lines)
 
 

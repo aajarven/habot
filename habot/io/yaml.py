@@ -27,7 +27,7 @@ class YAMLFileIO():
         :returns: A list of tasks
         """
         tasks = []
-        with open(filename) as taskfile:
+        with open(filename, encoding="utf8") as taskfile:
             file_contents = yaml.load(taskfile, Loader=yaml.BaseLoader)
             for taskdict in file_contents:
                 # TODO error handling
@@ -58,7 +58,7 @@ class YAMLFileIO():
                   The value for each task is a boolean that denotes if the task
                   was marked as being used already.
         """
-        with open(filename) as questionfile:
+        with open(filename, encoding="utf8") as questionfile:
             file_contents = yaml.load(questionfile, Loader=yaml.BaseLoader)
             try:
                 questions = file_contents["questions"]
@@ -116,7 +116,7 @@ class YAMLFileIO():
                 "question": question.text,
                 "description": question.notes,
                 "used": questions[question]})
-        with open(filename, "w") as dest:
+        with open(filename, "w", encoding="utf8") as dest:
             yaml.dump({"questions": question_data}, dest,
                       default_flow_style=False)
 
