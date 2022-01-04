@@ -27,7 +27,7 @@ class YAMLFileIO():
         :returns: A list of tasks
         """
         tasks = []
-        with open(filename) as taskfile:
+        with open(filename, encoding="utf8") as taskfile:
             file_contents = yaml.load(taskfile, Loader=yaml.BaseLoader)
             for taskdict in file_contents:
                 # TODO error handling
@@ -58,7 +58,7 @@ class YAMLFileIO():
                   The value for each task is a boolean that denotes if the task
                   was marked as being used already.
         """
-        with open(filename) as questionfile:
+        with open(filename, encoding="utf8") as questionfile:
             file_contents = yaml.load(questionfile, Loader=yaml.BaseLoader)
             try:
                 questions = file_contents["questions"]
@@ -85,9 +85,8 @@ class YAMLFileIO():
                     raise \
                         MalformedQuestionFileException(
                             "The following question in the question list is "
-                            "malformed:\n{}".format(question),
-                            filename) \
-                        from key_error
+                            f"malformed:\n{question}",
+                            filename) from key_error
 
             return question_tasks
 
@@ -117,7 +116,7 @@ class YAMLFileIO():
                 "question": question.text,
                 "description": question.notes,
                 "used": questions[question]})
-        with open(filename, "w") as dest:
+        with open(filename, "w", encoding="utf8") as dest:
             yaml.dump({"questions": question_data}, dest,
                       default_flow_style=False)
 
@@ -146,6 +145,7 @@ class MalformedQuestionFileException(Exception):
              'is a valid question list file.')
 
     def __init__(self, problem, filename):
-        message = ("Problem with question file \"{}\":\n\n{}\n\n{}"
-                   "".format(filename, problem, self._INFO))
+        message = (f"Problem with question file \"{filename}\":\n\n"
+                   f"{problem}\n\n"
+                   f"{self._INFO}")
         super().__init__(message)

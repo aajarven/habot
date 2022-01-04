@@ -55,8 +55,9 @@ def mock_set_reaction_pending_fx(mocker):
 
 
 @pytest.mark.usefixtures("mock_set_reaction_pending_fx")
-def test_handle_single_PM(mock_messages_awaiting_reaction_fx,
-                          mock_send_private_message_fx):
+def test_handle_single_PM(  # pylint: disable=invalid-name
+        mock_messages_awaiting_reaction_fx,
+        mock_send_private_message_fx):
     """
     Test running `handle_PMs` with a single message awaiting reaction.
 

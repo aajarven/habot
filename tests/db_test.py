@@ -128,8 +128,8 @@ def test_update_data(testdata_db_operator, updated_id,
     updated_data["displayname"] = "cooler_name"
 
     cursor = testdata_db_operator.conn.cursor()
-    cursor.execute(
-        "SELECT * FROM members where id='{}'".format(updated_id))
+    cursor.execute("SELECT * FROM members "
+                   f"WHERE id='{updated_id}'")
 
     result = cursor.fetchall()
     if "nonexistent" in updated_id:
@@ -150,7 +150,7 @@ def test_delete_row(testdata_db_operator, purge_and_init_memberdata_fx):
     """
     testdata_db_operator.delete_row("members", "id", SIMPLE_USER["id"])
     query_result = testdata_db_operator.query_table(
-        "members", condition="id='{}'".format(SIMPLE_USER["id"]))
+        "members", condition=f"id='{SIMPLE_USER['id']}'")
     assert len(query_result) == 0
     purge_and_init_memberdata_fx()
 
@@ -165,7 +165,9 @@ def test_delete_illegal_row(testdata_db_operator):
         testdata_db_operator.delete_row("members", "loginname",
                                         SIMPLE_USER["loginname"])
     query_result = testdata_db_operator.query_table(
-        "members", condition="id='{}'".format(SIMPLE_USER["id"]))
+        "members",
+        condition=f"id='{SIMPLE_USER['id']}'",
+        )
     assert len(query_result) == 1
 
 

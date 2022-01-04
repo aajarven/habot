@@ -39,7 +39,7 @@ class HabiticaOperator():
                     "daily", or "todo)
         """
         if task_type not in ["habit", "daily", "todo", None]:
-            raise ValueError("Task type {} not supported".format(task_type))
+            raise ValueError(f"Task type {task_type} not supported")
 
         url = "https://habitica.com/api/v3/tasks/user"
         tasks = get_dict_from_api(self._header, url)
@@ -72,12 +72,11 @@ class HabiticaOperator():
                     matching_task = task
                 else:
                     raise AmbiguousOperationException(
-                        "Task text {} doesn't identify a unique task"
-                        "".format(task_text))
+                        f"Task text {task_text} doesn't identify a unique task"
+                        )
 
         if not matching_task:
-            raise NotFoundException("Task with text {} not found"
-                                    "".format(task_text))
+            raise NotFoundException("Task with text {task_text} not found")
 
         return matching_task
 
@@ -117,8 +116,9 @@ class HabiticaOperator():
         """
         task = self.find_task(task_text, task_type=task_type)
 
-        tick_url = ("https://habitica.com/api/v3/tasks/{}/score/{}"
-                    "".format(task["_id"], direction))
+        tick_url = (f"https://habitica.com/api/v3/tasks/"
+                    f"{task['_id']}/score/{direction}"
+                    )
         try:
             habrequest.post(tick_url, headers=self._header)
         # pylint: disable=invalid-name

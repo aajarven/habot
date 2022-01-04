@@ -64,6 +64,9 @@ def react_to_message(message):
         }
     first_word = message.content.strip().split()[0]
     logger.debug("Got message starting with %s", first_word)
+
+    # We need to call a function from the dict value, so this is easiest
+    # pylint: disable=consider-using-dict-items
     if first_word in commands:
         try:
             functionality = commands[first_word]()
@@ -72,16 +75,15 @@ def react_to_message(message):
             logger.error("A problem was encountered during reacting to "
                          "message. See stack trace.", exc_info=True)
             response = ("Something unexpected happened while handling command "
-                        "`{}`. Contact @Antonbury for "
-                        "help.".format(first_word))
+                        f"`{first_word}`. Contact @Antonbury for help.")
     else:
-        command_list = ["`{}`: {}".format(command,
-                                          commands[command]().help())
+        command_list = [f"`{command}`: {commands[command]().help()}"
                         for command in commands]
-        response = ("Command `{}` not recognized.\n\n".format(first_word) +
-                    "I am a bot: not a real human user. If I am misbehaving " +
-                    "or you need assistance, please contact @Antonbury.\n\n" +
-                    "Available commands:\n\n" +
+        response = (f"Command `{first_word}` not recognized.\n\n"
+                    "I am a bot: not a real human user. If I am misbehaving "
+                    "or you need assistance, please contact @Antonbury.\n\n"
+                    "Available commands:\n\n"
+                    +
                     "\n\n".join(command_list))
 
     HabiticaMessager(HEADER).send_private_message(message.from_id, response)

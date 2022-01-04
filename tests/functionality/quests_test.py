@@ -30,11 +30,10 @@ def test_send_reminder_called_with_correct_params(
     command = ("quest-reminders\n"
                "```\n"
                "FirstQuest; @thisdoesntmatter\n"
-               "Quest1; {user1}\n"
-               "Quest number 2; {user2}\n"
-               "Quest 3; {user1}, {user2}\n"
-               "```"
-               "".format(user1=user1, user2=user2))
+               f"Quest1; {user1}\n"
+               f"Quest number 2; {user2}\n"
+               f"Quest 3; {user1}, {user2}\n"
+               "```")
     test_message = PrivateMessage("from_id", "to_id", content=command)
 
     reminder = SendQuestReminders()
@@ -106,9 +105,8 @@ def test_sending_single_message(purge_and_init_memberdata_fx,
     command = ("quest-reminders\n"
                "```\n"
                "FirstQuest; @thisdoesntmatter\n"
-               "quest; {}\n"
-               "```"
-               "".format(SIMPLE_USER["loginname"]))
+               f"quest; {SIMPLE_USER['loginname']}\n"
+               "```")
     expected_message = ("You have a quest coming up in the queue: "
                         "quest! It comes after FirstQuest, so when "
                         "you notice that FirstQuest has ended, please "
@@ -151,11 +149,11 @@ def test_faulty_quest_queue(quests, expected_message_part,
     purge_and_init_memberdata_fx()
     mock_messager = mock_send_private_message_fx
 
+    quest_list_str = "\n".join(quests)
     command = ("quest-reminders\n"
                "```\n"
-               "{}\n"
-               "```"
-               "".format("\n".join(quests)))
+               f"{quest_list_str}\n"
+               "```")
     test_command_msg = PrivateMessage("from_id", "to_id", content=command)
 
     reminder = SendQuestReminders()
@@ -206,13 +204,12 @@ def test_complex_quest_reminder(mocker,
                "but it shouldn't matter\n\n"
                "```\n"
                "FirstQuest;\n"
-               "Quest1; @{user1}\n"
+               f"Quest1; @{user1}\n"
                "\n"
-               "    Quest number 2 ; {user2}\n"
-               "  Quest 3;{user1},{user2}\n"
-               "Quest 3;{user1}    ,    {user2}\n"
-               "```"
-               "".format(user1=user1, user2=user2))
+               f"    Quest number 2 ; {user2}\n"
+               f"  Quest 3;{user1},{user2}\n"
+               f"Quest 3;{user1}    ,    {user2}\n"
+               "```")
     test_message = PrivateMessage("from_id", "to_id", content=command)
 
     reminder = SendQuestReminders()

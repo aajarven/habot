@@ -182,7 +182,7 @@ class HtmlToMd():
 
         The node must not have any children.
         """
-        return "*{}*{}".format(self._text(node), self._tail(node))
+        return f"*{self._text(node)}*{self._tail(node)}"
 
     def _convert_b(self, node):
         """
@@ -190,7 +190,7 @@ class HtmlToMd():
 
         The node must not have any children.
         """
-        return "**{}**{}".format(self._text(node), self._tail(node))
+        return f"**{self._text(node)}**{self._tail(node)}"
 
     def _convert_s(self, node):
         """
@@ -198,7 +198,7 @@ class HtmlToMd():
 
         The node must not have any children.
         """
-        return "~~{}~~{}".format(self._text(node), self._tail(node))
+        return f"~~{self._text(node)}~~{self._tail(node)}"
 
     def _convert_code(self, node):
         """
@@ -206,7 +206,7 @@ class HtmlToMd():
 
         The node must not have any children.
         """
-        return "`{}`{}".format(self._text(node), self._tail(node))
+        return f"`{self._text(node)}`{self._tail(node)}"
 
     def _convert_li(self, node):
         """
@@ -217,15 +217,14 @@ class HtmlToMd():
         """
         children_texts = self._children_texts(node)
         if node.getparent().tag == "ol":
-            list_indicator = "{}. ".format(self._ol_starting_index)
+            list_indicator = f"{self._ol_starting_index}. "
         elif node.getparent().tag == "ul":
             list_indicator = "- "
         else:
-            raise HtmlParsingError("Unsupported parent tag {} encountered "
-                                   "for a list item {}"
-                                   "".format(node.getparent().tag,
-                                             node.text))
-        return "{}{}{}".format(list_indicator, node.text, children_texts)
+            raise HtmlParsingError("Unsupported parent tag "
+                                   f"{node.getparent().tag} encountered "
+                                   "for a list item {node.text}")
+        return f"{list_indicator}{node.text}{children_texts}"
 
     def _join_children_with_newline(self, node):
         """

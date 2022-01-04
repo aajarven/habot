@@ -60,11 +60,10 @@ class PrivateMessage(Message):
                          message_id)
 
     def __str__(self):
-        return ("from: {}\n"
-                "to: {}\n"
-                "{} ({})\n\n"
-                "{}".format(self.from_id, self.to_id, self.timestamp,
-                            self.message_id, self.content))
+        return (f"from: {self.from_id}\n"
+                f"to: {self.to_id}\n"
+                f"{self.timestamp} ({self.message_id})\n\n"
+                f"{self.content}")
 
     @classmethod
     def messages_awaiting_reaction(cls):
@@ -105,13 +104,10 @@ class ChatMessage(Message):
         super().__init__(from_id, timestamp, content, message_id)
 
     def __str__(self):
-        return ("from: {}\n"
-                "{} ({})\n"
-                "likes: {}\n\n"
-                "{}".format(self.from_id,
-                            self.timestamp, self.message_id,
-                            len(self.likers),
-                            self.content))
+        return (f"from: {self.from_id}\n"
+                f"{self.timestamp} ({self.message_id})\n"
+                f"likes: {len(self.likers)}\n\n"
+                f"{self.content}")
 
 
 class SystemMessage(Message):
@@ -138,5 +134,5 @@ class SystemMessage(Message):
         super().__init__(None, timestamp, content, message_id)
 
     def __str__(self):
-        return ("{} System message:\n\n"
-                "{}".format(self.timestamp, self.content))
+        return (f"{self.timestamp} System message:\n\n"
+                f"{self.content}")

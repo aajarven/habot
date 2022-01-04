@@ -25,7 +25,7 @@ def test_party_newsletter(mock_send_private_message_fx,
 
     message = ("This is some content for the newsletter!\n\n"
                "It might contain **more than one paragraph**, wow.")
-    command = ("send-party-newsletter\n \n{} \n ".format(message))
+    command = (f"send-party-newsletter\n \n{message}\n ")
     test_message = PrivateMessage(ALL_USERS[-1]["id"],
                                   "to_id",
                                   content=command)
@@ -34,14 +34,13 @@ def test_party_newsletter(mock_send_private_message_fx,
     response = newsletter_functionality.act(test_message)
 
     expected_message = (
-                   "{content}"
+                   f"{message}"
                    "\n\n---\n\n"
-                   "This is a party newsletter written by @{user} and "
+                   "This is a party newsletter written by "
+                   f"@{ALL_USERS[-1]['loginname']} and "
                    "brought you by the party bot. If you suspect you should "
                    "not have received this message, please contact "
                    "@testuser."
-                   "".format(content=message,
-                             user=ALL_USERS[-1]["loginname"])
                    )
 
     expected_calls = [call(userdata["id"], expected_message)
@@ -50,7 +49,7 @@ def test_party_newsletter(mock_send_private_message_fx,
 
     assert "Sent the given newsletter to the following users:" in response
     for user in ALL_USERS[:-1]:
-        assert "\n- @{}".format(user["loginname"]) in response
+        assert f"\n- @{user['loginname']}" in response
 
 
 @pytest.mark.usefixtures("db_connection_fx", "no_db_update",
@@ -65,7 +64,7 @@ def test_newsletter_not_sent_to_self(mocker, purge_and_init_memberdata_fx,
     mock_send = mock_send_private_message_fx
     message = ("This is some content for the newsletter!\n\n"
                "It might contain **more than one paragraph**, wow.")
-    command = ("send-party-newsletter\n \n{} \n ".format(message))
+    command = f"send-party-newsletter\n \n{message} \n "
     test_message = PrivateMessage(ALL_USERS[2]["id"], "to_id", content=command)
 
     newsletter_functionality = SendPartyNewsletter()
@@ -78,14 +77,12 @@ def test_newsletter_not_sent_to_self(mocker, purge_and_init_memberdata_fx,
     recipients.remove(SIMPLE_USER)
 
     expected_message = (
-                   "{content}"
+                   f"{message}"
                    "\n\n---\n\n"
-                   "This is a party newsletter written by @{user} and "
-                   "brought you by the party bot. If you suspect you should "
-                   "not have received this message, please contact "
-                   "@testuser."
-                   "".format(content=message,
-                             user=ALL_USERS[2]["loginname"])
+                   "This is a party newsletter written by "
+                   f"@{ALL_USERS[2]['loginname']} and brought you by the "
+                   "party bot. If you suspect you should not have received "
+                   "this message, please contact @testuser."
                    )
 
     expected_calls = [call(userdata["id"], expected_message)

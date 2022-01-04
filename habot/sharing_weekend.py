@@ -96,7 +96,7 @@ class SharingChallengeOperator():
             pass
         if not selected_question:
             raise IndexError("There are no more unused weekly questions "
-                             "in file '{}'.".format(question_file))
+                             f"in file '{question_file}'.")
 
         selected_question.difficulty = "hard"
         selected_question.date = deadline
@@ -116,16 +116,13 @@ class SharingChallengeOperator():
         mon = get_next_weekday("monday", from_date=sat)
 
         if sat.month == mon.month:
-            name = "Sharing Weekend {} {}−{}".format(
-                sat.strftime("%b")[:3],
-                sat.strftime("%-d"),
-                mon.strftime("%-d"))
+            name = (f"Sharing Weekend {sat.strftime('%b')[:3]} "
+                    f"{sat.strftime('%-d')}−{mon.strftime('%-d')}")
         else:
-            name = "Sharing Weekend {} {} − {} {}".format(
-                sat.strftime("%b")[:3],
-                sat.strftime("%-d"),
-                mon.strftime("%b")[:3],
-                mon.strftime("%-d"))
+            name = ("Sharing Weekend "
+                    f"{sat.strftime('%b')[:3]} {sat.strftime('%-d')} "
+                    "− "
+                    f"{mon.strftime('%b')[:3]} {mon.strftime('%-d')}")
         return name
 
     def _next_weekend_shortname(self):
@@ -136,9 +133,9 @@ class SharingChallengeOperator():
         """
         # pylint: disable=no-self-use
         next_saturday = get_next_weekday("saturday")
-        return "sharing weekend {}-{:02d}".format(
-            next_saturday.strftime("%Y"),
-            next_saturday.isocalendar()[1])
+        year = next_saturday.strftime("%Y")
+        week = next_saturday.isocalendar()[1]
+        return f"sharing weekend {year}-{week:02d}"
 
     def _party_id(self):
         """

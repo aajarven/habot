@@ -59,8 +59,8 @@ def test_tick(requests_mock, test_operator):
     """
     Test that tick_task sends the correct request.
     """
-    tick_url = ("https://habitica.com/api/v3/tasks/{}/score/up"
-                "".format("963e2ced-fa22-4b18-a22b-c423764e26f3"))
+    task_uid = "963e2ced-fa22-4b18-a22b-c423764e26f3"
+    tick_url = f"https://habitica.com/api/v3/tasks/{task_uid}/score/up"
     test_operator.tick_task("Test habit")
 
     assert len(requests_mock.request_history) == 2

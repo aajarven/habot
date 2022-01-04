@@ -16,7 +16,7 @@ def patch_wiki_page(requests_mock):
     The page has a all the versatile content Mental Health Warriors party page
     has.
     """
-    with open("tests/data/party-wikipage.html") as htmlfile:
+    with open("tests/data/party-wikipage.html", encoding="utf8") as htmlfile:
         page = htmlfile.read()
     requests_mock.get("https://habitica.fandom.com/wiki/test_article",
                       text=page)

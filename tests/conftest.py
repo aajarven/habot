@@ -82,8 +82,8 @@ def prevent_online_requests(monkeypatch):
     """
     def urlopen_error(self, method, url, *args, **kwargs):
         raise RuntimeError(
-                "Requests are not allowed, but a test attempted a {} request "
-                "to {}://{}{}".format(method, self.scheme, self.host, url))
+                f"Requests are not allowed, but a test attempted a {method} "
+                f"request to {self.scheme}://{self.host}{url}")
 
     monkeypatch.setattr(
         "urllib3.connectionpool.HTTPConnectionPool.urlopen", urlopen_error
@@ -209,12 +209,10 @@ def purge_and_init_memberdata_fx(db_connection_fx):
         cursor.execute("INSERT INTO members "
                        "(id, displayname, loginname, birthday) "
                        "values "
-                       "{}, {}, {}, {}".format(
-                           _member_dict_to_values(SIMPLE_USER),
-                           _member_dict_to_values(NAMEDIFF_USER),
-                           _member_dict_to_values(CHARSET_USER),
-                           _member_dict_to_values(SHAREBDAY_USER),
-                           ))
+                       f"{_member_dict_to_values(SIMPLE_USER)}, "
+                       f"{_member_dict_to_values(NAMEDIFF_USER)}, "
+                       f"{_member_dict_to_values(CHARSET_USER)}, "
+                       f"{_member_dict_to_values(SHAREBDAY_USER)}")
         db_connection_fx.commit()
         cursor.close()
     return _reset
@@ -224,10 +222,8 @@ def _member_dict_to_values(member_dict):
     """
     Return a string that represents the given member dict for INSERT statement
     """
-    return "('{}', '{}', '{}', '{}')".format(member_dict["id"],
-                                             member_dict["displayname"],
-                                             member_dict["loginname"],
-                                             member_dict["birthday"])
+    return (f"('{member_dict['id']}', '{member_dict['displayname']}', "
+            f"'{member_dict['loginname']}', '{member_dict['birthday']}')")
 
 
 @pytest.fixture

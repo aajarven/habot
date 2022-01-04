@@ -77,7 +77,7 @@ class DBSyncer():
                 "birthday": member.habitica_birthday,
                 }
             user_row = self._db.query_table(
-                "members", condition="id='{}'".format(member.id))
+                "members", condition=f"id='{member.id}'")
             if len(user_row) == 0:
                 self._db.insert_data("members", db_data)
             elif user_row != db_data:
@@ -103,12 +103,12 @@ class DBTool():
         """
         members = self._db.query_table(
             "members",
-            condition="loginname='{}'".format(habitica_loginname),
+            condition=f"loginname='{habitica_loginname}'",
             columns="id",
             )
         if not members:
-            raise ValueError("User with login name {} not found"
-                             "".format(habitica_loginname))
+            raise ValueError(f"User with login name {habitica_loginname} "
+                             "not found")
         return members[0]["id"]
 
     def get_party_user_ids(self):
@@ -127,12 +127,11 @@ class DBTool():
         """
         members = self._db.query_table(
             "members",
-            condition="id='{}'".format(uid),
+            condition=f"id='{uid}'",
             columns="loginname",
             )
         if not members:
-            raise ValueError("User with user ID {} not found"
-                             "".format(uid))
+            raise ValueError(f"User with user ID {uid} not found")
         return members[0]["loginname"]
 
 
@@ -167,9 +166,8 @@ class DBOperator():
         """
         keys = condition_dict.keys()
         values = condition_dict.values()
-        condition = " AND ".join(["{} = %s".format(key) for key in keys])
-        query_str = "SELECT * FROM {} WHERE {}".format(table,
-                                                       condition)
+        condition = " AND ".join([f"{key} = %s" for key in keys])
+        query_str = f"SELECT * FROM {table} WHERE {condition}"
         cursor = self._cursor_for_db(database)
         cursor.execute(query_str, tuple(values))
         data = cursor.fetchall()
@@ -196,16 +194,15 @@ class DBOperator():
         elif columns is None:
             column_str = "*"
         else:
-            raise ValueError("Illegal column selector '{}' received. A string "
-                             "or list expected.".format(columns))
+            raise ValueError(f"Illegal column selector '{columns}' received. "
+                             "A string or list expected.")
 
         if condition:
-            condition_str = "WHERE {}".format(condition)
+            condition_str = f"WHERE {condition}"
         else:
             condition_str = ""
 
-        query_str = "SELECT {} FROM {} {}".format(column_str, table,
-                                                  condition_str)
+        query_str = f"SELECT {column_str} FROM {table} {condition_str}"
         cursor = self._cursor_for_db(database)
         cursor.execute(query_str)
         data = cursor.fetchall()
@@ -234,9 +231,9 @@ class DBOperator():
         primary_key = primary_key[0]
 
         values_str = ", ".join(
-            ["{} = %s".format(key) for key in new_data])
-        update_str = "UPDATE {} SET {} WHERE {}='{}'".format(
-            table, values_str, primary_key, primary_key_value)
+            [f"{key} = %s" for key in new_data])
+        update_str = (f"UPDATE {table} SET {values_str} "
+                      f"WHERE {primary_key}='{primary_key_value}'")
 
         cursor = self._cursor_for_db(database)
         cursor.execute(update_str, tuple(new_data.values()))
@@ -246,10 +243,9 @@ class DBOperator():
             statement = cursor.statement
             cursor.close()
             raise DatabaseCommunicationException(
-                "Updating the following data:\n{}\ninto table {} should have "
-                "affected one row, but instead it affected {}. The used "
-                "command:\n{}".format(new_data, table, affected_rows,
-                                      statement))
+                f"Updating the following data:\n{new_data}\ninto table "
+                f"{table} should have affected one row, but instead it "
+                f"affected {affected_rows}. The used command:\n{statement}")
 
         cursor.close()
         self.conn.commit()
@@ -274,9 +270,8 @@ class DBOperator():
         column_str = ", ".join(columns)
         cursor = self._cursor_for_db(database)
         value_parameters = ", ".join(["%s"]*len(columns))
-        insert_str = "INSERT INTO {} ({}) VALUES ({})".format(table,
-                                                              column_str,
-                                                              value_parameters)
+        insert_str = (f"INSERT INTO {table} ({column_str}) VALUES "
+                      f"({value_parameters})")
         cursor.execute(insert_str, tuple(values))
 
         affected_rows = cursor.rowcount
@@ -284,9 +279,9 @@ class DBOperator():
             statement = cursor.statement
             cursor.close()
             raise DatabaseCommunicationException(
-                "Inserting the following data:\n{}\ninto table {} should have "
-                "affected one row, but instead it affected {}. The used "
-                "command:\n{}".format(data, table, affected_rows, statement))
+                f"Updating the following data:\n{data}\ninto table "
+                f"{table} should have affected one row, but instead it "
+                f"affected {affected_rows}. The used command:\n{statement}")
 
         cursor.close()
         self.conn.commit()
@@ -306,27 +301,24 @@ class DBOperator():
         """
         # TODO: allow removing based on other keys too
         if not self._is_primary_key(table, condition_column, database):
-            raise ValueError("Cannot delete a row based on {}: not a primary "
-                             "key.".format(condition_column))
+            raise ValueError("Cannot delete a row based on "
+                             f"{condition_column}: not a primary key.")
         cursor = self._cursor_for_db(database)
-        del_str = "DELETE FROM {} WHERE {} = '{}';".format(table,
-                                                           condition_column,
-                                                           condition_value)
+        del_str = (f"DELETE FROM {table} "
+                   f"WHERE {condition_column} = '{condition_value}';")
         cursor.execute(del_str)
         affected_rows = cursor.rowcount
         if affected_rows == 0:
-            raise DataNotFoundException("Condition {} = {} did not match "
-                                        "any rows on table {}: deletion "
-                                        "could not be performed.".format(
-                                            condition_column, condition_value,
-                                            table))
+            raise DataNotFoundException(
+                f"Condition {condition_column} = {condition_value} did not "
+                f"match any rows on table {table}: deletion could not be "
+                "performed.")
         if affected_rows > 1:
             statement = cursor.statement
             cursor.close()
             raise DatabaseCommunicationException(
-                "Deletion from table {} using statement '{}' would remove "
-                "more than one row. Nothing deleted.".format(table,
-                                                             statement))
+                f"Deletion from table {table} using statement '{statement}' "
+                "would remove more than one row. Nothing deleted.")
 
         cursor.close()
         self.conn.commit()
@@ -367,7 +359,7 @@ class DBOperator():
             - 'Extra' (possible extra information)
         """
         cursor = self._cursor_for_db(database)
-        cursor.execute("DESCRIBE {}.{}".format(database, table))
+        cursor.execute(f"DESCRIBE {database}.{table}")
 
         columns = {}
 
@@ -424,7 +416,7 @@ class DBOperator():
         :db: Name of the database
         """
         cursor = self.conn.cursor()
-        cursor.execute("USE {}".format(db))
+        cursor.execute(f"USE {db}")
         cursor.execute("SET NAMES 'utf8mb4';")
         cursor.execute("SET CHARACTER SET utf8mb4;")
         return cursor
@@ -439,19 +431,19 @@ class DBOperator():
             """
             Return a string that can be executed to create a table.
             """
-            columns = ["`{}` {}".format(name, table_columns[name]) for name in
+            columns = [f"`{name}` {table_columns[name]}" for name in
                        table_columns]
-            return "CREATE TABLE {} ({}, PRIMARY KEY (`{}`))".format(
-                table_name, ", ".join(columns), primary_key)
+            return (f"CREATE TABLE {table_name} ({', '.join(columns)}, "
+                    f"PRIMARY KEY (`{primary_key}`))")
 
         cursor = self.conn.cursor()
 
         # ensure that the database exists
         if dbconf.DB_NAME not in self.databases():
-            cursor.execute("CREATE DATABASE {}".format(dbconf.DB_NAME))
+            cursor.execute(f"CREATE DATABASE {dbconf.DB_NAME}")
 
         # ensure that all tables exist
-        cursor.execute("USE {}".format(dbconf.DB_NAME))
+        cursor.execute(f"USE {dbconf.DB_NAME}")
         tables = self.tables()
         for table_name, (table_columns, primary_key) in dbconf.TABLES.items():
             if table_name not in tables:
