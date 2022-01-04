@@ -107,6 +107,7 @@ def test_get_party_messages(test_messager, db_operator_fx,
         "timestamp": datetime.datetime(2021, 1, 1, 8, 39, 52),
         "content": PARTY_CHAT_MSG_1["text"],
         }
+    # pylint: disable=consider-using-dict-items
     for key in expected_chat_message:
         assert chat_messages[0][key] == expected_chat_message[key]
 
@@ -227,6 +228,7 @@ def test_get_single_sent_pm(test_messager, db_operator_fx,
         "timestamp": datetime.datetime(2020, 12, 31, 22, 1, 8),
         "content": SENT_PM_1["text"],
         }
+    # pylint: disable=consider-using-dict-items
     for key in expected_pm:
         assert private_messages[0][key] == expected_pm[key]
 
@@ -249,6 +251,7 @@ def test_get_single_received_pm(test_messager, db_operator_fx,
         "timestamp": datetime.datetime(2020, 12, 31, 16, 56, 49),
         "content": RECEIVED_PM["text"],
         }
+    # pylint: disable=consider-using-dict-items
     for key in expected_pm:
         assert private_messages[0][key] == expected_pm[key]
 
