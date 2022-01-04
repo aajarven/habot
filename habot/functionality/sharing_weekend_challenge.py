@@ -94,7 +94,7 @@ class CreateNextSharingWeekend(Functionality):
                     "help.")
 
         challenge_url = f"https://habitica.com/challenges/{challenge.id}"
-        return ("A new sharing weekend challenge as available for joining: "
+        return ("A new sharing weekend challenge is available for joining: "
                 f"[{challenge_url}]({challenge_url})")
 
     def help(self):
