@@ -26,4 +26,4 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Lint with pylint
       run: |
-        pylint **/*.py --disable=fixme,duplicate-code
+        pylint habot tests --disable=fixme,duplicate-code
