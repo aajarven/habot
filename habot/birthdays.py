@@ -67,5 +67,5 @@ class BirthdayReminder():
             reveller_str = "- " + "\n- ".join(reveller_names)
             message = ("The following habiticians are celebrating their "
                        "Habitica birthdays today:\n"
-                       "{}\n\nHappy birthday!".format(reveller_str))
+                       f"{reveller_str}\n\nHappy birthday!")
         return message

@@ -35,20 +35,18 @@ class SendPartyNewsletter(Functionality):
                 "Please read it carefully :blush:\n\n"
                 "Another paragraph with something **real** important here!"
                 )
+        example_result = self._format_newsletter(example_content,
+                                                 "YourUsername")
         return ("Send an identical message to all party members."
                 "\n\n"
                 "For example the following command:\n"
                 "```\n"
                 "party-newsletter"
                 "\n\n"
-                "{example_content}\n"
+                f"{example_content}\n"
                 "```\n"
                 "will send the following message to all party members:\n"
-                "{example_result}"
-                "".format(
-                    example_content=example_content,
-                    example_result=self._format_newsletter(example_content,
-                                                           "YourUsername"))
+                f"{example_result}"
                 )
 
     @requires_party_membership
@@ -85,12 +83,12 @@ class SendPartyNewsletter(Functionality):
             recipients.append(self._db_tool.get_loginname(uid))
             self._logger.debug("Sent out a newsletter to %s", recipients[-1])
 
-        recipient_list_str = "\n".join(["- @{}".format(name)
+        recipient_list_str = "\n".join([f"- @{name}"
                                         for name in recipients])
         self._logger.debug("A newsletter sent to %d party members",
                            len(recipients))
         return ("Sent the given newsletter to the following users:\n"
-                "{}".format(recipient_list_str))
+                f"{recipient_list_str}")
 
     def _format_newsletter(self, message, sender_name):
         """
@@ -99,13 +97,11 @@ class SendPartyNewsletter(Functionality):
         The footer tells who originally sent the newsletter and urges people to
         contact the admin if the bot is misbehaving.
         """
-        return ("{message}"
+        # pylint: disable=no-self-use
+        return (f"{message}"
                 "\n\n---\n\n"
-                "This is a party newsletter written by @{user} and "
+                f"This is a party newsletter written by @{sender_name} and "
                 "brought you by the party bot. If you suspect you should "
                 "not have received this message, please contact "
-                "@{admin}."
-                "".format(message=message,
-                          user=sender_name,
-                          admin=self._db_tool.get_loginname(conf.ADMIN_UID))
+                f"@{self._db_tool.get_loginname(conf.ADMIN_UID)}."
                 )

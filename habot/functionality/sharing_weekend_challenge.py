@@ -93,10 +93,9 @@ class CreateNextSharingWeekend(Functionality):
             return ("New challenge creation failed. Contact @Antonbury for "
                     "help.")
 
-        challenge_url = (
-                "https://habitica.com/challenges/{}".format(challenge.id))
+        challenge_url = f"https://habitica.com/challenges/{challenge.id}"
         return ("A new sharing weekend challenge as available for joining: "
-                "[{url}]({url})".format(url=challenge_url))
+                f"[{challenge_url}]({challenge_url})")
 
     def help(self):
         return ("Create a new sharing weekend challenge. No customization is "
@@ -134,8 +133,8 @@ class AwardWinner(Functionality):
                       - datetime.timedelta(today.weekday() - STOCK_DAY_NUMBER))
         winner = challenge.random_winner(stock_date, STOCK_NAME)
         challenge.award_winner(winner.id)
-        return ("Congratulations are in order for {}, the lucky winner of {}!"
-                "".format(winner, challenge.name))
+        return (f"Congratulations are in order for {winner}, the lucky winner "
+                f"of {challenge.name}!")
 
     def help(self):
         return ("Award a stock data determined winner for the newest sharing "

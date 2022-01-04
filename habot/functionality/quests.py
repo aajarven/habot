@@ -42,16 +42,14 @@ class ListOwnedQuests(Functionality):
             member_name = self._db_tool.get_loginname(member_uid)
             member_data = get_dict_from_api(
                 HEADER,
-                "https://habitica.com/api/v3/members/{}".format(member_uid))
+                f"https://habitica.com/api/v3/members/{member_uid}")
             quest_counts = member_data["items"]["quests"]
             for quest_name in quest_counts:
                 count = quest_counts[quest_name]
                 if count == 1:
-                    partymember_str = "@{}".format(member_name)
+                    partymember_str = f"@{member_name}"
                 elif count >= 1:
-                    partymember_str = ("@{user} ({count})"
-                                       "".format(user=member_name,
-                                                 count=count))
+                    partymember_str = f"@{member_name} ({count})"
                 else:
                     continue
 
@@ -61,8 +59,7 @@ class ListOwnedQuests(Functionality):
                 else:
                     quests[quest_name] = partymember_str
 
-        content_lines = ["- **{}**: {}".format(quest, quests[quest])
-                         for quest in quests]
+        content_lines = [f"- **{quest}**: {quests[quest]}" for quest in quests]
         return "\n".join(content_lines)
 
 
@@ -143,9 +140,9 @@ class SendQuestReminders(Functionality):
         try:
             self._validate(content)
         except ValidationError as err:
-            return ("A problem was encountered when reading the quest list: {}"
-                    "\n\n"
-                    "No messages were sent.".format(str(err)))
+            return ("A problem was encountered when reading the quest list: "
+                    f"{str(err)}\n\n"
+                    "No messages were sent.")
 
         reminder_data = content.split("```")[1]
         reminder_lines = reminder_data.strip().split("\n")
@@ -163,7 +160,7 @@ class SendQuestReminders(Functionality):
                     sent_reminders += 1
                 previous_quest = quest_name
 
-        return "Sent out {} quest reminders.".format(sent_reminders)
+        return f"Sent out {sent_reminders} quest reminders."
 
     def _validate(self, command_body):
         """
@@ -201,33 +198,34 @@ class SendQuestReminders(Functionality):
                         "Each line in the quest queue must be divided into "
                         "two parts by a semicolon (;), the first part "
                         "containing the name of the quest and the latter "
-                        "holding the names of the participants. Line `{}` "
-                        "did not match this format.".format(line)
+                        "holding the names of the participants. Line "
+                        f"`{line}` did not match this format."
                         )
 
             if not parts[0].strip():
                 raise ValidationError(
-                        "Problem in line `{}`: quest name cannot be empty."
-                        "".format(line))
+                        f"Problem in line `{line}`: quest name cannot be "
+                        "empty."
+                        )
 
             if not first_line:
                 if not parts[1].strip():
                     raise ValidationError(
-                            "No quest owners listed for quest {}"
-                            "".format(parts[0].strip()))
+                            "No quest owners listed for quest "
+                            f"{parts[0].strip()}"
+                            )
 
                 for owner_str in parts[1].split(","):
                     owner_name = owner_str.strip().lstrip("@")
                     if not owner_name:
                         raise ValidationError(
-                                "Malformed quest owner list for quest {}"
-                                "".format(line))
+                                f"Malformed quest owner list for quest {line}"
+                                )
                     try:
                         self._db_tool.get_user_id(owner_name)
                     except ValueError as err:
                         raise ValidationError(
-                                "User @{} not found in the party"
-                                "".format(owner_name)
+                                f"User @{owner_name} not found in the party"
                                 ) from err
             first_line = False
         self._logger.debug("Quest data successfully validated")
@@ -259,17 +257,15 @@ class SendQuestReminders(Functionality):
         """
         # pylint: disable=no-self-use
         if n_users > 2:
-            who = "You (and {} others)".format(n_users - 1)
+            who = f"You (and {n_users - 1} others)"
         elif n_users == 2:
             who = "You (and one other partymember)"
         else:
             who = "You"
-        return ("{who} have a quest coming up in the queue: {quest_name}! "
-                "It comes after {previous_quest}, so when you notice that "
-                "{previous_quest} has ended, please send out the invite for "
-                "{quest_name}.".format(who=who,
-                                       quest_name=quest_name,
-                                       previous_quest=previous_quest))
+        return (f"{who} have a quest coming up in the queue: {quest_name}! "
+                f"It comes after {previous_quest}, so when you notice that "
+                f"{previous_quest} has ended, please send out the invite for "
+                f"{quest_name}.")
 
 
 class ValidationError(ValueError):

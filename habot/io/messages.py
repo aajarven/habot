@@ -73,7 +73,7 @@ class HabiticaMessager():
                 raise UnsplittableMessage("Cannot find a legal split "
                                           "location in the following part "
                                           "of an outgoing message:\n"
-                                          "{}".format(message))
+                                          f"{message}")
             while split_index != -1:
                 next_split_candidate = message.find(split_at, split_index + 1)
                 if (next_split_candidate > max_length
@@ -98,8 +98,8 @@ class HabiticaMessager():
         api_url = "https://habitica.com/api/v3/members/send-private-message"
         message_parts = self._split_long_message(message)
         if len(message_parts) > 3:
-            raise SpamDetected("Sending {} messages at once is not supported."
-                               "".format(len(message_parts)))
+            raise SpamDetected(f"Sending {message_parts} messages at once is "
+                               "not supported.")
         for message_part in message_parts:
             try:
                 habrequest.post(api_url, headers=self._header,
@@ -120,7 +120,7 @@ class HabiticaMessager():
                    the bot.
         :message: Contents of the message to be sent
         """
-        api_url = "https://habitica.com/api/v3/groups/{}/chat".format(group_id)
+        api_url = f"https://habitica.com/api/v3/groups/{group_id}/chat"
         try:
             habrequest.post(api_url, headers=self._header,
                             data={"message": message})
@@ -198,7 +198,7 @@ class HabiticaMessager():
         self._ensure_db()
         existing_message = self._db.query_table(
             "system_messages",
-            condition="id='{}'".format(system_message.message_id))
+            condition=f"id='{system_message.message_id}'")
         if not existing_message:
             for key, value in system_message.info.items():
                 info_data = {
@@ -235,7 +235,7 @@ class HabiticaMessager():
         self._ensure_db()
         existing_message = self._db.query_table(
             "chat_messages",
-            condition="id='{}'".format(chat_message.message_id))
+            condition=f"id='{chat_message.message_id}'")
         if not existing_message:
             for liker in chat_message.likers:
                 self._write_like(chat_message.message_id, liker)
@@ -349,7 +349,7 @@ class HabiticaMessager():
         for message in messages:
             existing_message = self._db.query_table(
                 "private_messages",
-                condition="id='{}'".format(message.message_id))
+                condition=f"id='{message.message_id}'")
             if not existing_message:
                 self._logger.debug("message.from_id = %s", message.from_id)
                 self._logger.debug("id of x-api-user: %s",
@@ -403,7 +403,7 @@ class HabiticaMessager():
         self._ensure_db()
         sent_messages = self._db.query_table(
             "private_messages",
-            condition="timestamp>'{}' AND to_id='{}'".format(timestamp, to_id))
+            condition=f"timestamp>'{timestamp}' AND to_id='{to_id}'")
         if sent_messages:
             return True
         return False

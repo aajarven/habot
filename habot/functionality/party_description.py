@@ -67,12 +67,11 @@ class UpdatePartyDescription(Functionality):
                 api_token=habitica_credentials.PARTY_OWNER_API_TOKEN)
         return ("Updated the party description. Old description:\n\n"
                 "```\n"
-                "{}\n"
+                f"{old_description}\n"
                 "```\n"
                 "---\n\n"
                 "New description:\n\n"
-                "{}"
-                "".format(old_description, new_description))
+                f"{new_description}")
 
     def _parse_quest_queue_from_wiki(self):
         """
@@ -104,16 +103,14 @@ class UpdatePartyDescription(Functionality):
                 "ol", "(CURRENT)")
         if len(ols) != 1:
             raise WikiParsingError("Identifying a single quest queue in party "
-                                   "wiki page {} failed: {} queue candidates "
-                                   "found.".format(conf.PARTY_WIKI_URL,
-                                                   len(ols)))
+                                   f"wiki page {conf.PARTY_WIKI_URL} failed: "
+                                   f"{len(ols)} queue candidates found.")
 
         current_time = datetime.datetime.now(datetime.timezone.utc)
-        quest_queue_header = ("The Quest Queue (as in Wiki on {}):"
-                              "".format(current_time.strftime(
-                                  "%b %d at %H:%M UTC%z")))
+        timestamp = current_time.strftime("%b %d at %H:%M UTC%z")
+        quest_queue_header = f"The Quest Queue (as in Wiki on {timestamp}):"
         quest_queue_content = HtmlToMd(ol_starting_index=0).convert(ols[0])
-        return "{}\n\n{}".format(quest_queue_header, quest_queue_content)
+        return f"{quest_queue_header}\n\n{quest_queue_content}"
 
     def _replace_quest_queue(self, old_description, new_queue):
         """

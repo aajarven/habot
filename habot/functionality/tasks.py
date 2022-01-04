@@ -44,10 +44,10 @@ class AddTask(Functionality):
 
         return ("Added a new task with the following properties:\n\n"
                 "```\n"
-                "type: {}\n"
-                "text: {}\n"
-                "notes: {}\n"
-                "```".format(task_type, task_text, task_notes)
+                f"type: {task_type}\n"
+                f"text: {task_text}\n"
+                f"notes: {task_notes}\n"
+                "```"
                 )
 
     def help(self):
