@@ -135,6 +135,9 @@ class DBTool():
             raise ValueError(f"User with user ID {uid} not found")
         return members[0]["loginname"]
 
+    def get_partymember_data(self):
+        return self._db.query_table("members")
+
 
 class DBOperator():
     """
