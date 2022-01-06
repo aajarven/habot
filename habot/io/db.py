@@ -136,6 +136,9 @@ class DBTool():
         return members[0]["loginname"]
 
     def get_partymember_data(self):
+        """
+        Return the full partymember data as a list of dicts
+        """
         return self._db.query_table("members")
 
 

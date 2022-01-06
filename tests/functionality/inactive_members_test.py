@@ -11,6 +11,9 @@ from tests.conftest import SIMPLE_USER
 
 
 def inactive_members_message():
+    """
+    Run ListInactiveMembers and return the resulting message
+    """
     test_message = PrivateMessage(SIMPLE_USER["id"], "to_id",
                                   content="list-inactive-members")
     lister = ListInactiveMembers()
