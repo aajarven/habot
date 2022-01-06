@@ -169,25 +169,33 @@ def testdata_db_operator(purge_and_init_memberdata_fx):
 SIMPLE_USER = {"id": "9cb40345-720f-4c9e-974d-18e016d9564d",
                "displayname": "testuser",
                "loginname": "testuser",
-               "birthday": datetime.date(2016, 12, 4)}
+               "birthday": datetime.date(2016, 12, 4),
+               "lastlogin": datetime.date(2021, 1, 4),
+               }
 
 # User wth different display and login names
 NAMEDIFF_USER = {"id": "a431b1a5-d287-4c34-93c4-7d607905a947",
                  "displayname": "habitician",
                  "loginname": "habiticianlogin",
-                 "birthday": datetime.date(2019, 5, 31)}
+                 "birthday": datetime.date(2019, 5, 31),
+                 "lastlogin": datetime.date(2019, 6, 3),
+                 }
 
 # User with non-ascii characters in displayname
 CHARSET_USER = {"id": "7319d61c-1940-460d-8dc8-007f7e9537f0",
                 "displayname": "somedüde",
                 "loginname": "somedude",
-                "birthday": datetime.date(2019, 5, 31)}
+                "birthday": datetime.date(2019, 5, 31),
+                "lastlogin": datetime.date(2020, 12, 24),
+                }
 
 # User sharing a birthday with another user
 SHAREBDAY_USER = {"id": "b5845235-a344-4f52-a08b-02084cab00c4",
                   "displayname": "showingYaMyBDAY",
                   "loginname": "birthdayfella",
-                  "birthday": datetime.date(2019, 5, 31)}
+                  "birthday": datetime.date(2019, 5, 31),
+                  "lastlogin": datetime.date(2021, 1, 6),
+                  }
 
 ALL_USERS = [SIMPLE_USER, NAMEDIFF_USER, CHARSET_USER, SHAREBDAY_USER]
 
@@ -207,7 +215,7 @@ def purge_and_init_memberdata_fx(db_connection_fx):
         operator._ensure_tables()  # pylint: disable=protected-access
         cursor.execute("USE habdb")
         cursor.execute("INSERT INTO members "
-                       "(id, displayname, loginname, birthday) "
+                       "(id, displayname, loginname, birthday, lastlogin) "
                        "values "
                        f"{_member_dict_to_values(SIMPLE_USER)}, "
                        f"{_member_dict_to_values(NAMEDIFF_USER)}, "
@@ -223,7 +231,9 @@ def _member_dict_to_values(member_dict):
     Return a string that represents the given member dict for INSERT statement
     """
     return (f"('{member_dict['id']}', '{member_dict['displayname']}', "
-            f"'{member_dict['loginname']}', '{member_dict['birthday']}')")
+            f"'{member_dict['loginname']}', '{member_dict['birthday']}', "
+            f"'{member_dict['lastlogin']}')"
+            )
 
 
 @pytest.fixture

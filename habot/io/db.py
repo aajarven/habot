@@ -75,6 +75,7 @@ class DBSyncer():
                 "displayname": member.displayname,
                 "loginname": member.login_name,
                 "birthday": member.habitica_birthday,
+                "lastlogin": member.last_login,
                 }
             user_row = self._db.query_table(
                 "members", condition=f"id='{member.id}'")
