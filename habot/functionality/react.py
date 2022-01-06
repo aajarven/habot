@@ -12,6 +12,7 @@ from habot.functionality.quests import ListOwnedQuests, SendQuestReminders
 from habot.functionality.sharing_weekend_challenge import (
         SendWinnerMessage, CreateNextSharingWeekend, AwardWinner)
 from habot.functionality.tasks import AddTask
+from habot.functionality.inactive_members import ListInactiveMembers
 from habot.io.messages import HabiticaMessager
 import habot.logger
 from habot.message import PrivateMessage
@@ -61,6 +62,7 @@ def react_to_message(message):
         "party-newsletter": SendPartyNewsletter,
         "owned-quests": ListOwnedQuests,
         "update-party-description": UpdatePartyDescription,
+        "list-inactive-members": ListInactiveMembers,
         }
     first_word = message.content.strip().split()[0]
     logger.debug("Got message starting with %s", first_word)
