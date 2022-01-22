@@ -317,6 +317,7 @@ MEMBER_ALREADY_IN_DB_1 = Member(
                       "displayname": "member 1",
                       "loginname": "member1",
                       "birthday": datetime.date(2020, 1, 15),
+                      "last_login": datetime.date(2020, 12, 10),
                       })
 MEMBER_ALREADY_IN_DB_2 = Member(
         "member-already-in-db-2-id",
@@ -324,6 +325,7 @@ MEMBER_ALREADY_IN_DB_2 = Member(
                       "displayname": "member 2",
                       "loginname": "member2",
                       "birthday": datetime.date(2019, 6, 30),
+                      "last_login": datetime.date(2021, 1, 3),
                       })
 NEW_MEMBER = Member(
         "new-member-id",
@@ -331,6 +333,7 @@ NEW_MEMBER = Member(
                       "displayname": "New member =3",
                       "loginname": "newmember",
                       "birthday": datetime.date(2020, 12, 13),
+                      "last_login": datetime.date(2020, 12, 14),
                       })
 
 
@@ -351,6 +354,7 @@ def purge_and_set_memberdata_fx(db_connection_fx, db_operator_fx):
             "displayname": member.displayname,
             "loginname": member.login_name,
             "birthday": member.habitica_birthday,
+            "lastlogin": member.last_login,
             }
         db_operator_fx.insert_data("members", data)
 

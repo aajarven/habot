@@ -75,6 +75,7 @@ class DBSyncer():
                 "displayname": member.displayname,
                 "loginname": member.login_name,
                 "birthday": member.habitica_birthday,
+                "lastlogin": member.last_login,
                 }
             user_row = self._db.query_table(
                 "members", condition=f"id='{member.id}'")
@@ -133,6 +134,12 @@ class DBTool():
         if not members:
             raise ValueError(f"User with user ID {uid} not found")
         return members[0]["loginname"]
+
+    def get_partymember_data(self):
+        """
+        Return the full partymember data as a list of dicts
+        """
+        return self._db.query_table("members")
 
 
 class DBOperator():

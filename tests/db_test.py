@@ -186,7 +186,9 @@ def test_delete_illegal_row(testdata_db_operator):
           "loginname": {"Type": "varchar(255)", "Null": "YES", "Key": "",
                         "Default": None, "Extra": ""},
           "birthday": {"Type": "date", "Null": "YES", "Key": "",
-                       "Default": None, "Extra": ""}
+                       "Default": None, "Extra": ""},
+          "lastlogin": {"Type": "date", "Null": "YES", "Key": "",
+                        "Default": None, "Extra": ""},
           }),
     ]
 )

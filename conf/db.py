@@ -11,6 +11,7 @@ TABLES = {
         "displayname": "VARCHAR(255)",
         "loginname": "VARCHAR(255)",
         "birthday": "DATE",
+        "lastlogin": "DATE",
         }, "id"),
     "private_messages": ({
         "id": "VARCHAR(50)",
