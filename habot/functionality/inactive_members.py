@@ -37,10 +37,13 @@ class ListInactiveMembers(Functionality):
         """
         return ALLOW_INACTIVITY_FROM
 
-    @requires_party_membership
-    def act(self, message):
-        self._db_syncer.update_partymember_data()
-        member_data = self._db_tool.get_partymember_data()
+    def inactive_members(self, member_data):
+        """
+        Return a list of inactive members
+
+        Members on the list of allowed inactive members are not included in the
+        list.
+        """
         now = datetime.date.today()
 
         inactive_members = []
@@ -49,7 +52,14 @@ class ListInactiveMembers(Functionality):
                 if member["loginname"] in self.allowed_inactive_members:
                     continue
                 inactive_members.append(member)
+        return inactive_members
 
+    @requires_party_membership
+    def act(self, message):
+        self._db_syncer.update_partymember_data()
+        member_data = self._db_tool.get_partymember_data()
+
+        inactive_members = self.inactive_members(member_data)
         return self._construct_message(inactive_members)
 
     def _construct_message(self, inactive_users):
