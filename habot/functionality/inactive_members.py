@@ -5,6 +5,7 @@ Functionality for handling inactive party members
 import datetime
 
 from conf.header import HEADER
+from conf.inactive_members import ALLOW_INACTIVITY_FROM
 from habot.functionality.base import Functionality, requires_party_membership
 from habot.io.db import DBTool, DBSyncer
 from habot.io.messages import HabiticaMessager
@@ -29,6 +30,13 @@ class ListInactiveMembers(Functionality):
         self._messager = HabiticaMessager(HEADER)
         super().__init__()
 
+    @property
+    def allowed_inactive_members(self):
+        """
+        Return list of allowed inactive members from confs
+        """
+        return ALLOW_INACTIVITY_FROM
+
     @requires_party_membership
     def act(self, message):
         self._db_syncer.update_partymember_data()
@@ -38,6 +46,8 @@ class ListInactiveMembers(Functionality):
         inactive_members = []
         for member in member_data:
             if now - member["lastlogin"] > self.threshold:
+                if member["loginname"] in self.allowed_inactive_members:
+                    continue
                 inactive_members.append(member)
 
         return self._construct_message(inactive_members)
