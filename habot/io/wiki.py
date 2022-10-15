@@ -52,7 +52,7 @@ class WikiReader():
             :HTTPError: if the page cannot be fetched
             :WikiParsingError: if the page content cannot be found
         """
-        response = requests.get(self.url)
+        response = requests.get(self.url, timeout=5)
         response.raise_for_status()
         full_page_tree = etree.parse(StringIO(str(response.content)),
                                      self._parser)
