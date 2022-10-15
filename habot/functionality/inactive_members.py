@@ -3,8 +3,11 @@ Functionality for handling inactive party members
 """
 
 import datetime
+import urllib.parse
 
-from conf.header import HEADER
+from habitica_helper import habrequest
+
+from conf.header import HEADER, PARTY_OWNER_HEADER
 from conf.inactive_members import ALLOW_INACTIVITY_FROM
 from habot.functionality.base import (Functionality,
                                       requires_party_membership,
@@ -84,7 +87,7 @@ class ListInactiveMembers(Functionality):
         return header + user_list
 
 
-class RemoveInactiveMembers:
+class RemoveInactiveMembers(Functionality):
     """
     Removes members who have been inactive for a long time from a party
     """
@@ -98,10 +101,51 @@ class RemoveInactiveMembers:
         self._messager = HabiticaMessager(HEADER)
         super().__init__()
 
+    def _remove_from_party(self, member):
+        """
+        Remove the given member from the party.
+        """
+        # pylint: disable=no-self-use
+        id_ = member['id']
+        removal_message = (
+            f"Hey {member['displayname']},\n"
+            "We haven't seen you in a long time in the Party. We hope this "
+            "means that you're doing well and have built a support system "
+            "outside Habitica. As you probably know, there is a 30 member "
+            "limit to Habitica Parties. We recently reached that Party limit, "
+            "and would like to extend our support to others who may benefit "
+            "from our support as we hope you've benefited.  To that end, and "
+            "because you haven't logged into Habitica in over 3 months, we "
+            "feel it appropriate to release you from the Party to make space "
+            "for others.  This is not a punishment or admonishment in any "
+            "way; please know that if you come back someday, and there is "
+            "space, we will gladly invite you back.\n\n"
+            "Much love and the best of wishes in your endeavors,\n"
+            "Your Mental Health Warrior friends"
+        )
+        message = urllib.parse.quote(removal_message, safe='')
+        habrequest.post(
+            f"https://habitica.com/api/v3/groups/party/removeMember/{id_}?message={message}",
+            PARTY_OWNER_HEADER,
+            )
+
     @requires_admin_status
     def act(self, message):
+        """
+        Remove all inactive users from the party.
+        """
+        # pylint: disable=unused-argument
         self._db_syncer.update_partymember_data()
         member_data = self._db_tool.get_partymember_data()
 
         inactive_members = ListInactiveMembers().inactive_members(member_data)
-        return str(inactive_members)
+
+        if not inactive_members:
+            return "No inactive members found"
+
+        response = ["Removed the following members from party:"]
+        for member in inactive_members:
+            self._remove_from_party(member)
+            response.append(f"- @{member['loginname']}")
+
+        return "\n".join(response)
