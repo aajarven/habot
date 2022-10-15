@@ -125,7 +125,10 @@ class RemoveInactiveMembers(Functionality):
         )
         message = urllib.parse.quote(removal_message, safe='')
         habrequest.post(
-            f"https://habitica.com/api/v3/groups/party/removeMember/{id_}?message={message}",
+            (
+                f"https://habitica.com/api/v3/groups/party/removeMember/{id_}"
+                f"?message={message}"
+            ),
             PARTY_OWNER_HEADER,
             )
 
