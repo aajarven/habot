@@ -6,7 +6,9 @@ import datetime
 
 from conf.header import HEADER
 from conf.inactive_members import ALLOW_INACTIVITY_FROM
-from habot.functionality.base import Functionality, requires_party_membership
+from habot.functionality.base import (Functionality,
+                                      requires_party_membership,
+                                      requires_admin_status)
 from habot.io.db import DBTool, DBSyncer
 from habot.io.messages import HabiticaMessager
 
@@ -80,3 +82,26 @@ class ListInactiveMembers(Functionality):
                 )
 
         return header + user_list
+
+
+class RemoveInactiveMembers:
+    """
+    Removes members who have been inactive for a long time from a party
+    """
+
+    def __init__(self):
+        """
+        Initialize the class
+        """
+        self._db_syncer = DBSyncer(HEADER)
+        self._db_tool = DBTool()
+        self._messager = HabiticaMessager(HEADER)
+        super().__init__()
+
+    @requires_admin_status
+    def act(self, message):
+        self._db_syncer.update_partymember_data()
+        member_data = self._db_tool.get_partymember_data()
+
+        inactive_members = ListInactiveMembers().inactive_members(member_data)
+        return str(inactive_members)

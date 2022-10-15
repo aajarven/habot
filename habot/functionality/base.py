@@ -29,6 +29,25 @@ def requires_party_membership(act_function):
     return wrapper
 
 
+def requires_admin_status(act_function):
+    """
+    Wrapper for `act` functions that can only be used by administrators.
+
+    If a non-adinistrator tries to use a command with this decorator, they
+    get an error message instead.
+    """
+    def wrapper(self, message):
+        if message.from_id != conf.ADMIN_UID:
+            # pylint: disable=protected-access
+            self._logger.debug("Unauthorized %s request from %s",
+                               message.content.strip().split()[0],
+                               message.from_id)
+            return ("This command is usable only administrators. No messages "
+                    "sent.")
+        return act_function(self, message)
+    return wrapper
+
+
 class Functionality():
     """
     Base class for implementing real functionality.
