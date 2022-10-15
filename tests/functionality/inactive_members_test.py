@@ -106,6 +106,7 @@ def test_remove_inactive_members_allowlist(purge_and_init_memberdata_fx,
     """
     Test removing inactive members
     """
+    # pylint: disable=redefined-outer-name
     monkeypatch.setattr(ListInactiveMembers, "allowed_inactive_members",
                         ["testuser"])
 
