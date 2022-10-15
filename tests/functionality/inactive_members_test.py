@@ -56,3 +56,21 @@ def test_list_inactive_members_many(purge_and_init_memberdata_fx):
 
     assert len(response.split("\n")) == 5  # 4 members + header
     assert "- @testuser (last login 2021-01-04)" in response
+
+
+@freeze_time("2022-01-01")
+@pytest.mark.usefixtures("db_connection_fx", "no_db_update")
+def test_list_inactive_members_allowlist(purge_and_init_memberdata_fx,
+                                         monkeypatch):
+    """
+    Test listing inactive members when all members are inactive
+    """
+    monkeypatch.setattr(ListInactiveMembers, "allowed_inactive_members",
+                        ["habiticianlogin", "testuser"])
+
+    purge_and_init_memberdata_fx()
+    response = inactive_members_message()
+
+    assert len(response.split("\n")) == 3  # 2 members + header
+    assert "@habiticianlogin" not in response
+    assert "@testuser" not in response
