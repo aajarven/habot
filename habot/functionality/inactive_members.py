@@ -124,13 +124,25 @@ class RemoveInactiveMembers(Functionality):
             "Your Mental Health Warrior friends"
         )
         message = urllib.parse.quote(removal_message, safe='')
-        habrequest.post(
+
+        self._logger.debug(
+            "Attempting to remove inactive user %s from party",
+            member['displayname']
+        )
+
+        response = habrequest.post(
             (
                 f"https://habitica.com/api/v3/groups/party/removeMember/{id_}"
                 f"?message={message}"
             ),
             PARTY_OWNER_HEADER,
             )
+
+        self._logger.debug(
+            "Response to removal of inactive user %s from party: %s",
+            member['displayname'],
+            response.status_code,
+        )
 
     @requires_admin_status
     def act(self, message):
