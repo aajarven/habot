@@ -11,6 +11,7 @@ from conf.header import HEADER
 from conf import conf
 from conf.secrets import habitica_credentials
 from habot.birthdays import BirthdayReminder
+from habot.functionality.inactive_members import RemoveInactiveMembers
 from habot.functionality.react import handle_PMs
 from habot.functionality.sharing_weekend_challenge import (
         SendWinnerMessage, CreateNextSharingWeekend, AwardWinner)
@@ -19,6 +20,17 @@ from habot.exceptions import CommunicationFailedException
 from habot.io.messages import HabiticaMessager, PrivateMessage
 from habot.habitica_operations import HabiticaOperator
 from habot.logger import get_logger
+
+
+def remove_inactive_members():
+    """
+    Remove the members who have not logged in for a long time from the party.
+    """
+    inactive_member_remover = RemoveInactiveMembers()
+    fake_request_message = PrivateMessage(conf.ADMIN_UID,
+                                          habitica_credentials.ADMIN_USER_ID)
+    result = inactive_member_remover.act(fake_request_message)
+    get_logger().info(result)
 
 
 def update_party_description():
@@ -146,6 +158,9 @@ if __name__ == "__main__":
 
     schedule.every().tuesday.at("18:00").do(sharing_winner_message)
     schedule.every().tuesday.at("18:10").do(handle_sharing_weekend)
+
+    schedule.every().friday.at("12:00").do(remove_inactive_members)
+
     schedule.every().day.at("00:01").do(bday)
     schedule.every().day.at("01:00").do(cron)
 
