@@ -28,7 +28,7 @@ def remove_inactive_members():
     """
     inactive_member_remover = RemoveInactiveMembers()
     fake_request_message = PrivateMessage(conf.ADMIN_UID,
-                                          habitica_credentials.ADMIN_USER_ID)
+                                          habitica_credentials.PLAYER_USER_ID)
     result = inactive_member_remover.act(fake_request_message)
     get_logger().info(result)
 
