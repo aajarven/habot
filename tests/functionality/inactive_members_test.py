@@ -2,10 +2,17 @@
 Test functionality related to inactive partymembers
 """
 
+import re
+
 from freezegun import freeze_time
 import pytest
+import requests_mock
 
-from habot.functionality.inactive_members import ListInactiveMembers
+from conf.conf import ADMIN_UID
+from habot.functionality.inactive_members import (
+    ListInactiveMembers,
+    RemoveInactiveMembers,
+    )
 from habot.message import PrivateMessage
 from tests.conftest import SIMPLE_USER
 
@@ -74,3 +81,44 @@ def test_list_inactive_members_allowlist(purge_and_init_memberdata_fx,
     assert len(response.split("\n")) == 3  # 2 members + header
     assert "@habiticianlogin" not in response
     assert "@testuser" not in response
+
+
+@pytest.fixture
+def mock_delete_member():
+    """
+    Return a pre-defined member data as a response to API call
+    """
+    removal_urls = re.compile(
+            r"https://habitica\.com/api/v3/groups/party/removeMember/.*"
+        )
+    with requests_mock.Mocker() as mock:
+        mock.register_uri(
+            "POST",
+            removal_urls,
+            )
+        yield mock
+
+
+@freeze_time("2021-03-01")
+@pytest.mark.usefixtures("db_connection_fx", "no_db_update")
+def test_remove_inactive_members_allowlist(purge_and_init_memberdata_fx,
+                                           monkeypatch, mock_delete_member):
+    """
+    Test removing inactive members
+    """
+    # pylint: disable=redefined-outer-name
+    monkeypatch.setattr(ListInactiveMembers, "allowed_inactive_members",
+                        ["testuser"])
+
+    purge_and_init_memberdata_fx()
+
+    test_message = PrivateMessage(ADMIN_UID, "to_id",
+                                  content="list-inactive-members")
+    remover = RemoveInactiveMembers()
+    response = remover.act(test_message)
+
+    assert len(response.split("\n")) == 2  # 1 member + header
+    assert "@habiticianlogin" in response
+    assert "@testuser" not in response
+
+    assert mock_delete_member.call_count == 1
