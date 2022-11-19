@@ -144,6 +144,8 @@ class RemoveInactiveMembers(Functionality):
             response.status_code,
         )
 
+        self._messager.send_private_message(id_, removal_message)
+
     @requires_admin_status
     def act(self, message):
         """
