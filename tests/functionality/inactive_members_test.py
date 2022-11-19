@@ -100,9 +100,11 @@ def mock_delete_member():
 
 
 @freeze_time("2021-03-01")
-@pytest.mark.usefixtures("db_connection_fx", "no_db_update")
+@pytest.mark.usefixtures("db_connection_fx", "no_db_update",
+                         "mock_send_private_message_fx")
 def test_remove_inactive_members_allowlist(purge_and_init_memberdata_fx,
-                                           monkeypatch, mock_delete_member):
+                                           monkeypatch, mock_delete_member,
+                                           mock_send_private_message_fx):
     """
     Test removing inactive members
     """
@@ -122,3 +124,7 @@ def test_remove_inactive_members_allowlist(purge_and_init_memberdata_fx,
     assert "@testuser" not in response
 
     assert mock_delete_member.call_count == 1
+
+    pm_args = mock_send_private_message_fx.call_args_list
+    assert len(pm_args) == 1
+    assert pm_args[0][0][0] == "a431b1a5-d287-4c34-93c4-7d607905a947"
