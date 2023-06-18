@@ -10,7 +10,11 @@ from habot.functionality.newsletter import SendPartyNewsletter
 from habot.functionality.party_description import UpdatePartyDescription
 from habot.functionality.quests import ListOwnedQuests, SendQuestReminders
 from habot.functionality.sharing_weekend_challenge import (
-        SendWinnerMessage, CreateNextSharingWeekend, AwardWinner)
+        SendWinnerMessage,
+        CreateNextSharingWeekend,
+        AwardWinner,
+        CountUnusedQuestions
+        )
 from habot.functionality.tasks import AddTask
 from habot.functionality.inactive_members import (
         ListInactiveMembers,
@@ -59,6 +63,7 @@ def react_to_message(message):
         "send-winner-message": SendWinnerMessage,
         "create-next-sharing-weekend": CreateNextSharingWeekend,
         "award-latest-winner": AwardWinner,
+        "count-unused-questions": CountUnusedQuestions,
         "ping": Ping,
         "add-task": AddTask,
         "quest-reminders": SendQuestReminders,

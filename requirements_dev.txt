@@ -6,6 +6,7 @@ google-api-python-client
 google-auth-httplib2
 google-auth-oauthlib
 lxml
+mock
 mysql-connector-python
 pytest
 pytest-mock

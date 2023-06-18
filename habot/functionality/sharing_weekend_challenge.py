@@ -5,6 +5,7 @@ This includes:
     - Creating a new challenge
     - Listing participants of a challenge and drawing a winner
     - Ending the challenge and awarding a winner
+    - Reporting the number of unused questions
 """
 
 import datetime
@@ -14,6 +15,7 @@ from habitica_helper.challenge import Challenge
 
 from habot.functionality.base import Functionality
 from habot.habitica_operations import HabiticaOperator
+from habot.io.yaml import YAMLFileIO
 from habot.sharing_weekend import SharingChallengeOperator
 from habot import utils
 
@@ -138,3 +140,20 @@ class AwardWinner(Functionality):
     def help(self):
         return ("Award a stock data determined winner for the newest sharing "
                 "weekend challenge.")
+
+
+class CountUnusedQuestions(Functionality):
+    """
+    A class for reporting the number of unused questions left.
+    """
+
+    def act(self, message):
+        """
+        Respond with the number of unused questions. No changes made.
+        """
+        questions = YAMLFileIO.read_question_list(
+                QUESTIONS_PATH,
+                unused_only=True
+                )
+        return (f"There are {len(questions.values())} unused sharing weekend "
+                "questions")
