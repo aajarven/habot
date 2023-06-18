@@ -19,7 +19,7 @@ from habot import utils
 
 from conf.header import HEADER
 from conf.tasks import WINNER_PICKED
-from conf.sharing_weekend import STOCK_DAY_NUMBER, STOCK_NAME
+from conf.sharing_weekend import STOCK_DAY_NUMBER, STOCK_NAME, QUESTIONS_PATH
 
 
 class SendWinnerMessage(Functionality):
@@ -76,17 +76,16 @@ class CreateNextSharingWeekend(Functionality):
             return "Only administrators are allowed to create new challenges."
 
         tasks_path = "data/sharing_weekend_static_tasks.yml"
-        questions_path = "data/weekly_questions.yml"
         self._logger.debug("create-next-sharing-weekend: tasks from %s, "
                            "weekly question from %s",
-                           tasks_path, questions_path)
+                           tasks_path, QUESTIONS_PATH)
 
         operator = SharingChallengeOperator(HEADER)
         update_questions = True
 
         try:
             challenge = operator.create_new()
-            operator.add_tasks(challenge.id, tasks_path, questions_path,
+            operator.add_tasks(challenge.id, tasks_path, QUESTIONS_PATH,
                                update_questions=update_questions)
         except:  # noqa: E722  pylint: disable=bare-except
             self._logger.error("Challenge creation failed", exc_info=True)
