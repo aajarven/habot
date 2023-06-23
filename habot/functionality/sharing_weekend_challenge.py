@@ -155,5 +155,8 @@ class CountUnusedQuestions(Functionality):
                 QUESTIONS_PATH,
                 unused_only=True
                 )
-        return (f"There are {len(questions.values())} unused sharing weekend "
-                "questions")
+        n_questions = len(questions.values())
+        if n_questions == 1:
+            return "There is 1 unused sharing weekend question"
+
+        return f"There are {n_questions} unused sharing weekend questions"

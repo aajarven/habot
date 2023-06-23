@@ -1,0 +1,19 @@
+questions:
+- description: Do you park yourself into a safe, dim and soft pillow fort built just
+    for that? Does a dose of fresh air help you get in touch with yourself? Do you
+    just get to your computer to relax by looking at some cute animals?
+  question: When you need a break from someone or something, where is your go to
+    place?
+  used: true
+- description: some details for the question 🤔
+  question: question
+  used: true
+- description: another set of details
+  question: another question
+  used: false
+- description: this description has already been used
+  question: this question has already been used
+  used: true
+- description: perfectly normal question
+  question: another question in a peculiar place
+  used: true

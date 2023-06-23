@@ -18,4 +18,18 @@ def test_count_unused_questions():
     test_message = PrivateMessage(SIMPLE_USER["id"], "to_id",
                                   content="count-unused-questions")
     counter = CountUnusedQuestions()
-    assert "There are 4 unused" in counter.act(test_message)
+    assert ("There are 4 unused sharing weekend questions"
+            in counter.act(test_message))
+
+
+@mock.patch("habot.functionality.sharing_weekend_challenge.QUESTIONS_PATH",
+            "tests/data/single_unused_question.yml")
+def test_count_unused_singular():
+    """
+    Check that singular form is used in the response with only one question.
+    """
+    test_message = PrivateMessage(SIMPLE_USER["id"], "to_id",
+                                  content="count-unused-questions")
+    counter = CountUnusedQuestions()
+    assert ("There is 1 unused sharing weekend question"
+            in counter.act(test_message))
