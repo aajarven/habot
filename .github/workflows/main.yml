@@ -14,8 +14,8 @@ jobs:
         python-version: 3.8
     - name: Install database dependencies
       run: |
-        sudo apt update
-        sudo apt install mariadb-server-core
+        sudo apt-get update
+        sudo apt-get install mariadb-server-core
     - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
