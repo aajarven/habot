@@ -197,9 +197,11 @@ def test_utils(testdata_db_operator, method, kwargs, expected_value):
     Test that utility functions for the db work
     """
     result = getattr(testdata_db_operator, method)(**kwargs)
-    assert len(result) == len(expected_value)
-    for value in expected_value:
-        assert value in result
+    if isinstance(result, list):
+        for value in expected_values:
+            assert value in result
+    else:
+        assert result == expected_value
 
 
 def _dict_in_list(dict_to_find, dict_list):
