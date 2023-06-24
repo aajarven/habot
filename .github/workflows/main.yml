@@ -15,7 +15,7 @@ jobs:
     - name: Install database dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install mariadb-server-core
+        sudo apt-get install mariadb
     - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
