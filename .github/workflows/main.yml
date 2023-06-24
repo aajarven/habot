@@ -14,8 +14,8 @@ jobs:
         python-version: 3.8
     - name: Install database dependencies
       run: |
-        sudo add-apt-repository "deb http://us.archive.ubuntu.com/ubuntu/ focal main restricted universe multiverse"
-        sudo add-apt-repository "deb http://us.archive.ubuntu.com/ubuntu/ focal-updates main restricted universe multiverse"
+        sudo add-apt-repository "deb http://us.archive.ubuntu.com/ubuntu/ focal main restricted"
+        sudo add-apt-repository "deb http://us.archive.ubuntu.com/ubuntu/ focal-updates main restricted"
         sudo apt-get update
         sudo apt-get install mariadb-server-10.3
     - name: Install Python dependencies
