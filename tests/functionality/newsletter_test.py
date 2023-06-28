@@ -25,7 +25,7 @@ def test_party_newsletter(mock_send_private_message_fx,
 
     message = ("This is some content for the newsletter!\n\n"
                "It might contain **more than one paragraph**, wow.")
-    command = (f"send-party-newsletter\n \n{message}\n ")
+    command = f"send-party-newsletter\n \n{message}\n "
     test_message = PrivateMessage(ALL_USERS[-1]["id"],
                                   "to_id",
                                   content=command)
