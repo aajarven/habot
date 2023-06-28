@@ -13,7 +13,8 @@ from habot.functionality.sharing_weekend_challenge import (
         SendWinnerMessage,
         CreateNextSharingWeekend,
         AwardWinner,
-        CountUnusedQuestions
+        CountUnusedQuestions,
+        AddQuestion,
         )
 from habot.functionality.tasks import AddTask
 from habot.functionality.inactive_members import (
@@ -64,6 +65,7 @@ def react_to_message(message):
         "create-next-sharing-weekend": CreateNextSharingWeekend,
         "award-latest-winner": AwardWinner,
         "count-unused-questions": CountUnusedQuestions,
+        "add-new-question": AddQuestion,
         "ping": Ping,
         "add-task": AddTask,
         "quest-reminders": SendQuestReminders,
