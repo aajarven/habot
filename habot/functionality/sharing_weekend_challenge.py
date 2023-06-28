@@ -168,6 +168,17 @@ class AddQuestion(Functionality):
     A class for adding a new question to the question list.
     """
 
+    def help(self):
+        return (
+            "Add a new question to the question list. Expected format of the "
+            "message is:\n"
+            "```\n"
+            "add-new-question\n"
+            "[question task title]\n"
+            "[question task notes]\n"
+            "```\n"
+            )
+
     def act(self, message):
         """
         Add a new question to the question list.
