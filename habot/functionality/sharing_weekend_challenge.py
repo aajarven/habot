@@ -5,21 +5,24 @@ This includes:
     - Creating a new challenge
     - Listing participants of a challenge and drawing a winner
     - Ending the challenge and awarding a winner
+    - Reporting the number of unused questions
 """
 
 import datetime
 
 from habitica_helper import habiticatool
 from habitica_helper.challenge import Challenge
+from habitica_helper.task import Task
 
 from habot.functionality.base import Functionality
 from habot.habitica_operations import HabiticaOperator
+from habot.io.yaml import YAMLFileIO
 from habot.sharing_weekend import SharingChallengeOperator
 from habot import utils
 
 from conf.header import HEADER
 from conf.tasks import WINNER_PICKED
-from conf.sharing_weekend import STOCK_DAY_NUMBER, STOCK_NAME
+from conf.sharing_weekend import STOCK_DAY_NUMBER, STOCK_NAME, QUESTIONS_PATH
 
 
 class SendWinnerMessage(Functionality):
@@ -76,17 +79,16 @@ class CreateNextSharingWeekend(Functionality):
             return "Only administrators are allowed to create new challenges."
 
         tasks_path = "data/sharing_weekend_static_tasks.yml"
-        questions_path = "data/weekly_questions.yml"
         self._logger.debug("create-next-sharing-weekend: tasks from %s, "
                            "weekly question from %s",
-                           tasks_path, questions_path)
+                           tasks_path, QUESTIONS_PATH)
 
         operator = SharingChallengeOperator(HEADER)
         update_questions = True
 
         try:
             challenge = operator.create_new()
-            operator.add_tasks(challenge.id, tasks_path, questions_path,
+            operator.add_tasks(challenge.id, tasks_path, QUESTIONS_PATH,
                                update_questions=update_questions)
         except:  # noqa: E722  pylint: disable=bare-except
             self._logger.error("Challenge creation failed", exc_info=True)
@@ -139,3 +141,96 @@ class AwardWinner(Functionality):
     def help(self):
         return ("Award a stock data determined winner for the newest sharing "
                 "weekend challenge.")
+
+
+class CountUnusedQuestions(Functionality):
+    """
+    A class for reporting the number of unused questions left.
+    """
+
+    def act(self, message):
+        """
+        Respond with the number of unused questions. No changes made.
+        """
+        questions = YAMLFileIO.read_question_list(
+                QUESTIONS_PATH,
+                unused_only=True
+                )
+        n_questions = len(questions.values())
+        if n_questions == 1:
+            return "There is 1 unused sharing weekend question"
+
+        return f"There are {n_questions} unused sharing weekend questions"
+
+
+class AddQuestion(Functionality):
+    """
+    A class for adding a new question to the question list.
+    """
+
+    def help(self):
+        return (
+            "Add a new question to the question list. Expected format of the "
+            "message is:\n"
+            "```\n"
+            "add-new-question\n"
+            "[question task title]\n"
+            "[question task notes]\n"
+            "```\n"
+            )
+
+    def act(self, message):
+        """
+        Add a new question to the question list.
+
+        Expected format of the message is:
+        ```
+        add-new-question
+        [question task title]
+        [question task notes]
+        ```
+        """
+        # pylint: disable=arguments-differ
+
+        parts = message.content.strip().split("\n")
+
+        if len(parts) != 3:
+            return (
+                "Unexpected question format. The message you sent was:\n"
+                "```\n"
+                f"{message.content}\n"
+                "```\n"
+                "This has too many or too few rows. The command, question "
+                "title and the question description must each be separated "
+                "by a newline. None of them can contain newlines. Expected "
+                "format is:\n"
+                "```\n"
+                "add-new-question\n"
+                "What is an interesting question?\n"
+                "It can be many kinds of things, like something that makes "
+                "the respondent think, or just something that is fun to "
+                "answer.\n"
+                "```\n"
+                )
+
+        question = parts[1]
+        description = parts[2]
+
+        new_question_task = Task(
+            {
+                "text": question,
+                "notes": description,
+                "tasktype": "todo"
+            }
+        )
+
+        questions = YAMLFileIO.read_question_list(QUESTIONS_PATH,
+                                                  unused_only=False)
+        questions[new_question_task] = False
+
+        YAMLFileIO.write_question_list(questions, QUESTIONS_PATH)
+        return (
+            "Added the following question:\n"
+            f"Title:{question}\n"
+            f"Notes:{description}\n"
+        )

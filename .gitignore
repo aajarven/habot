@@ -1,5 +1,6 @@
 .coverage
 .venv
+.flake8
 *.swp
 *.pyc
 .mypy_cache/
