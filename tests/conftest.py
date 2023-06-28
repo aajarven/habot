@@ -242,3 +242,4 @@ def configure_test_admin(monkeypatch):
     Set one of the test data users as admin.
     """
     monkeypatch.setattr("conf.conf.ADMIN_UID", SIMPLE_USER["id"])
+    monkeypatch.setattr("conf.conf.ADMIN_LOGINNAME", SIMPLE_USER["loginname"])

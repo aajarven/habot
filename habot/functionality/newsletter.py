@@ -103,5 +103,5 @@ class SendPartyNewsletter(Functionality):
                 f"This is a party newsletter written by @{sender_name} and "
                 "brought you by the party bot. If you suspect you should "
                 "not have received this message, please contact "
-                f"@{self._db_tool.get_loginname(conf.ADMIN_UID)}."
+                f"@{conf.ADMIN_LOGINNAME}."
                 )
