@@ -181,7 +181,7 @@ class AddQuestion(Functionality):
         """
         # pylint: disable=arguments-differ
 
-        parts = message.content.split("\n")
+        parts = message.content.strip().split("\n")
 
         if len(parts) != 3:
             return (
