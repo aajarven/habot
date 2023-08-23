@@ -8,7 +8,8 @@ import urllib.parse
 from habitica_helper import habrequest
 
 from conf.header import HEADER, PARTY_OWNER_HEADER
-from conf.inactive_members import ALLOW_INACTIVITY_FROM
+from conf.inactive_members import (ALLOW_INACTIVITY_FROM,
+                                   INACTIVITY_THRESHOLD_DAYS)
 from habot.functionality.base import (Functionality,
                                       requires_party_membership,
                                       requires_admin_status)
@@ -24,7 +25,7 @@ class ListInactiveMembers(Functionality):
     three months.
     """
 
-    threshold = datetime.timedelta(days=30*3)
+    threshold = datetime.timedelta(days=INACTIVITY_THRESHOLD_DAYS)
 
     def __init__(self):
         """
