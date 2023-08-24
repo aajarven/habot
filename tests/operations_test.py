@@ -193,3 +193,19 @@ def test_cron(mock_post, test_operator, header_fx):
     test_operator.cron()
     mock_post.assert_called_with("https://habitica.com/api/v3/cron",
                                  headers=header_fx)
+
+
+@pytest.mark.usefixtures("mock_user_data")
+def test_gem_balance(test_operator):
+    """
+    Test that correct gem balance is reported.
+    """
+    assert test_operator.gem_balance() == 15
+
+
+@pytest.mark.usefixtures("mock_user_data")
+def test_gem_balance_does_not_have_decimals(test_operator):
+    """
+    Ensure that gem balance does not contain decimal part
+    """
+    assert isinstance(test_operator.gem_balance(), int)
