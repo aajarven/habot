@@ -18,7 +18,10 @@ def requires_party_membership(act_function):
     def wrapper(self, message):
         partymember_uids = DBTool().get_party_user_ids()
 
-        if message.from_id not in partymember_uids:
+        if (
+                message.from_id not in partymember_uids
+                and message.from_id != conf.ADMIN_UID
+                ):
             # pylint: disable=protected-access
             self._logger.debug("Unauthorized %s request from %s",
                                message.content.strip().split()[0],
