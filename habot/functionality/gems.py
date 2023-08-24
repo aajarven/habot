@@ -22,3 +22,6 @@ class GemBalance(Functionality):
         Report the number of gems in the bot's wallet.
         """
         return f"I have {self.habitica_operator.gem_balance()} gems"
+
+    def help(self):
+        return "Reports the number of gems currently in the bot's wallet"
