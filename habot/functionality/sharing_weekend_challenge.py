@@ -22,7 +22,12 @@ from habot import utils
 
 from conf.header import HEADER
 from conf.tasks import WINNER_PICKED
-from conf.sharing_weekend import STOCK_DAY_NUMBER, STOCK_NAME, QUESTIONS_PATH
+from conf.sharing_weekend import (
+        STOCK_DAY_NUMBER,
+        STOCK_NAME,
+        QUESTIONS_PATH,
+        CHALLENGE_ADMINS,
+        )
 
 
 class SendWinnerMessage(Functionality):
@@ -75,8 +80,9 @@ class CreateNextSharingWeekend(Functionality):
         """
         # pylint: disable=arguments-differ
 
-        if not scheduled_run and not self._sender_is_admin(message):
-            return "Only administrators are allowed to create new challenges."
+        if not scheduled_run and message.from_id not in CHALLENGE_ADMINS:
+            return ("Only challenge administrators are allowed to create new "
+                    "challenges.")
 
         tasks_path = "data/sharing_weekend_static_tasks.yml"
         self._logger.debug("create-next-sharing-weekend: tasks from %s, "
@@ -125,8 +131,9 @@ class AwardWinner(Functionality):
         """
         # pylint: disable=arguments-differ
 
-        if not scheduled_run and not self._sender_is_admin(message):
-            return "Only administrators are allowed to end challenges."
+        if not scheduled_run and message.from_id not in CHALLENGE_ADMINS:
+            return ("Only challenge administrators are allowed to end "
+                    "challenges.")
 
         challenge_id = self.partytool.current_sharing_weekend()["id"]
         challenge = Challenge(HEADER, challenge_id)

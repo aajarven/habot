@@ -5,6 +5,8 @@ Data for creating and operating Sharing Weekend challenges.
 STOCK_DAY_NUMBER = 1  # Tuesday
 STOCK_NAME = "^AEX"
 
+CHALLENGE_ADMINS = []
+
 QUESTIONS_PATH = "data/weekly_questions.yml"
 
 SUMMARY = ("Each weekend (Sat/Sun/Mon) we look back and find positives "
