@@ -21,13 +21,28 @@ class HabiticaOperator():
     def __init__(self, header):
         self._header = header
         self._logger = habot.logger.get_logger()
+        self._user_data = None
 
-    def _get_user_data(self):
+    @property
+    def user_data(self):
         """
         Return the full user data dict.
         """
-        url = "https://habitica.com/api/v3/user"
-        return get_dict_from_api(self._header, url)
+        if not self._user_data:
+            url = "https://habitica.com/api/v3/user"
+            self._user_data = get_dict_from_api(self._header, url)
+
+        return self._user_data
+
+    def gem_balance(self):
+        """
+        Return the number of gems in wallet.
+
+        The nominal value for a gem is 0.25$, and the API reports the balance
+        in dollars, so the actual gem balance can be obtained by multiplying
+        the wallet balance by four.
+        """
+        return self.user_data["data"]["balance"] * 4
 
     def _get_tasks(self, task_type=None):
         """

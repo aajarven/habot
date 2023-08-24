@@ -140,6 +140,27 @@ def mock_task_finding(requests_mock):
 
 
 @pytest.fixture()
+def mock_user_data(requests_mock):
+    """
+    Return standard test data for user
+    """
+    requests_mock.get("https://habitica.com/api/v3/user",
+                      json={
+                          "success": True,
+                          "data": {
+                            "success": True,
+                            "data": {
+                                "auth": {
+                                    "local": {"username": "Botonbury"},
+                                    },
+                                "balance": 3.75
+                                }
+                             }
+                          }
+                      )
+
+
+@pytest.fixture()
 def header_fx(test_credentials):
     """
     Return a header dict for testing.
