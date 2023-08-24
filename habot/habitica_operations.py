@@ -41,8 +41,11 @@ class HabiticaOperator():
         The nominal value for a gem is 0.25$, and the API reports the balance
         in dollars, so the actual gem balance can be obtained by multiplying
         the wallet balance by four.
+
+        The result is converted to int as at the moment Habitica does not
+        handle sub-gem amounts.
         """
-        return self.user_data["balance"] * 4
+        return int(self.user_data["balance"] * 4)
 
     def _get_tasks(self, task_type=None):
         """
