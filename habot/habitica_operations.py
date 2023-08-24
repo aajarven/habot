@@ -42,7 +42,7 @@ class HabiticaOperator():
         in dollars, so the actual gem balance can be obtained by multiplying
         the wallet balance by four.
         """
-        return self.user_data["data"]["balance"] * 4
+        return self.user_data["balance"] * 4
 
     def _get_tasks(self, task_type=None):
         """

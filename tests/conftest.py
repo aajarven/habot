@@ -148,14 +148,11 @@ def mock_user_data(requests_mock):
                       json={
                           "success": True,
                           "data": {
-                            "success": True,
-                            "data": {
-                                "auth": {
-                                    "local": {"username": "Botonbury"},
-                                    },
-                                "balance": 3.75
-                                }
-                             }
+                              "auth": {
+                                  "local": {"username": "Botonbury"},
+                                  },
+                              "balance": 3.75
+                              }
                           }
                       )
 

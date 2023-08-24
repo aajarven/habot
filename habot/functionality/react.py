@@ -6,6 +6,7 @@ import re
 
 from habot.functionality.base import Ping
 from habot.functionality.birthdays import ListBirthdays
+from habot.functionality.gems import GemBalance
 from habot.functionality.newsletter import SendPartyNewsletter
 from habot.functionality.party_description import UpdatePartyDescription
 from habot.functionality.quests import ListOwnedQuests, SendQuestReminders
@@ -74,6 +75,7 @@ def react_to_message(message):
         "update-party-description": UpdatePartyDescription,
         "list-inactive-members": ListInactiveMembers,
         "remove-inactive-members": RemoveInactiveMembers,
+        "gem-balance": GemBalance,
         }
     first_word = message.content.strip().split()[0]
     logger.debug("Got message starting with %s", first_word)
