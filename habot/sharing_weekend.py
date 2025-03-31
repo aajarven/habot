@@ -5,7 +5,7 @@ Bot functionality for running sharing weekend challenge
 from habitica_helper.challenge import ChallengeTool
 from habitica_helper.utils import get_dict_from_api, get_next_weekday
 
-from conf.sharing_weekend import SUMMARY, DESCRIPTION
+from conf.sharing_weekend import SUMMARY, DESCRIPTION, GEM_PRIZE
 from conf.tasks import CHALLENGE_CREATED
 from habot.habitica_operations import HabiticaOperator, NotFoundException
 from habot.io.yaml import YAMLFileIO
@@ -40,7 +40,7 @@ class SharingChallengeOperator():
             "shortName": self._next_weekend_shortname(),
             "summary": SUMMARY,
             "description": DESCRIPTION,
-            "prize": 3,
+            "prize": GEM_PRIZE,
             })
         try:
             self._operator.tick_task(CHALLENGE_CREATED)
