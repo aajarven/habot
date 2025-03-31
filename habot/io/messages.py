@@ -97,9 +97,9 @@ class HabiticaMessager():
         """
         api_url = "https://habitica.com/api/v3/members/send-private-message"
         message_parts = self._split_long_message(message)
-        if len(message_parts) > 3:
-            raise SpamDetected(f"Sending {message_parts} messages at once is "
-                               "not supported.")
+        if len(message_parts) > 5:
+            raise SpamDetected(f"Sending {len(message_parts)} messages at "
+                               "once is not supported.")
         for message_part in message_parts:
             try:
                 habrequest.post(api_url, headers=self._header,
