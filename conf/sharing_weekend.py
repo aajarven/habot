@@ -9,6 +9,7 @@ CHALLENGE_ADMINS = []
 
 QUESTIONS_PATH = "data/weekly_questions.yml"
 
+GEM_PRIZE = 2  # NB: this is mentioned in the description!
 SUMMARY = ("Each weekend (Sat/Sun/Mon) we look back and find positives "
            "from the past week to celebrate, look forward and set a goal for "
            "the upcoming week, and also have some fun answering questions "
@@ -46,8 +47,8 @@ DESCRIPTION = ("_This Challenge is all about sharing with the party, in the "
                "positive)"
                "\n\n"
                "**Every week, one participant who completes all 3 to-do's "
-               "will be chosen randomly to be awarded 3 gems** "
-               ":gem::gem::gem:: (and will also get this challenge added to "
+               "will be chosen randomly to be awarded 2 gems** "
+               ":gem::gem: (and will also get this challenge added to "
                "their public list of \"challenges won\")."
                "\n\n"
                "**Please Note: You must officially join the challenge in order"
