@@ -33,6 +33,11 @@ from conf.sharing_weekend import (
 class SendWinnerMessage(Functionality):
     """
     Functionality for announcing sharing weekend challenge winner.
+
+    Disabled for now, because due to the stock based randomization being unavailable,
+    the winners are not deterministic. This means that the winner message and winner
+    awarding must always happen together, otherwise there could be conflicting messages
+    about the winner.
     """
 
     def __init__(self):
@@ -48,6 +53,9 @@ class SendWinnerMessage(Functionality):
         picking the winner, and the resulting winner. In case there are no
         participants, the message just states that.
         """
+
+        raise Exception("This command is disabled for now.")
+
         challenge_id = self.partytool.current_sharing_weekend()["id"]
         challenge = Challenge(HEADER, challenge_id)
         completer_str = challenge.completer_str()
@@ -137,16 +145,18 @@ class AwardWinner(Functionality):
 
         challenge_id = self.partytool.current_sharing_weekend()["id"]
         challenge = Challenge(HEADER, challenge_id)
-        today = datetime.date.today()
-        stock_date = (today
-                      - datetime.timedelta(today.weekday() - STOCK_DAY_NUMBER))
-        winner = challenge.random_winner(stock_date, STOCK_NAME)
+        # today = datetime.date.today()
+        # stock_date = (today
+        #               - datetime.timedelta(today.weekday() - STOCK_DAY_NUMBER))
+        # winner = challenge.random_winner(stock_date, STOCK_NAME)
+        winner = challenge.random_winner()
         challenge.award_winner(winner.id)
         return (f"Congratulations are in order for {winner}, the lucky winner "
                 f"of {challenge.name}!")
 
     def help(self):
-        return ("Award a stock data determined winner for the newest sharing "
+        return ("Award a ~~stock data determined~~ (disabled for now, using "
+                "\"normal\" RNG instead) winner for the newest sharing "
                 "weekend challenge.")
 
 

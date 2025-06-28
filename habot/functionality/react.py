@@ -62,7 +62,7 @@ def react_to_message(message):
 
     commands = {
         "list-birthdays": ListBirthdays,
-        "send-winner-message": SendWinnerMessage,
+        # "send-winner-message": SendWinnerMessage,
         "create-next-sharing-weekend": CreateNextSharingWeekend,
         "award-latest-winner": AwardWinner,
         "count-unused-questions": CountUnusedQuestions,
