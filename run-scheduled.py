@@ -156,7 +156,7 @@ if __name__ == "__main__":
     schedule.every(4).hours.do(join_quest)
     schedule.every(6).hours.do(update_party_description)
 
-    schedule.every().tuesday.at("18:00").do(sharing_winner_message)
+#    schedule.every().tuesday.at("18:00").do(sharing_winner_message)
     schedule.every().tuesday.at("18:10").do(handle_sharing_weekend)
 
     schedule.every().friday.at("12:00").do(remove_inactive_members)
